@@ -1,42 +1,6 @@
 include "PremakeScripts/CSharpTweaks.lua"
-include "PremakeScripts/SolutionFiles.lua"
-
-newoption {
-    trigger = "with-opengl",
-    description = "Force the use of OpenGL for rendering, regardless of platform"
-}
-
-local function defaultTarget()
-    targetdir           "Bin/%{cfg.buildcfg}"
-end
-
-local function launcherTarget()
-    targetdir           "Bin/%{cfg.buildcfg}"
-end
-
-local function engineTarget()
-    targetdir           "Bin/%{cfg.buildcfg}/Engine"
-end
-
-local function toolTarget()
-    targetdir           "ToolBin/%{cfg.buildcfg}"
-end
-
-local function workspaceLocation()
-    location            "Build"
-end
-
-local function projectLocation()
-    location            "Build/%{prj.name}"
-end
-
-local function clientBinary()
-    defines             { "CLIENT" }
-end
-
-local function serverBinary()
-    defines             { "SERVER" }
-end
+include "PremakeScripts/CleanVS.lua"
+include "PremakeScripts/TreeProject.lua"
 
 
 workspace "TreeEngine"
@@ -44,27 +8,18 @@ workspace "TreeEngine"
     platforms           { "x64" }
     cppdialect          "C++20"
     dotnetframework     "net8.0"
-    defaultTarget       ()
-    workspaceLocation   ()
+    location            "Source"
 
-    solutionitems {
-        ["Premake"] = {
-            "../premake5.lua",
-            ["Scripts"] = {
-                "../Premake/**.lua"
-            }
-        }
-    }
+    objdir              "Build"
+    includedirs         { "%{wks.location}", "ThirdParty/Include" }
 
     filter { "platforms:x64" }
         architecture    "x86_64"
 
-    filter { "system:Windows" }
-        system          "windows"
-        defines         { "WINDOWS" }
+    filter { "system:windows" }
+        defines         { "WINDOWS", "WIN32" }
     
-    filter { "system:Linux" }
-        system          "linux"
+    filter { "system:linux" }
         defines         { "LINUX" }
 
     filter "configurations:Debug"
@@ -75,63 +30,69 @@ workspace "TreeEngine"
         defines         { "NDEBUG" }
         optimize        "On"
 
-
-group "Engine"
-    group "Engine/Managed"
-        project "Tree.Trunk"
-            kind                "SharedLib"
-            language            "C#"
-            engineTarget        ()
-            projectLocation     ()
-
-            files               { "Source/Tree.Trunk/**.cs" }
-
-    group "Engine/Native"
-        project "Tree.Root.Client"
-            kind                "SharedLib"
-            language            "C++"
-            engineTarget        ()
-            projectLocation     ()
-            clientBinary        ()
-
-            files               { "Source/Tree.Root/**.h", "Source/Tree.Root/**.cpp" }
-
-        project "Tree.Root.Server"
-            kind                "SharedLib"
-            language            "C++"
-            engineTarget        ()
-            projectLocation     ()
-            serverBinary        ()
-
-            files               { "Source/Tree.Root/**.h", "Source/Tree.Root/**.cpp" }
+    filter {}
 
 
-group "Launchers"
-    project "Tree.Launcher.Client"
-        kind                "ConsoleApp"
-        language            "C++"
-        launcherTarget      ()
-        projectLocation     ()
-        clientBinary        ()
+group "Managed"
+    treeproject {
+        name = "Tree.Trunk",
+        language = "C#",
+        kind = "SharedLib",
+        target = "Engine"
+    }
+    links { "Tree.Interop" }
 
-        files               { "Source/Tree.Launcher/**.h", "Source/Tree.Launcher/**.cpp" }
+    treeproject {
+        name = "Tree.Interop",
+        language = "C#",
+        kind = "SharedLib",
+        target = "Engine"
+    }
 
-    project "Tree.Launcher.Server"
-        kind                "ConsoleApp"
-        language            "C++"
-        launcherTarget      ()
-        projectLocation     ()
-        serverBinary        ()
+group "Native"
+    treeproject {
+            name = "Tree.Root",
+            language = "C++",
+            kind = "SharedLib",
+            target = "Engine",
+            links = { "Tree.NativeCommon" }
+        }
 
-        files               { "Source/Tree.Launcher/**.h", "Source/Tree.Launcher/**.cpp" }
+    treeproject {
+            name = "Tree.NativeCommon",
+            language = "C++",
+            splitdomain = false,
+            kind = "StaticLib",
+            target = "Engine"
+        }
 
+group "Native/Launchers"
+    treeproject {
+        name = "Tree.Launcher",
+        language = "C++",
+        splitdomain = true,
+        kind = {
+            editor = "WindowedApp",
+            client = "WindowedApp",
+            server = "ConsoleApp"
+        },
+        links = { "Tree.NativeCommon" },
+        defines = { "LAUNCHER" }
+    }
 
 group "Tools"
-    project "Tree.GlueGen"
-        kind                "ConsoleApp"
-        language            "C#"
-        toolTarget          ()
-        projectLocation     ()
-        nuget               { "Antlr4.Runtime.Standard:4.13.1" }
+    treeproject {
+        name = "Tree.GlueGen",
+        language = "C#",
+        kind = "ConsoleApp",
+        target = "Tools"
+    }
+        nuget { "Antlr4.Runtime.Standard:4.13.1" }
 
-        files               { "Source/Tree.GlueGen/**.cs" }
+
+workspace "*"
+        -- Exclude os-specific files
+    filter { "system:linux", "files:**_win.*" }
+        flags { "ExcludeFromBuild" }
+    filter { "system:windows", "files:**_linux.*"}
+        flags { "ExcludeFromBuild"}

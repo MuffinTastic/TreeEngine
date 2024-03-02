@@ -397,5 +397,19 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
+# Tree Engine Specific
 [Tt]ool[Bb]in/
 Build/
+
+*.csproj
+*.vcxproj
+*.sln
+
+# Third party code, but keep stubs around
+ThirdParty/*
+!ThirdParty/Bin
+ThirdParty/Bin/*
+!ThirdParty/Include
+ThirdParty/Include/*
+
+!**/.stub
