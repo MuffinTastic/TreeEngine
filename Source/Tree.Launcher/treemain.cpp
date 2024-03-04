@@ -6,9 +6,13 @@
 #endif
 
 #include <iostream>
+#include <filesystem>
 
 #include "Tree.NativeCommon/unicode.h"
 #include "Tree.NativeCommon/platform.h"
+#include "Tree.NativeCommon/module.h"
+
+#include "Tree.Root/interfaces/itestsystem.h"
 
 #ifdef WINDOWS
 void OpenWindowsConsole()
@@ -46,18 +50,29 @@ int Tree::TreeMain( std::vector<std::string> arguments )
     std::cout << "Server" << std::endl;
 #endif
 
-    std::cout << "Exe directory: " << Platform::GetExecutableDirectory() << std::endl;
+    std::string basepath = Platform::GetExecutableDirectory();
+    Platform::ChangeCurrentDirectory( basepath );
 
-    //std::cout << "Exe path: " << GetExecutablePath() << std::endl;
+    std::cout << "Exe directory: " << basepath << std::endl;
 
-    for ( auto it = arguments.begin(); it < arguments.end(); it++ )
-    {
-        std::cout << *it << std::endl;
-        //OutputDebugStringA( (*it).data() );
+    using fspath = std::filesystem::path;
+    fspath rootlib = fspath( basepath ) / "Engine" / "Tree.Root.dll";
+    Platform::SharedLibrary* library = Platform::LoadSharedLibrary( rootlib.string() );
 
-        std::u16string warg = utf8::utf8to16( *it + "\n" );
-        OutputDebugStringW( reinterpret_cast<wchar_t*>( warg.data() ) );
-    }
+    Module& module = GetModuleFromSharedLibrary( library );
+
+    ITestSystem* testSystem = dynamic_cast<ITestSystem*>( module.GetSystem( TESTSYSTEM_NAME ) );
+
+    std::cout << testSystem << std::endl;
+
+    testSystem->Startup();
+    testSystem->RootSpecific();
+    testSystem->Shutdown();
 
     return 0;
+}
+
+void moduletest()
+{
+    std::cout << "Nope" << std::endl;
 }

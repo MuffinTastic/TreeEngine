@@ -29,6 +29,10 @@ function treeproject(properties)
             if properties.defines then
                 defines(properties.defines)
             end
+
+            if properties.dependson then
+                dependson(properties.dependson)
+            end
     end
 
 

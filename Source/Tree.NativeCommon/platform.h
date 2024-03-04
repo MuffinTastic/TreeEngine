@@ -8,8 +8,11 @@ namespace Tree::Platform
 	std::string GetExecutableFile();
 	std::string GetExecutableDirectory();
 
-	struct Library;
-	Library* LoadSharedLibrary( std::string path );
+	struct SharedLibrary;
+	SharedLibrary* LoadSharedLibrary( std::string path );
+	void* GetSharedLibraryFunc( SharedLibrary* sharedLibrary, std::string name );
 
-	void ChangeDirectory( std::string path );
+	int ChangeCurrentDirectory( std::string path );
 }
+
+#define EXPORT extern "C" __declspec( dllexport )

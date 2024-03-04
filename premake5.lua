@@ -55,7 +55,8 @@ group "Native"
             language = "C++",
             kind = "SharedLib",
             target = "Engine",
-            links = { "Tree.NativeCommon" }
+            links = { "%{cfg.buildtarget.directory}/Tree.NativeCommon" },
+            dependson = { "Tree.NativeCommon" },
         }
 
     treeproject {
@@ -76,7 +77,8 @@ group "Native/Launchers"
             client = "WindowedApp",
             server = "ConsoleApp"
         },
-        links = { "Tree.NativeCommon" },
+        links = { "%{cfg.buildtarget.directory}/Engine/Tree.NativeCommon" },
+        dependson = { "Tree.NativeCommon", "Tree.Root", "Tree.Trunk" },
         defines = { "LAUNCHER" }
     }
 

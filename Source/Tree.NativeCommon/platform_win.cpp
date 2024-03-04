@@ -29,7 +29,17 @@ Tree::Platform::SharedLibrary* Tree::Platform::LoadSharedLibrary( std::string pa
 	return reinterpret_cast<SharedLibrary*>( library );
 }
 
-void Tree::Platform::ChangeDirectory( std::string path )
+void* Tree::Platform::GetSharedLibraryFunc( SharedLibrary* sharedLibrary, std::string name )
 {
+	HMODULE hModule = reinterpret_cast<HMODULE>( sharedLibrary );
+	const char* cname = name.c_str();
+	FARPROC address = GetProcAddress( hModule, cname );
+	return reinterpret_cast<void*>( address );
+}
 
+int Tree::Platform::ChangeCurrentDirectory( std::string path )
+{
+	std::u16string u16path = utf8::utf8to16( path );
+	const wchar_t* wcpath = reinterpret_cast<const wchar_t*>( u16path.data() );
+	return _wchdir( wcpath );
 }
