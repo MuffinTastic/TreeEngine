@@ -2,36 +2,43 @@
 
 #include <iostream>
 
-Tree::Module& Tree::Module::GetCurrent()
+#include "sys.h"
+
+
+Tree::System* __Module_GetSystem( std::string name )
 {
-    static Module s_CurrentModule;
-    return s_CurrentModule;
+    return Tree::SystemRegistry::GetSystem( name );
 }
 
-void Tree::Module::RegisterSystem( SystemRegistry& registry )
+void __Module_UpdateSystems( Tree::Module* module )
 {
-    m_Systems[registry.m_Name] = registry.m_System;
+    Tree::Sys::UpdateFromModule( module );
+}
+
+void __Module_ResetSystems( Tree::Module* module )
+{
+    Tree::Sys::Reset();
+}
+
+Tree::Module::Module( Platform::SharedLibrary* sharedLibrary )
+    : m_SharedLibrary( sharedLibrary )
+{
+    m_GetSystem = Platform::GetSharedLibraryFunc<__Module_GetSystemFn>( m_SharedLibrary, MODULE_GETSYSTEM_FUNCNAME );
+    m_UpdateSystems = Platform::GetSharedLibraryFunc<__Module_UpdateSystemsFn>( m_SharedLibrary, MODULE_UPDATESYSTEMS_FUNCNAME );
+    m_ResetSystems = Platform::GetSharedLibraryFunc<__Module_ResetSystemsFn>( m_SharedLibrary, MODULE_RESETSYSTEMS_FUNCNAME );
 }
 
 Tree::System* Tree::Module::GetSystem( std::string name )
 {
-    auto result = m_Systems.find( name );
-    
-    if ( result != m_Systems.end() )
-        return result->second;
-
-    return nullptr;
+    return m_GetSystem( name );
 }
 
-
-Tree::Module& Tree::GetModuleFromSharedLibrary( Platform::SharedLibrary* sharedLibrary )
+void Tree::Module::UpdateSystems( Module* module )
 {
-    void* ptr = Platform::GetSharedLibraryFunc( sharedLibrary, GETMODULE_FUNCNAME );
-    __GetModuleFunc getModule = reinterpret_cast<__GetModuleFunc>( ptr );
-    return getModule();
+    m_UpdateSystems( module );
 }
 
-Tree::Module& __SharedLibrary_GetModule()
+void Tree::Module::ResetSystems()
 {
-    return Tree::Module::GetCurrent();
+    m_ResetSystems();
 }

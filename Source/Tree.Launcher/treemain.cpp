@@ -12,7 +12,10 @@
 #include "Tree.NativeCommon/platform.h"
 #include "Tree.NativeCommon/module.h"
 
+#include "Tree.Root/interfaces/ienginesystem.h"
 #include "Tree.Root/interfaces/itestsystem.h"
+
+#include "Tree.NativeCommon/sys.h"
 
 #ifdef WINDOWS
 void OpenWindowsConsole()
@@ -59,20 +62,16 @@ int Tree::TreeMain( std::vector<std::string> arguments )
     fspath rootlib = fspath( basepath ) / "Engine" / "Tree.Root.dll";
     Platform::SharedLibrary* library = Platform::LoadSharedLibrary( rootlib.string() );
 
-    Module& module = GetModuleFromSharedLibrary( library );
+    Module rootModule( library );
+    rootModule.UpdateSystems( &rootModule );
 
-    ITestSystem* testSystem = dynamic_cast<ITestSystem*>( module.GetSystem( TESTSYSTEM_NAME ) );
+    IEngineSystem* engineSystem = dynamic_cast<IEngineSystem*>( rootModule.GetSystem( ENGINESYSTEM_NAME ) );
+    std::cout << engineSystem << std::endl;
 
-    std::cout << testSystem << std::endl;
-
-    testSystem->Startup();
+    ITestSystem* testSystem = dynamic_cast<ITestSystem*>( rootModule.GetSystem( TESTSYSTEM_NAME ) );
     testSystem->RootSpecific();
-    testSystem->Shutdown();
+
+    std::cout << Sys::Engine() << std::endl;
 
     return 0;
-}
-
-void moduletest()
-{
-    std::cout << "Nope" << std::endl;
 }

@@ -1,30 +1,42 @@
 #pragma once
 
 #include <string>
-#include <unordered_map>
+#include <functional>
 
-#include "platform.h"
 #include "system.h"
 
 namespace Tree
 {
+	class Module;
+
+	typedef Tree::System* (__Module_GetSystemFn)( std::string name );
+	typedef void ( __Module_UpdateSystemsFn )( Tree::Module* module );
+	typedef void ( __Module_ResetSystemsFn )( );
+
 	class Module
 	{
 	public:
-		static Module& GetCurrent();
+		Module() = delete;
+		Module( Platform::SharedLibrary* sharedLibrary );
 
 	public:
-		void RegisterSystem( SystemRegistry& registry );
 		System* GetSystem( std::string name );
+		void UpdateSystems( Module* module );
+		void ResetSystems();
 
 	private:
-		std::unordered_map<std::string, System*> m_Systems;
+		Platform::SharedLibrary* m_SharedLibrary;
+		std::function<__Module_GetSystemFn> m_GetSystem;
+		std::function<__Module_UpdateSystemsFn> m_UpdateSystems;
+		std::function<__Module_ResetSystemsFn> m_ResetSystems;
 	};
-
-	Module& GetModuleFromSharedLibrary( Platform::SharedLibrary* sharedLibrary );
 }
 
-typedef Tree::Module& (*__GetModuleFunc)( );
-#define GETMODULE_FUNCNAME "__SharedLibrary_GetModule"
+#define MODULE_GETSYSTEM_FUNCNAME "__Module_GetSystem"
+#define MODULE_UPDATESYSTEMS_FUNCNAME "__Module_UpdateSystems"
+#define MODULE_RESETSYSTEMS_FUNCNAME "__Module_ResetSystems"
 
-EXPORT  Tree::Module& __SharedLibrary_GetModule();
+EXPORT  Tree::System* __Module_GetSystem( std::string name );
+EXPORT  void __Module_UpdateSystems( Tree::Module* module );
+EXPORT  void __Module_ResetSystems( Tree::Module* module );
+

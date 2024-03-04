@@ -1,6 +1,9 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
+
+#include "platform.h"
 
 namespace Tree
 {
@@ -15,7 +18,6 @@ namespace Tree
 	public:
 		virtual ESystemInitCode Startup() = 0;
 		virtual void Shutdown() = 0;
-
 	};
 
 	class SystemRegistry
@@ -26,10 +28,15 @@ namespace Tree
 	public:
 		System* m_System;
 		std::string m_Name;
+
+	public:
+		static std::unordered_map<std::string, System*>& GetSystems();
+		static void Register( SystemRegistry& registry );
+		static System* GetSystem( std::string name );
 	};
 }
 
-// Register the system with the current Module
+// Register the system with the current Module (see module.h/cpp)
 #define REGISTER_TREE_SYSTEM( classname, registryname ) \
 	static Tree::classname __gts_##classname;	/* System instance! */ \
 	static Tree::SystemRegistry __gtsr_##classname( &__gts_##classname, registryname );

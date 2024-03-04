@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include "Tree.NativeCommon/sys.h"
+
 REGISTER_TREE_SYSTEM( TestSystem, TESTSYSTEM_NAME )
 
 Tree::ESystemInitCode Tree::TestSystem::Startup()
@@ -19,4 +21,5 @@ void Tree::TestSystem::Shutdown()
 void Tree::TestSystem::RootSpecific()
 {
     std::cout << "Test system root specific code" << std::endl;
+    Sys::Engine()->Shutdown();
 }
