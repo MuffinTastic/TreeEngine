@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-
 #include <functional>
 
 namespace Tree::Platform
@@ -12,6 +11,7 @@ namespace Tree::Platform
 
 	struct SharedLibrary;
 	SharedLibrary* LoadSharedLibrary( std::string path );
+	void UnloadSharedLibrary( SharedLibrary* sharedLibrary );
 
 	void* GetSharedLibraryFunc( SharedLibrary* sharedLibrary, std::string name );
 
@@ -24,6 +24,15 @@ namespace Tree::Platform
 	}
 
 	int ChangeCurrentDirectory( std::string path );
+
+	void ShowError( std::string text );
+	void FatalExit();
 }
 
 #define EXPORT extern "C" __declspec( dllexport )
+
+#ifdef WINDOWS
+#define SHAREDLIB_EXT ".dll"
+#elif LINUX
+#define SHAREDLIB_EXT ".so"
+#endif

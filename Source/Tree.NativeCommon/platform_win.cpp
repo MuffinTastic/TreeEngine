@@ -29,6 +29,12 @@ Tree::Platform::SharedLibrary* Tree::Platform::LoadSharedLibrary( std::string pa
 	return reinterpret_cast<SharedLibrary*>( library );
 }
 
+void Tree::Platform::UnloadSharedLibrary( SharedLibrary* sharedLibrary )
+{
+	HMODULE library = reinterpret_cast<HMODULE>( sharedLibrary );
+	FreeLibrary( library );
+}
+
 void* Tree::Platform::GetSharedLibraryFunc( SharedLibrary* sharedLibrary, std::string name )
 {
 	HMODULE hModule = reinterpret_cast<HMODULE>( sharedLibrary );
@@ -42,4 +48,16 @@ int Tree::Platform::ChangeCurrentDirectory( std::string path )
 	std::u16string u16path = utf8::utf8to16( path );
 	const wchar_t* wcpath = reinterpret_cast<const wchar_t*>( u16path.data() );
 	return _wchdir( wcpath );
+}
+
+void Tree::Platform::ShowError( std::string text )
+{
+	std::u16string u16text = utf8::utf8to16( text );
+	const wchar_t* wctext = reinterpret_cast<const wchar_t*>( u16text.data() );
+	MessageBoxW( nullptr, wctext, L"Fatal Error", MB_ICONERROR );
+}
+
+void Tree::Platform::FatalExit()
+{
+	exit( 1 );
 }

@@ -8,6 +8,8 @@
 #include <iostream>
 #include <filesystem>
 
+#include <scope_guard/scope_guard.hpp>
+
 #include "Tree.NativeCommon/unicode.h"
 #include "Tree.NativeCommon/platform.h"
 #include "Tree.NativeCommon/module.h"
@@ -16,6 +18,8 @@
 #include "Tree.Root/interfaces/itestsystem.h"
 
 #include "Tree.NativeCommon/sys.h"
+
+#include "modulemanager.h"
 
 #ifdef WINDOWS
 void OpenWindowsConsole()
@@ -56,22 +60,28 @@ int Tree::TreeMain( std::vector<std::string> arguments )
     std::string basepath = Platform::GetExecutableDirectory();
     Platform::ChangeCurrentDirectory( basepath );
 
-    std::cout << "Exe directory: " << basepath << std::endl;
+    {
+        ModuleManager::Instance().LoadModules( {
+            "Tree.Root"
+        } );
 
-    using fspath = std::filesystem::path;
-    fspath rootlib = fspath( basepath ) / "Engine" / "Tree.Root.dll";
-    Platform::SharedLibrary* library = Platform::LoadSharedLibrary( rootlib.string() );
+        auto moduleGuard = sg::make_scope_guard( [] {
+            ModuleManager::Instance().UnloadModules();
+        } );
 
-    Module rootModule( library );
-    rootModule.UpdateSystems( &rootModule );
 
-    IEngineSystem* engineSystem = dynamic_cast<IEngineSystem*>( rootModule.GetSystem( ENGINESYSTEM_NAME ) );
-    std::cout << engineSystem << std::endl;
+        if ( Sys::Engine()->Startup() != ESYSTEMINIT_SUCCESS )
+        {
+            return 1;
+        }
 
-    ITestSystem* testSystem = dynamic_cast<ITestSystem*>( rootModule.GetSystem( TESTSYSTEM_NAME ) );
-    testSystem->RootSpecific();
+        auto engineGuard = sg::make_scope_guard( [] {
+            Sys::Engine()->Shutdown();
+        } );
 
-    std::cout << Sys::Engine() << std::endl;
+
+
+    }
 
     return 0;
 }
