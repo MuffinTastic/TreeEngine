@@ -25,7 +25,8 @@ namespace Tree::Platform
 
 	int ChangeCurrentDirectory( std::string path );
 
-	void ShowError( std::string text );
+	// Only to be used in extreme circumstances
+	void DebugLog( std::string text );
 	void FatalExit();
 }
 

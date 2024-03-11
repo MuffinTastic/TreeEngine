@@ -25,10 +25,10 @@ namespace Tree
 		void ResetSystems();
 
 	private:
-		Platform::SharedLibrary* m_SharedLibrary;
-		std::function<__Module_GetSystemFn> m_GetSystem;
-		std::function<__Module_UpdateSystemsFn> m_UpdateSystems;
-		std::function<__Module_ResetSystemsFn> m_ResetSystems;
+		Platform::SharedLibrary* m_sharedLibrary;
+		std::function<__Module_GetSystemFn> m_getSystem;
+		std::function<__Module_UpdateSystemsFn> m_updateSystems;
+		std::function<__Module_ResetSystemsFn> m_resetSystems;
 	};
 }
 

@@ -9,16 +9,23 @@
 
 namespace Tree
 {
+	enum EModuleLoadCode
+	{
+		EMODULELOAD_SUCCESS,
+		EMODULELOAD_FAILURE
+	};
+
 	class ModuleManager
 	{
 	public:
 		static ModuleManager& Instance();
 
-		void LoadModules( std::vector<std::string> names );
+		EModuleLoadCode LoadModules( std::vector<std::string> names );
 		void UnloadModules();
 
 	private:
-		std::vector<Platform::SharedLibrary*> m_SharedLibraries;
-		std::vector<std::unique_ptr<Module>> m_Modules;
+
+		std::vector<Platform::SharedLibrary*> m_sharedLibraries;
+		std::vector<std::unique_ptr<Module>> m_modules;
 	};
 }

@@ -7,37 +7,37 @@
 
 Tree::ModuleManager& Tree::ModuleManager::Instance()
 {
-	static ModuleManager s_Manager;
-	return s_Manager;
+	static ModuleManager s_manager;
+	return s_manager;
 }
 
-void Tree::ModuleManager::LoadModules( std::vector<std::string> names )
+Tree::EModuleLoadCode Tree::ModuleManager::LoadModules( std::vector<std::string> names )
 {
-	if ( m_Modules.size() != 0 )
-	{
-		Platform::ShowError( "ModuleManager::LoadModules called twice" );
-		Platform::FatalExit();
-	}
-
 	auto enginePath = std::filesystem::path( "Engine" );
 
 	for ( auto it = names.begin(); it != names.end(); it++ )
 	{
 		std::string filename = *it + SHAREDLIB_EXT;
-		auto relativePath = enginePath / filename;
+		std::string relativePath = (enginePath / filename).string();
 
-		auto library = Platform::LoadSharedLibrary( relativePath.string() );
+		auto library = Platform::LoadSharedLibrary( relativePath );
+		if ( library == nullptr )
+		{
+			Platform::DebugLog( "Couldn't load shared library '" + relativePath + "'." );
+			return EMODULELOAD_FAILURE;
+		}
+
 		auto module = std::make_unique<Module>( library );
 
-		m_SharedLibraries.push_back( library );
-		m_Modules.push_back( std::move( module ) );
+		m_sharedLibraries.push_back( library );
+		m_modules.push_back( std::move( module ) );
 	}
 
-	for ( auto it = m_Modules.begin(); it != m_Modules.end(); it++ )
+	for ( auto it = m_modules.begin(); it != m_modules.end(); it++ )
 	{
 		Module* module = it->get();
 
-		for ( auto it2 = m_Modules.begin(); it2 != m_Modules.end(); it2++ )
+		for ( auto it2 = m_modules.begin(); it2 != m_modules.end(); it2++ )
 		{
 			module->UpdateSystems( it2->get() );
 		}
@@ -45,16 +45,18 @@ void Tree::ModuleManager::LoadModules( std::vector<std::string> names )
 		// Update the launcher module with the systems as well
 		Sys::UpdateFromModule( module );
 	}
+
+	return EMODULELOAD_SUCCESS;
 }
 
 void Tree::ModuleManager::UnloadModules()
 {
-	m_Modules.clear();
+	m_modules.clear();
 
-	for ( auto it = m_SharedLibraries.begin(); it != m_SharedLibraries.end(); it++ )
+	for ( auto it = m_sharedLibraries.begin(); it != m_sharedLibraries.end(); it++ )
 	{
 		Platform::UnloadSharedLibrary( *it );
 	}
 
-	m_SharedLibraries.clear();
+	m_sharedLibraries.clear();
 }

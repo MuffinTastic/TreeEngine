@@ -4,7 +4,7 @@
 
 
 Tree::SystemRegistry::SystemRegistry( System* system, std::string_view name )
-	: m_System( system ), m_Name( name )
+	: m_system( system ), m_name( name )
 {
 	SystemRegistry::Register( *this );
 }
@@ -17,7 +17,7 @@ std::unordered_map<std::string, Tree::System*>& Tree::SystemRegistry::GetSystems
 
 void Tree::SystemRegistry::Register( SystemRegistry& registry )
 {
-    GetSystems()[registry.m_Name] = registry.m_System;
+    GetSystems()[registry.m_name] = registry.m_system;
 }
 
 Tree::System* Tree::SystemRegistry::GetSystem( std::string name )

@@ -62,7 +62,6 @@ group "Native"
     treeproject {
             name = "Tree.NativeCommon",
             language = "C++",
-            splitdomain = false,
             kind = "StaticLib",
             target = "Engine"
         }

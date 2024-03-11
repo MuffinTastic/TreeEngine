@@ -26,8 +26,8 @@ namespace Tree
 		SystemRegistry( System* system, std::string_view name );
 
 	public:
-		System* m_System;
-		std::string m_Name;
+		System* m_system;
+		std::string m_name;
 
 	public:
 		static std::unordered_map<std::string, System*>& GetSystems();

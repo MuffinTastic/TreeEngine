@@ -13,75 +13,107 @@
 #include "Tree.NativeCommon/unicode.h"
 #include "Tree.NativeCommon/platform.h"
 #include "Tree.NativeCommon/module.h"
+#include "Tree.NativeCommon/sys.h"
+#include "Tree.NativeCommon/domain.h"
 
 #include "Tree.Root/interfaces/ienginesystem.h"
 #include "Tree.Root/interfaces/itestsystem.h"
 
-#include "Tree.NativeCommon/sys.h"
-
 #include "modulemanager.h"
 
-#ifdef WINDOWS
+#if !DEDICATED_SERVER
+#if WINDOWS
 void OpenWindowsConsole()
 {
-    AllocConsole();
-    //(void)freopen( "CONIN$", "r", stdin );
-    //(void)freopen( "CONOUT$", "w", stdout );
-    //(void)freopen( "CONOUT$", "w", stderr );
-    
+	AllocConsole();
+	//(void)freopen( "CONIN$", "r", stdin );
+	//(void)freopen( "CONOUT$", "w", stdout );
+	//(void)freopen( "CONOUT$", "w", stderr );
 
-    // Enable buffering to prevent VS from chopping up UTF-8 byte sequences
+
+	// Enable buffering to prevent VS from chopping up UTF-8 byte sequences
 }
 
-#endif
+#endif // WINDOWS
+
+void ShowErrorBox( std::string text )
+{
+#ifdef WINDOWS
+	std::u16string u16text = utf8::utf8to16( text );
+	const wchar_t* wctext = reinterpret_cast<const wchar_t*>( u16text.data() );
+	MessageBoxW( nullptr, wctext, L"Tree Engine - Fatal Error", MB_ICONERROR );
+#elif LINUX
+
+#endif // LINUX
+}
+#endif // !DEDICATED_SERVER
 
 int Tree::TreeMain( std::vector<std::string> arguments )
 {
-#ifdef WINDOWS
-    #if DEBUG
-
-        #ifdef CLIENT
-            OpenWindowsConsole();
-        #endif
-
-        SetConsoleOutputCP( CP_UTF8 );
-        // Enable buffering to prevent VS from chopping up UTF-8 byte sequences
-        setvbuf( stdout, nullptr, _IOFBF, 1000 );
-
-    #endif // DEBUG
+#if !DEDICATED_SERVER
+#if DEBUG
+#if WINDOWS
+	OpenWindowsConsole();
 #endif // WINDOWS
+#endif // DEBUG
+#endif // !DEDICATED_SERVER
 
-#ifdef CLIENT
-    std::cout << "Client" << std::endl;
-#elif DEDICATED_SERVER
-    std::cout << "Server" << std::endl;
+#if WINDOWS
+	SetConsoleOutputCP( CP_UTF8 );
+	// Enable buffering to prevent VS from chopping up UTF-8 byte sequences
+	setvbuf( stdout, nullptr, _IOFBF, 1000 );
 #endif
 
-    std::string basepath = Platform::GetExecutableDirectory();
-    Platform::ChangeCurrentDirectory( basepath );
+#ifdef CLIENT
+	std::cout << "Client" << std::endl;
+#elif DEDICATED_SERVER
+	std::cout << "Server" << std::endl;
+#endif
 
-    {
-        ModuleManager::Instance().LoadModules( {
-            "Tree.Root"
-        } );
+	std::string basepath = Platform::GetExecutableDirectory();
+	Platform::ChangeCurrentDirectory( basepath );
 
-        auto moduleGuard = sg::make_scope_guard( [] {
-            ModuleManager::Instance().UnloadModules();
-        } );
+	{
+		//
+		// Load all the necessary modules for the current domain
+		//
+		std::vector<std::string> modulesToLoad = {
+			"Tree.Root"
+		};
+
+		if ( ModuleManager::Instance().LoadModules( modulesToLoad ) != EMODULELOAD_SUCCESS )
+		{
+			Platform::DebugLog( "Couldn't load engine modules - quitting." );
+#ifdef GUI_ENABLED
+			Platform::ShowErrorBox( "Couldn't load engine modules - please capture stdout or look at a system debug log to debug." );
+#endif
+			return TREEMAIN_FAILURE_MODULE;
+		}
+
+		auto moduleGuard = sg::make_scope_guard( []
+			{
+				ModuleManager::Instance().UnloadModules();
+			} );
 
 
-        if ( Sys::Engine()->Startup() != ESYSTEMINIT_SUCCESS )
-        {
-            return 1;
-        }
 
-        auto engineGuard = sg::make_scope_guard( [] {
-            Sys::Engine()->Shutdown();
-        } );
+		//
+		// Modules have been loaded. Start the engine.
+		//
+
+		if ( Sys::Engine()->Startup() != ESYSTEMINIT_SUCCESS )
+		{
+			return TREEMAIN_FAILURE_SYSTEM;
+		}
+
+		auto engineGuard = sg::make_scope_guard( []
+			{
+				Sys::Engine()->Shutdown();
+			} );
 
 
 
-    }
+	}
 
-    return 0;
+	return TREEMAIN_SUCCESS;
 }

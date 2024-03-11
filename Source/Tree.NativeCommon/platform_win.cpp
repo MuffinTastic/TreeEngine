@@ -3,7 +3,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <filesystem>
-
+#include <iostream>
 #include "unicode.h"
 
 
@@ -50,11 +50,9 @@ int Tree::Platform::ChangeCurrentDirectory( std::string path )
 	return _wchdir( wcpath );
 }
 
-void Tree::Platform::ShowError( std::string text )
+void Tree::Platform::DebugLog( std::string text )
 {
-	std::u16string u16text = utf8::utf8to16( text );
-	const wchar_t* wctext = reinterpret_cast<const wchar_t*>( u16text.data() );
-	MessageBoxW( nullptr, wctext, L"Fatal Error", MB_ICONERROR );
+
 }
 
 void Tree::Platform::FatalExit()

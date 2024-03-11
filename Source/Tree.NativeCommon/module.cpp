@@ -21,24 +21,24 @@ void __Module_ResetSystems( Tree::Module* module )
 }
 
 Tree::Module::Module( Platform::SharedLibrary* sharedLibrary )
-    : m_SharedLibrary( sharedLibrary )
+    : m_sharedLibrary( sharedLibrary )
 {
-    m_GetSystem = Platform::GetSharedLibraryFunc<__Module_GetSystemFn>( m_SharedLibrary, MODULE_GETSYSTEM_FUNCNAME );
-    m_UpdateSystems = Platform::GetSharedLibraryFunc<__Module_UpdateSystemsFn>( m_SharedLibrary, MODULE_UPDATESYSTEMS_FUNCNAME );
-    m_ResetSystems = Platform::GetSharedLibraryFunc<__Module_ResetSystemsFn>( m_SharedLibrary, MODULE_RESETSYSTEMS_FUNCNAME );
+    m_getSystem = Platform::GetSharedLibraryFunc<__Module_GetSystemFn>( m_sharedLibrary, MODULE_GETSYSTEM_FUNCNAME );
+    m_updateSystems = Platform::GetSharedLibraryFunc<__Module_UpdateSystemsFn>( m_sharedLibrary, MODULE_UPDATESYSTEMS_FUNCNAME );
+    m_resetSystems = Platform::GetSharedLibraryFunc<__Module_ResetSystemsFn>( m_sharedLibrary, MODULE_RESETSYSTEMS_FUNCNAME );
 }
 
 Tree::System* Tree::Module::GetSystem( std::string name )
 {
-    return m_GetSystem( name );
+    return m_getSystem( name );
 }
 
 void Tree::Module::UpdateSystems( Module* module )
 {
-    m_UpdateSystems( module );
+    m_updateSystems( module );
 }
 
 void Tree::Module::ResetSystems()
 {
-    m_ResetSystems();
+    m_resetSystems();
 }
