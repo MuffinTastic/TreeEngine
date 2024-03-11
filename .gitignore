@@ -409,6 +409,8 @@ Build/
 ThirdParty/*
 !ThirdParty/Bin
 ThirdParty/Bin/*
+!ThirdParty/Lib
+ThirdParty/Lib/*
 !ThirdParty/Include
 ThirdParty/Include/*
 
