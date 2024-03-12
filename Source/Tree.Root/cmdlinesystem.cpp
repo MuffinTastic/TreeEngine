@@ -11,10 +11,10 @@ namespace Tree
 	class CmdLineSystem : public ICmdLineSystem
 	{
 	public:
-		virtual void SetArguments( std::vector<std::string> arguments ) override;
 		virtual ESystemInitCode Startup() override;
 		virtual void Shutdown() override;
 
+		virtual void ProcessArguments( std::vector<std::string> arguments ) override;
 		virtual std::vector<std::string> GetArguments() const override;
 
 		virtual bool HasItem( std::string ) const override;
@@ -23,7 +23,6 @@ namespace Tree
 		virtual int GetInt( std::string name, int def ) const override;
 
 	private:
-		void ProcessArguments();
 
 		std::vector<std::string> m_arguments;
 
@@ -36,15 +35,8 @@ namespace Tree
 REGISTER_TREE_SYSTEM( CmdLineSystem, CMDLINESYSTEM_NAME )
 
 
-void Tree::CmdLineSystem::SetArguments( std::vector<std::string> arguments )
-{
-    m_arguments = arguments;
-}
-
 Tree::ESystemInitCode Tree::CmdLineSystem::Startup()
 {
-    ProcessArguments();
-
     return ESYSTEMINIT_SUCCESS;
 }
 
@@ -53,12 +45,12 @@ void Tree::CmdLineSystem::Shutdown()
 
 }
 
-std::vector<std::string> Tree::CmdLineSystem::GetArguments() const
+void Tree::CmdLineSystem::ProcessArguments( std::vector<std::string> arguments )
 {
-    return m_arguments;
+	m_arguments = arguments;
 }
 
-void Tree::CmdLineSystem::ProcessArguments()
+std::vector<std::string> Tree::CmdLineSystem::GetArguments() const
 {
-    
+	return m_arguments;
 }

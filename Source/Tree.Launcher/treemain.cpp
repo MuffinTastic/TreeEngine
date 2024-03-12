@@ -102,17 +102,7 @@ int Tree::TreeMain( std::vector<std::string> arguments )
 		// Modules have been loaded. Start engine dependencies.
 		//
 
-		Sys::CmdLine()->SetArguments( arguments );
-		if ( Sys::CmdLine()->Startup() != ESYSTEMINIT_SUCCESS )
-		{
-			return TREEMAIN_FAILURE_SYSTEM;
-		}
-
-		auto cmdLineGuard = sg::make_scope_guard( []
-			{
-				Sys::CmdLine()->Shutdown();
-			} );
-
+		Sys::CmdLine()->ProcessArguments( arguments );
 
 		//Sys::Log()->SetArguments( arguments );
 		if ( Sys::Log()->Startup() != ESYSTEMINIT_SUCCESS )

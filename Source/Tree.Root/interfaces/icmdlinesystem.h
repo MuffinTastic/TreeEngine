@@ -12,11 +12,10 @@ namespace Tree
 	class ICmdLineSystem : public System
 	{
 	public:
-		virtual void SetArguments( std::vector<std::string> arguments ) = 0;
-		
 		virtual ESystemInitCode Startup() = 0;
 		virtual void Shutdown() = 0;
 
+		virtual void ProcessArguments( std::vector<std::string> arguments ) = 0;
 		virtual std::vector<std::string> GetArguments() const = 0;
 
 		virtual bool HasItem( std::string ) const = 0;
