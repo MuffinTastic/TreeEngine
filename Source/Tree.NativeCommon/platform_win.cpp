@@ -52,7 +52,9 @@ int Tree::Platform::ChangeCurrentDirectory( std::string path )
 
 void Tree::Platform::DebugLog( std::string text )
 {
-
+	std::u16string u16text = utf8::utf8to16( text );
+	const wchar_t* wctext = reinterpret_cast<const wchar_t*>( u16text.data() );
+	OutputDebugStringW( wctext );
 }
 
 void Tree::Platform::FatalExit()

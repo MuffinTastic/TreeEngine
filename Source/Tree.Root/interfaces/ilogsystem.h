@@ -2,11 +2,11 @@
 
 #include "Tree.NativeCommon/system.h"
 
-#define TESTSYSTEM_NAME "TestSystem_v01"
+#define LOGSYSTEM_NAME "LogSystem_v01"
 
 namespace Tree
 {
-	class ITestSystem : public System
+	class ILogSystem : public System
 	{
 	public:
 		virtual ESystemInitCode Startup() = 0;

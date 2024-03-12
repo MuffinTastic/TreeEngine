@@ -25,7 +25,6 @@ namespace Tree::Platform
 
 	int ChangeCurrentDirectory( std::string path );
 
-	// Only to be used in extreme circumstances
 	void DebugLog( std::string text );
 	void FatalExit();
 }
@@ -36,4 +35,8 @@ namespace Tree::Platform
 #define SHAREDLIB_EXT ".dll"
 #elif LINUX
 #define SHAREDLIB_EXT ".so"
+#endif
+
+#ifndef DEDICATED_SERVER
+#define GUI_ENABLED
 #endif

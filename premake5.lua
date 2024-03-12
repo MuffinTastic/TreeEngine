@@ -55,7 +55,10 @@ group "Native"
             language = "C++",
             kind = "SharedLib",
             target = "Engine",
-            links = { "%{cfg.buildtarget.directory}/Tree.NativeCommon" },
+            links = {
+                "ThirdParty/Lib/spdlog",
+                "%{cfg.buildtarget.directory}/Tree.NativeCommon"
+            },
             dependson = { "Tree.NativeCommon" },
         }
 

@@ -417,3 +417,6 @@ ThirdParty/Lib/*
 ThirdParty/Include/*
 
 !**/.stub
+!ThirdParty/legalnotices.txt
+!ThirdParty/legalnotices.md
+!ThirdParty/README.md

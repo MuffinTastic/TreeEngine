@@ -26,12 +26,9 @@
 void OpenWindowsConsole()
 {
 	AllocConsole();
-	//(void)freopen( "CONIN$", "r", stdin );
-	//(void)freopen( "CONOUT$", "w", stdout );
-	//(void)freopen( "CONOUT$", "w", stderr );
-
-
-	// Enable buffering to prevent VS from chopping up UTF-8 byte sequences
+	(void)freopen( "CONIN$", "r", stdin );
+	(void)freopen( "CONOUT$", "w", stdout );
+	(void)freopen( "CONOUT$", "w", stderr );
 }
 
 #endif // WINDOWS
@@ -50,6 +47,10 @@ void ShowErrorBox( std::string text )
 
 int Tree::TreeMain( std::vector<std::string> arguments )
 {
+	// We don't want the executable path this way,
+	// we'll grab it ourselves through other means...
+	arguments.erase( arguments.begin() );
+
 #if !DEDICATED_SERVER
 #if DEBUG
 #if WINDOWS
@@ -85,7 +86,7 @@ int Tree::TreeMain( std::vector<std::string> arguments )
 		{
 			Platform::DebugLog( "Couldn't load engine modules - quitting." );
 #ifdef GUI_ENABLED
-			Platform::ShowErrorBox( "Couldn't load engine modules - please capture stdout or look at a system debug log to debug." );
+			ShowErrorBox( "Couldn't load engine modules - please capture stdout or look at a system debug log to debug." );
 #endif
 			return TREEMAIN_FAILURE_MODULE;
 		}
@@ -98,9 +99,44 @@ int Tree::TreeMain( std::vector<std::string> arguments )
 
 
 		//
-		// Modules have been loaded. Start the engine.
+		// Modules have been loaded. Start engine dependencies.
 		//
 
+		Sys::CmdLine()->SetArguments( arguments );
+		if ( Sys::CmdLine()->Startup() != ESYSTEMINIT_SUCCESS )
+		{
+			return TREEMAIN_FAILURE_SYSTEM;
+		}
+
+		auto cmdLineGuard = sg::make_scope_guard( []
+			{
+				Sys::CmdLine()->Shutdown();
+			} );
+
+
+		//Sys::Log()->SetArguments( arguments );
+		if ( Sys::Log()->Startup() != ESYSTEMINIT_SUCCESS )
+		{
+			return TREEMAIN_FAILURE_SYSTEM;
+		}
+
+		auto logGuard = sg::make_scope_guard( []
+			{
+				Sys::Log()->Shutdown();
+			} );
+
+
+		EngineStartupConfig config;
+
+#if EDITOR
+		config.domain = EDOMAIN_EDITOR;
+#elif CLIENT
+		config.domain = EDOMAIN_CLIENT;
+#elif DEDICATED_SERVER
+		config.domain = EDOMAIN_DEDICATED_SERVER;
+#endif
+
+		Sys::Engine()->SetStartupConfig( config );
 		if ( Sys::Engine()->Startup() != ESYSTEMINIT_SUCCESS )
 		{
 			return TREEMAIN_FAILURE_SYSTEM;
@@ -112,7 +148,7 @@ int Tree::TreeMain( std::vector<std::string> arguments )
 			} );
 
 
-
+		Sys::Engine()->Run();
 	}
 
 	return TREEMAIN_SUCCESS;

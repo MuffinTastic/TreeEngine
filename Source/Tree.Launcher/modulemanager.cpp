@@ -15,6 +15,10 @@ Tree::EModuleLoadCode Tree::ModuleManager::LoadModules( std::vector<std::string>
 {
 	auto enginePath = std::filesystem::path( "Engine" );
 
+	//
+	// Load all the modules from disk.
+	//
+
 	for ( auto it = names.begin(); it != names.end(); it++ )
 	{
 		std::string filename = *it + SHAREDLIB_EXT;
@@ -23,20 +27,29 @@ Tree::EModuleLoadCode Tree::ModuleManager::LoadModules( std::vector<std::string>
 		auto library = Platform::LoadSharedLibrary( relativePath );
 		if ( library == nullptr )
 		{
+			// We don't have LogSystem yet, so let's just do a platform log.
 			Platform::DebugLog( "Couldn't load shared library '" + relativePath + "'." );
 			return EMODULELOAD_FAILURE;
 		}
 
 		auto module = std::make_unique<Module>( library );
 
+		// Modules don't take ownership of shared libraries, so
+		// we keep them around ourselves to free them later.
 		m_sharedLibraries.push_back( library );
 		m_modules.push_back( std::move( module ) );
 	}
+
+	//
+	// Let all the modules know about each other's systems.
+	//
 
 	for ( auto it = m_modules.begin(); it != m_modules.end(); it++ )
 	{
 		Module* module = it->get();
 
+		// We don't skip over the current module in the second loop.
+		// Modules don't set their own system variables, we need to set them here.
 		for ( auto it2 = m_modules.begin(); it2 != m_modules.end(); it2++ )
 		{
 			module->UpdateSystems( it2->get() );

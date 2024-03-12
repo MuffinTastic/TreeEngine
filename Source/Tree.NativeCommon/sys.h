@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Tree.Root/interfaces/icmdlinesystem.h"
+#include "Tree.Root/interfaces/ilogsystem.h"
 #include "Tree.Root/interfaces/ienginesystem.h"
 
 namespace Tree
@@ -8,6 +10,8 @@ namespace Tree
 
 	namespace Sys
 	{
+		ICmdLineSystem* CmdLine();
+		ILogSystem* Log();
 		IEngineSystem* Engine();
 
 		void UpdateFromModule( Module* module );
