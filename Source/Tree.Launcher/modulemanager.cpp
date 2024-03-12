@@ -19,7 +19,7 @@ Tree::EModuleLoadCode Tree::ModuleManager::LoadModules( std::vector<std::string>
 	// Load all the modules from disk.
 	//
 
-	for ( auto it = names.begin(); it != names.end(); it++ )
+	for ( auto it = names.begin(); it != names.end(); ++it )
 	{
 		std::string filename = *it + SHAREDLIB_EXT;
 		std::string relativePath = (enginePath / filename).string();
@@ -44,13 +44,13 @@ Tree::EModuleLoadCode Tree::ModuleManager::LoadModules( std::vector<std::string>
 	// Let all the modules know about each other's systems.
 	//
 
-	for ( auto it = m_modules.begin(); it != m_modules.end(); it++ )
+	for ( auto it = m_modules.begin(); it != m_modules.end(); ++it )
 	{
 		Module* module = it->get();
 
 		// We don't skip over the current module in the second loop.
 		// Modules don't set their own system variables, we need to set them here.
-		for ( auto it2 = m_modules.begin(); it2 != m_modules.end(); it2++ )
+		for ( auto it2 = m_modules.begin(); it2 != m_modules.end(); ++it2 )
 		{
 			module->UpdateSystems( it2->get() );
 		}
@@ -66,7 +66,7 @@ void Tree::ModuleManager::UnloadModules()
 {
 	m_modules.clear();
 
-	for ( auto it = m_sharedLibraries.begin(); it != m_sharedLibraries.end(); it++ )
+	for ( auto it = m_sharedLibraries.begin(); it != m_sharedLibraries.end(); ++it )
 	{
 		Platform::UnloadSharedLibrary( *it );
 	}

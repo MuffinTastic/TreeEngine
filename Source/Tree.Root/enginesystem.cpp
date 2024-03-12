@@ -55,7 +55,7 @@ void Tree::EngineSystem::Run()
 {
 	auto args = Sys::CmdLine()->GetArguments();
 
-	for ( auto it = args.begin(); it != args.end(); it++ )
+	for ( auto it = args.begin(); it != args.end(); ++it )
 	{
 		std::cout << "'" << *it << "'" << std::endl;
 	}
