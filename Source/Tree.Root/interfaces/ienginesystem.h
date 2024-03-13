@@ -21,9 +21,9 @@ namespace Tree
 
 		virtual void Run() = 0;
 
-		virtual constexpr bool IsClient() const = 0;
-		virtual constexpr bool IsClientOnly() const = 0;
-		virtual constexpr bool IsEditorOnly() const = 0;
-		virtual constexpr bool IsDedicatedServer() const = 0;
+		virtual inline bool IsClient() const = 0;
+		virtual inline bool IsClientOnly() const = 0;
+		virtual inline bool IsEditorOnly() const = 0;
+		virtual inline bool IsDedicatedServer() const = 0;
 	};
 }

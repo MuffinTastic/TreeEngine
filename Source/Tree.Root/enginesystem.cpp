@@ -20,10 +20,10 @@ namespace Tree
 
 		void Run();
 
-		virtual constexpr bool IsClient() const override;
-		virtual constexpr bool IsClientOnly() const override;
-		virtual constexpr bool IsEditorOnly() const override;
-		virtual constexpr bool IsDedicatedServer() const override;
+		virtual inline bool IsClient() const override;
+		virtual inline bool IsClientOnly() const override;
+		virtual inline bool IsEditorOnly() const override;
+		virtual inline bool IsDedicatedServer() const override;
 
 	private:
 		EDomain m_domain;
@@ -78,22 +78,22 @@ void Tree::EngineSystem::Run()
 	}
 }
 
-constexpr bool Tree::EngineSystem::IsClient() const
+inline bool Tree::EngineSystem::IsClient() const
 {
 	return ( m_domain & EDOMAIN_CLIENT ) == EDOMAIN_CLIENT;
 }
 
-constexpr bool Tree::EngineSystem::IsClientOnly() const
+inline bool Tree::EngineSystem::IsClientOnly() const
 {
 	return m_domain == EDOMAIN_CLIENT;
 }
 
-constexpr bool Tree::EngineSystem::IsEditorOnly() const
+inline bool Tree::EngineSystem::IsEditorOnly() const
 {
 	return ( m_domain & EDOMAIN_EDITOR_ONLY ) == EDOMAIN_EDITOR_ONLY;
 }
 
-constexpr bool Tree::EngineSystem::IsDedicatedServer() const
+inline bool Tree::EngineSystem::IsDedicatedServer() const
 {
 	return m_domain == EDOMAIN_DEDICATED_SERVER;
 }
