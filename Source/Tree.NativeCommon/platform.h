@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <format>
 #include <functional>
 
 namespace Tree::Platform
@@ -26,6 +27,14 @@ namespace Tree::Platform
 	int ChangeCurrentDirectory( std::string path );
 
 	void DebugLog( std::string text );
+
+	template <typename... Args>
+	void DebugLog( std::string_view format, Args&... arguments )
+	{
+		std::string formatted = std::vformat( format, std::make_format_args( arguments... ) );
+		DebugLog( formatted );
+	}
+
 	void FatalExit();
 }
 

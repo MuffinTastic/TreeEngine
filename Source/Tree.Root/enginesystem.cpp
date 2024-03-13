@@ -53,29 +53,16 @@ void Tree::EngineSystem::Shutdown()
 
 void Tree::EngineSystem::Run()
 {
-	auto args = Sys::CmdLine()->GetArguments();
+	std::cout << "bob " << Sys::CmdLine()->GetFlag( "bob" ) << std::endl;
+	std::cout << "joe " << Sys::CmdLine()->GetStringOption( "joe", "blah" ) << std::endl;
+	std::cout << "numby " << Sys::CmdLine()->GetIntOption( "numby", 123 ) << std::endl;
+	std::cout << "commands:" << std::endl;
 
-	for ( auto it = args.begin(); it != args.end(); ++it )
+	for ( auto& command : Sys::CmdLine()->GetCommands() )
 	{
-		std::cout << "'" << *it << "'" << std::endl;
+		std::cout << "  " << command << std::endl;
 	}
 
-	if ( IsClient() )
-	{
-		std::cout << "IsClient" << std::endl;
-	}
-	if ( IsClientOnly() )
-	{
-		std::cout << "IsClientOnly" << std::endl;
-	}
-	if ( IsEditorOnly() )
-	{
-		std::cout << "IsEditorOnly" << std::endl;
-	}
-	if ( IsDedicatedServer() )
-	{
-		std::cout << "IsDedicatedServer" << std::endl;
-	}
 }
 
 inline bool Tree::EngineSystem::IsClient() const
