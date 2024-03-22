@@ -9,7 +9,7 @@ namespace Tree
 {
 	class Module;
 
-	typedef Tree::System* (__Module_GetSystemFn)( std::string name );
+	typedef Tree::ISystem* (__Module_GetSystemFn)( std::string name );
 	typedef void ( __Module_UpdateSystemsFn )( Tree::Module* module );
 	typedef void ( __Module_ResetSystemsFn )( );
 
@@ -20,7 +20,7 @@ namespace Tree
 		Module( Platform::SharedLibrary* sharedLibrary );
 
 	public:
-		System* GetSystem( std::string name );
+		ISystem* GetSystem( std::string name );
 		void UpdateSystems( Module* module );
 		void ResetSystems();
 
@@ -36,7 +36,7 @@ namespace Tree
 #define MODULE_UPDATESYSTEMS_FUNCNAME "__Module_UpdateSystems"
 #define MODULE_RESETSYSTEMS_FUNCNAME "__Module_ResetSystems"
 
-EXPORT  Tree::System* __Module_GetSystem( std::string name );
+EXPORT  Tree::ISystem* __Module_GetSystem( std::string name );
 EXPORT  void __Module_UpdateSystems( Tree::Module* module );
 EXPORT  void __Module_ResetSystems( Tree::Module* module );
 

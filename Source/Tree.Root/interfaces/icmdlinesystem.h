@@ -9,7 +9,7 @@
 
 namespace Tree
 {
-	class ICmdLineSystem : public System
+	class ICmdLineSystem : public ISystem
 	{
 	public:
 		virtual ESystemInitCode Startup() = 0;

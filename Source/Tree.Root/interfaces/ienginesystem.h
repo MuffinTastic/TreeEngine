@@ -12,7 +12,7 @@ namespace Tree
 		EDomain domain;
 	};
 
-	class IEngineSystem : public System
+	class IEngineSystem : public ISystem
 	{
 	public:
 		virtual void SetStartupConfig( EngineStartupConfig config ) = 0;

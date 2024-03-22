@@ -6,7 +6,7 @@
 
 namespace Tree
 {
-	class IManagedSystem : public System
+	class IManagedSystem : public ISystem
 	{
 	public:
 		virtual ESystemInitCode Startup() = 0;

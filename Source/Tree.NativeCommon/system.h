@@ -13,7 +13,7 @@ namespace Tree
 		ESYSTEMINIT_FAILURE
 	};
 
-	class System
+	class ISystem
 	{
 	public:
 		virtual ESystemInitCode Startup() = 0;
@@ -23,20 +23,20 @@ namespace Tree
 	class SystemRegistry
 	{
 	public:
-		SystemRegistry( System* system, std::string_view name );
+		SystemRegistry( ISystem* system, std::string_view name );
 
 	public:
-		System* m_system;
+		ISystem* m_system;
 		std::string m_name;
 
 	public:
-		static std::unordered_map<std::string, System*>& GetSystems();
+		static std::unordered_map<std::string, ISystem*>& GetSystems();
 		static void Register( SystemRegistry& registry );
-		static System* GetSystem( std::string name );
+		static ISystem* GetSystem( std::string name );
 	};
 }
 
 // Register the system with the current Module (see module.h/cpp)
 #define REGISTER_TREE_SYSTEM( classname, registryname ) \
-	static Tree::classname __gts_##classname;	/* System instance! */ \
+	static Tree::classname __gts_##classname;	/* ISystem instance! */ \
 	static Tree::SystemRegistry __gtsr_##classname( &__gts_##classname, registryname );
