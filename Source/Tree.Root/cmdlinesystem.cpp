@@ -21,8 +21,8 @@ namespace Tree
 		virtual void Shutdown() override;
 
 		virtual void ProcessArguments( std::vector<std::string> arguments ) override;
-		virtual std::vector<std::string> GetArguments() const override;
 
+		virtual std::vector<std::string> GetArguments() const override;
 		virtual bool GetFlag( std::string name ) const override;
 		virtual std::string GetStringOption( std::string name, std::string def ) const override;
 		virtual int GetIntOption( std::string name, int def ) const override;
@@ -152,12 +152,12 @@ int Tree::CmdLineSystem::GetIntOption( std::string name, int def ) const
 
 	if ( result.ec == std::errc::invalid_argument )
 	{
-		Platform::DebugLog( "Invalid format while parsing option '{}'", name );
+		Platform::DebugLog( "Invalid format while parsing option '{}', using default", name );
 		return def;
 	}
 	else if ( result.ec == std::errc::result_out_of_range )
 	{
-		Platform::DebugLog( "Value of option '{}' too big for int range", name );
+		Platform::DebugLog( "Value of option '{}' was too big for int range, using default", name );
 		return def;
 	}
 

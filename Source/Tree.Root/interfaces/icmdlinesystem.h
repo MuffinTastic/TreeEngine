@@ -16,8 +16,8 @@ namespace Tree
 		virtual void Shutdown() = 0;
 
 		virtual void ProcessArguments( std::vector<std::string> arguments ) = 0;
-		virtual std::vector<std::string> GetArguments() const = 0;
 
+		virtual std::vector<std::string> GetArguments() const = 0;
 		virtual bool GetFlag( std::string name ) const = 0;
 		virtual std::string GetStringOption( std::string name, std::string def ) const = 0;
 		virtual int GetIntOption( std::string name, int def ) const = 0;
