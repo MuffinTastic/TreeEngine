@@ -17,7 +17,7 @@ workspace "TreeEngine"
         architecture    "x86_64"
 
     filter { "system:windows" }
-        defines         { "WINDOWS", "WIN32" }
+        defines         { "WINDOWS", "WIN32", "_WIN32" }
     
     filter { "system:linux" }
         defines         { "LINUX" }
@@ -32,6 +32,11 @@ workspace "TreeEngine"
 
     filter {}
 
+
+function thirdpartylib( name )
+    -- my precious little hack...
+    return "ThirdParty/Lib/" .. name .. "%{cfg.buildcfg:gsub('Debug', 'd'):gsub('Release', '')}"
+end
 
 group "Managed"
     treeproject {
@@ -56,7 +61,7 @@ group "Native"
             kind = "SharedLib",
             target = "Engine",
             links = {
-                "ThirdParty/Lib/spdlog",
+                thirdpartylib( "fmt" ),
                 "%{cfg.buildtarget.directory}/Tree.NativeCommon"
             },
             dependson = { "Tree.NativeCommon" },
@@ -79,7 +84,10 @@ group "Native/Launchers"
             client = "WindowedApp",
             server = "ConsoleApp"
         },
-        links = { "%{cfg.buildtarget.directory}/Engine/Tree.NativeCommon" },
+        links = {
+            thirdpartylib( "fmt" ),
+            "%{cfg.buildtarget.directory}/Engine/Tree.NativeCommon"
+        },
         dependson = { "Tree.NativeCommon", "Tree.Root", "Tree.Trunk" },
         defines = { "LAUNCHER" }
     }

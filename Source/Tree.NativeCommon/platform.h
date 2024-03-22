@@ -1,8 +1,9 @@
 #pragma once
 
 #include <string>
-#include <format>
 #include <functional>
+
+#include <fmt/format.h>
 
 namespace Tree::Platform
 {
@@ -31,7 +32,7 @@ namespace Tree::Platform
 	template <typename... Args>
 	void DebugLog( std::string_view format, Args&... arguments )
 	{
-		std::string formatted = std::vformat( format, std::make_format_args( arguments... ) );
+		std::string formatted = fmt::vformat( format, fmt::make_format_args( arguments... ) );
 		DebugLog( formatted );
 	}
 
