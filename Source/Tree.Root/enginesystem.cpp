@@ -2,12 +2,15 @@
 
 #include "interfaces/ienginesystem.h"
 
+#include <memory>
 #include <vector>
 #include <string>
 #include <iostream>
 
 #include "Tree.NativeCommon/sys.h"
 #include "Tree.NativeCommon/domain.h"
+
+#include "interfaces/ilogsystem.h"
 
 namespace Tree
 {
@@ -26,7 +29,8 @@ namespace Tree
 		virtual inline bool IsDedicatedServer() const override;
 
 	private:
-		EDomain m_domain;
+		std::shared_ptr<ILogger> m_logger;
+		EDomain m_domain = EDOMAIN_UNINITIALIZED;
 	};
 }
 
@@ -41,28 +45,23 @@ void Tree::EngineSystem::SetStartupConfig( EngineStartupConfig config )
 
 Tree::ESystemInitCode Tree::EngineSystem::Startup()
 {
-
+	m_logger = Sys::Log()->CreateLogger( "Engine" );
 
     return ESYSTEMINIT_SUCCESS;
 }
 
 void Tree::EngineSystem::Shutdown()
 {
-    std::cout << "Engine shutdown" << std::endl;
+	m_logger->Info( "Engine shutdown" );
 }
 
 void Tree::EngineSystem::Run()
 {
-	std::cout << "bob " << Sys::CmdLine()->GetFlag( "bob" ) << std::endl;
-	std::cout << "joe " << Sys::CmdLine()->GetStringOption( "joe", "blah" ) << std::endl;
-	std::cout << "numby " << Sys::CmdLine()->GetIntOption( "numby", 123 ) << std::endl;
-	std::cout << "commands:" << std::endl;
+	m_logger->Info( "Hello {}", 42 );
 
-	for ( auto& command : Sys::CmdLine()->GetCommands() )
-	{
-		std::cout << "  " << command << std::endl;
-	}
-
+	Sys::Log()->Warning( "it worked on the first try.. i dont like it..." );
+	// 
+	Sys::Log()->Info( Sys::CmdLine()->GetStringOption("bob", "yop") );
 }
 
 inline bool Tree::EngineSystem::IsClient() const

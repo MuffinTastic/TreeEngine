@@ -5,7 +5,8 @@
 #define UTF_CPP_CPLUSPLUS 202002L
 #include "utfcpp/utf8.h"
 
-namespace Tree
+// This makes up for some oversights in utf8
+namespace utf8
 {
 
 }

@@ -1,15 +1,130 @@
 #pragma once
 
+#include <memory>
+#include <source_location>
+
+#include <fmt/format.h>
+
 #include "Tree.NativeCommon/system.h"
 
 #define LOGSYSTEM_NAME "LogSystem_v01"
 
 namespace Tree
 {
-	class ILogSystem : public System
+	struct ConsoleLogEntry
+	{
+		std::string loggerName;
+		int logLevel;
+		std::string text;
+	};
+
+	// It's yucky but these have to be raw pointers
+	// for interop to work
+	struct ConsoleLogEntrySap
+	{
+		char* loggerName;
+		int logLevel;
+		char* text;
+	};
+
+	struct ConsoleLogHistorySap
+	{
+		int count;
+		ConsoleLogEntrySap* entries;
+	};
+
+	struct LogFormat
+	{
+		std::string m_text;
+		std::source_location m_location;
+
+		LogFormat( const char* text, const std::source_location location = std::source_location::current() )
+			: m_text( text ), m_location( location )
+		{
+
+		}
+
+		LogFormat( const std::string_view text, const std::source_location location = std::source_location::current() )
+			: m_text( text ), m_location( location )
+		{
+
+		}
+
+		LogFormat( const std::string text, const std::source_location location = std::source_location::current() )
+			: m_text( text ), m_location( location )
+		{
+
+		}
+	};
+
+	class ILogger
+	{
+	public:
+		template <typename... Args>
+		void Info( const LogFormat format, const Args&... arguments )
+		{
+			std::string formatted = fmt::vformat( format.m_text, fmt::make_format_args( arguments... ) );
+			InternalInfo( 
+				format.m_location.file_name(),
+				format.m_location.line(),
+				format.m_location.function_name(),
+				formatted
+			);
+		}
+
+		template <typename... Args>
+		void Warning( const LogFormat format, const Args&... arguments )
+		{
+			std::string formatted = fmt::vformat( format.m_text, fmt::make_format_args( arguments... ) );
+			InternalWarning(
+				format.m_location.file_name(),
+				format.m_location.line(),
+				format.m_location.function_name(),
+				formatted
+			);
+		}
+
+		template <typename... Args>
+		void Error( const LogFormat format, const Args&... arguments )
+		{
+			std::string formatted = fmt::vformat( format.m_text, fmt::make_format_args( arguments... ) );
+			InternalError(
+				format.m_location.file_name(),
+				format.m_location.line(),
+				format.m_location.function_name(),
+				formatted
+			);
+		}
+
+		template <typename... Args>
+		void Trace( const LogFormat format, const Args&... arguments )
+		{
+			std::string formatted = fmt::vformat( format.m_text, fmt::make_format_args( arguments... ) );
+			InternalTrace(
+				format.m_location.file_name(),
+				format.m_location.line(),
+				format.m_location.function_name(),
+				formatted
+			);
+		}
+
+	public:
+		virtual void InternalInfo( const char* file, int line, const char* function, const std::string_view text ) = 0;
+		virtual void InternalWarning( const char* file, int line, const char* function, const std::string_view text ) = 0;
+		virtual void InternalError( const char* file, int line, const char* function, const std::string_view text ) = 0;
+		virtual void InternalTrace( const char* file, int line, const char* function, const std::string_view text ) = 0;
+	};
+
+	class ILogSystem : public ISystem, virtual public ILogger
 	{
 	public:
 		virtual ESystemInitCode Startup() = 0;
 		virtual void Shutdown() = 0;
+
+		virtual std::shared_ptr<ILogger> CreateLogger( std::string name ) = 0;
+
+		// This isn't wrapped in a shared pointer because C# will manage it.
+		virtual ILogger* CreateLoggerSap( std::string name ) = 0;
+		virtual const ConsoleLogHistorySap GetConsoleLogHistorySap() const = 0;
 	};
 }
