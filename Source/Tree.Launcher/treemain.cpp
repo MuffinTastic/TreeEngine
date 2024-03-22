@@ -104,7 +104,6 @@ int Tree::TreeMain( std::vector<std::string> arguments )
 
 		Sys::CmdLine()->ProcessArguments( arguments );
 
-		//Sys::Log()->SetArguments( arguments );
 		if ( Sys::Log()->Startup() != ESYSTEMINIT_SUCCESS )
 		{
 			return TREEMAIN_FAILURE_SYSTEM;
@@ -127,6 +126,7 @@ int Tree::TreeMain( std::vector<std::string> arguments )
 #endif
 
 		Sys::Engine()->SetStartupConfig( config );
+
 		if ( Sys::Engine()->Startup() != ESYSTEMINIT_SUCCESS )
 		{
 			return TREEMAIN_FAILURE_SYSTEM;
