@@ -28,12 +28,13 @@ namespace Tree
 	{
 	public:
 		explicit ConsoleLogSink() {}
-		~ConsoleLogSink();
+		~ConsoleLogSink() {};
 
 		const ConsoleLogHistorySap GetSap();
 
 	protected:
 		using spdlog::sinks::base_sink<Mutex>::formatter_;
+		using spdlog::sinks::base_sink<Mutex>::mutex_;
 
 		virtual void sink_it_( const spdlog::details::log_msg& msg ) override;
 		virtual void flush_() override {};
@@ -118,14 +119,10 @@ namespace Tree
 #pragma region Sink Implementations
 
 template<class Mutex>
-Tree::ConsoleLogSink<Mutex>::~ConsoleLogSink()
-{
-
-}
-
-template<class Mutex>
 const Tree::ConsoleLogHistorySap Tree::ConsoleLogSink<Mutex>::GetSap()
 {
+	std::lock_guard<Mutex> lock( mutex_ );
+
 	size_t count = m_logEntries.size();
 
 	ConsoleLogHistorySap sap;
