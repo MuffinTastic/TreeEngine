@@ -28,7 +28,7 @@ Tree::EModuleLoadCode Tree::ModuleManager::LoadModules( std::vector<std::string>
 		if ( library == nullptr )
 		{
 			// We don't have LogSystem yet, so let's just do a platform log.
-			Platform::DebugLog( "Couldn't load shared library '" + relativePath + "'." );
+			Platform::DebugLog( "Couldn't load shared library '{}'.", relativePath);
 			return EMODULELOAD_FAILURE;
 		}
 

@@ -54,7 +54,7 @@ int Tree::Platform::ChangeCurrentDirectory( std::string path )
 
 void Tree::Platform::DebugLog( std::string text )
 {
-	std::string formatted = fmt::format( "[{}] {}", ENGINE_NAME, text );
+	std::string formatted = fmt::format( "[{}] {}\r\n", ENGINE_NAME, text );
 	std::u16string u16text = utf8::utf8to16( formatted );
 	const wchar_t* wctext = reinterpret_cast<const wchar_t*>( u16text.data() );
 	OutputDebugStringW( wctext );

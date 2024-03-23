@@ -30,7 +30,7 @@ namespace Tree::Platform
 	void DebugLog( std::string text );
 
 	template <typename... Args>
-	void DebugLog( std::string_view format, Args&... arguments )
+	void DebugLog( const std::string_view format, const Args&... arguments )
 	{
 		std::string formatted = fmt::vformat( format, fmt::make_format_args( arguments... ) );
 		DebugLog( formatted );
