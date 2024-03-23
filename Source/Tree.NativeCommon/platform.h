@@ -2,14 +2,26 @@
 
 #include <string>
 #include <functional>
+#include <filesystem>
 
 #include <fmt/format.h>
 
 namespace Tree::Platform
 {
 	// These return absolute (fully qualified) paths
-	std::string GetExecutableFile();
-	std::string GetExecutableDirectory();
+	std::filesystem::path GetExecutableFilePath();
+	std::filesystem::path GetExecutableDirectoryPath();
+	std::filesystem::path GetEngineDirectoryPath();
+	std::filesystem::path GetLogDirectoryPath();
+
+	std::string GetExecutableFileUTF8();
+	std::string GetExecutableDirectoryUTF8();
+	std::string GetEngineDirectoryUTF8();
+	std::string GetLogDirectoryUTF8();
+
+
+	std::string PathToUTF8( std::filesystem::path path );
+	std::filesystem::path UTF8ToPath( std::string_view str );
 
 	struct SharedLibrary;
 	SharedLibrary* LoadSharedLibrary( std::string path );
@@ -25,7 +37,8 @@ namespace Tree::Platform
 		return func;
 	}
 
-	int ChangeCurrentDirectory( std::string path );
+	void ChangeCurrentDirectoryPath( std::filesystem::path path );
+	void ChangeCurrentDirectoryUTF8( std::string path );
 
 	void DebugLog( std::string text );
 

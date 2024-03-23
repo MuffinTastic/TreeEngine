@@ -9,18 +9,57 @@
 #include "Tree.NativeCommon/constants.h"
 
 
-std::string Tree::Platform::GetExecutableFile()
+std::filesystem::path Tree::Platform::GetExecutableFilePath()
 {
 	wchar_t path[MAX_PATH];
 	GetModuleFileNameW( NULL, path, MAX_PATH );
 	std::u16string_view u16path( reinterpret_cast<char16_t*>( path ) );
-	return utf8::utf16to8( u16path );
+	return std::filesystem::path( u16path );
 }
 
-std::string Tree::Platform::GetExecutableDirectory()
+std::filesystem::path Tree::Platform::GetExecutableDirectoryPath()
 {
-	std::filesystem::path path( GetExecutableFile() );
-	return path.parent_path().string();
+	return GetExecutableFilePath().parent_path();
+}
+
+std::filesystem::path Tree::Platform::GetEngineDirectoryPath()
+{
+	return GetExecutableDirectoryPath() / "Engine";
+}
+
+std::filesystem::path Tree::Platform::GetLogDirectoryPath()
+{
+	return GetExecutableDirectoryPath() / "Log";
+}
+
+std::string Tree::Platform::GetExecutableFileUTF8()
+{
+	return PathToUTF8( GetExecutableFilePath() );
+}
+
+std::string Tree::Platform::GetExecutableDirectoryUTF8()
+{
+	return PathToUTF8( GetExecutableDirectoryPath() );
+}
+
+std::string Tree::Platform::GetEngineDirectoryUTF8()
+{
+	return PathToUTF8( GetEngineDirectoryPath() );
+}
+
+std::string Tree::Platform::GetLogDirectoryUTF8()
+{
+	return PathToUTF8( GetLogDirectoryPath() );
+}
+
+std::string Tree::Platform::PathToUTF8( std::filesystem::path path )
+{
+	return utf8::utf16to8( path.u16string() );
+}
+
+std::filesystem::path Tree::Platform::UTF8ToPath( std::string_view str )
+{
+	return std::filesystem::path( utf8::utf8to16( str ) );
 }
 
 Tree::Platform::SharedLibrary* Tree::Platform::LoadSharedLibrary( std::string path )
@@ -45,11 +84,14 @@ void* Tree::Platform::GetSharedLibraryFunc( SharedLibrary* sharedLibrary, std::s
 	return reinterpret_cast<void*>( address );
 }
 
-int Tree::Platform::ChangeCurrentDirectory( std::string path )
+void Tree::Platform::ChangeCurrentDirectoryPath( std::filesystem::path path )
 {
-	std::u16string u16path = utf8::utf8to16( path );
-	const wchar_t* wcpath = reinterpret_cast<const wchar_t*>( u16path.data() );
-	return _wchdir( wcpath );
+	std::filesystem::current_path( path );
+}
+
+void Tree::Platform::ChangeCurrentDirectoryUTF8( std::string path )
+{
+	ChangeCurrentDirectoryPath( UTF8ToPath( path ) );
 }
 
 void Tree::Platform::DebugLog( std::string text )

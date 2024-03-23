@@ -13,7 +13,7 @@ Tree::ModuleManager& Tree::ModuleManager::Instance()
 
 Tree::EModuleLoadCode Tree::ModuleManager::LoadModules( std::vector<std::string> names )
 {
-	auto enginePath = std::filesystem::path( "Engine" );
+	std::filesystem::path enginePath = Platform::GetEngineDirectoryUTF8();
 
 	//
 	// Load all the modules from disk.

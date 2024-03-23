@@ -71,8 +71,7 @@ int Tree::TreeMain( std::vector<std::string> arguments )
 	std::cout << "Server" << std::endl;
 #endif
 
-	std::string basepath = Platform::GetExecutableDirectory();
-	Platform::ChangeCurrentDirectory( basepath );
+	Platform::ChangeCurrentDirectoryPath( Platform::GetExecutableDirectoryPath() );
 
 	{
 		//
