@@ -3,17 +3,22 @@
 #include <atomic>
 #include <vector>
 #include <algorithm>
+#include <filesystem>
+#include <regex>
+#include <utility>
+#include <charconv>
 
 #if WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #endif
 
-//#define SPDLOG_USE_STD_FORMAT
+#define SPDLOG_WCHAR_FILENAMES
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/base_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/stdout_sinks.h>
+#include "spdlog/sinks/basic_file_sink.h"
 
 #include "Tree.NativeCommon/sys.h"
 #include "Tree.NativeCommon/unicode.h"
@@ -103,14 +108,24 @@ namespace Tree
 		virtual const ConsoleLogHistorySap GetConsoleLogHistorySap() const override;
 
 	private:
+		static constexpr const char* s_logFileName = "log.latest.txt";
+		static constexpr const char* s_oldLogRenameFormat = "log.{}.txt";
+		static constexpr const char* s_oldLogRegexFormat = "^log\\.(\\d+)\\.txt$";
+		static constexpr int s_oldLogCountDefault = 10;
+
 		spdlog::sink_ptr m_stdoutLogSink;
 #if WINDOWS
 		spdlog::sink_ptr m_msvcLogSink;
 #endif
 		std::shared_ptr<ConsoleLogSinkMT> m_consoleLogSink;
 		spdlog::sink_ptr m_fileLogSink;
+		std::string m_logFilePathStr;
 
+		std::shared_ptr<ILogger> m_systemLogger;
+
+		void ManageOldLogFiles();
 		void CreateSinks();
+		void SetPatterns();
 		std::vector<spdlog::sink_ptr> GetSinks() const;
 	};
 #pragma warning( pop )
@@ -231,18 +246,12 @@ Tree::ESystemInitCode Tree::LogSystem::Startup()
 	SetLogger( "Default", GetSinks() );
 	spdlog::set_default_logger( m_spdlogger );
 
-	const char* nocolor_pattern = "[%H:%M:%S] [%n] [%l] [%s:%#:%!] %v";
-	const char* color_pattern = "[%H:%M:%S] [%n] [%^%l%$] [%s:%#:%!] %v";
+	SetPatterns();
 
-	const char* pattern;
-	if ( Sys::CmdLine()->GetFlag( "nocolor" ) )
-		pattern = nocolor_pattern;
-	else
-		pattern = color_pattern;
-
-	spdlog::set_pattern( pattern );
-
-	m_consoleLogSink->set_pattern( "[%H:%M:%S] [%n] [%l] %v" );
+	m_systemLogger = CreateLogger( "LogSystem" );
+	m_systemLogger->Info( "Started logging" );
+	if ( m_fileLogSink )
+		m_systemLogger->Info( "Opened log file at {}", m_logFilePathStr );
 
     return ESYSTEMINIT_SUCCESS;
 }
@@ -267,9 +276,88 @@ const Tree::ConsoleLogHistorySap Tree::LogSystem::GetConsoleLogHistorySap() cons
 	return m_consoleLogSink->GetSap();
 }
 
+void Tree::LogSystem::ManageOldLogFiles()
+{
+	std::filesystem::path logPath = Platform::GetLogDirectoryPath();
+	if ( !std::filesystem::exists( logPath ) )
+	{
+		return;
+	}
+
+	// Take stock of old logs
+
+	std::vector<std::pair<int, std::filesystem::path>> oldLogs;
+
+	{
+		std::regex oldLogRegex( s_oldLogRegexFormat );
+
+		for ( const auto& entry : std::filesystem::directory_iterator( Platform::GetLogDirectoryPath() ) )
+		{
+			auto path = entry.path();
+			std::string filename = path.filename().string();
+			std::smatch matches;
+		
+			if ( !std::regex_search( filename, matches, oldLogRegex) )
+			{
+				continue;
+			}
+
+			std::string oldLogNumStr = matches[1].str();
+			int oldLogNum;
+
+			auto result = std::from_chars( oldLogNumStr.data(), oldLogNumStr.data() + oldLogNumStr.size(), oldLogNum );
+
+			if ( result.ec != std::errc{} ) // we had an error converting to int, probably invalid, skip it
+			{
+				continue;
+			}
+
+			oldLogs.push_back( std::make_pair( oldLogNum, path ) );
+		}
+
+		std::sort( oldLogs.begin(), oldLogs.end(),
+			[]( auto& first, auto& second ) { return first.first < second.first; } );
+	}
+
+	// Rename last log
+
+	{
+		auto lastLogFilePath = logPath / s_logFileName;
+
+		if ( std::filesystem::exists( lastLogFilePath ) )
+		{
+			int oldLogNum = 1;
+
+			if ( !oldLogs.empty() )
+			{
+				oldLogNum = oldLogs.back().first + 1;
+			}
+
+			std::string newName = fmt::format( s_oldLogRenameFormat, oldLogNum );
+			auto newPath = logPath / newName;
+
+			std::filesystem::rename( lastLogFilePath, newPath );
+			oldLogs.push_back( std::make_pair( oldLogNum, newPath ) );
+		}
+	}
+
+	// Delete logs that are too old
+
+	if ( !Sys::CmdLine()->GetFlag( "keep-all-logs" ) )
+	{
+		int keepLogCount = Sys::CmdLine()->GetIntOption( "keep-logs", s_oldLogCountDefault );
+		int overCap = static_cast<int>( oldLogs.size() ) - keepLogCount;
+
+		for ( int i = 0; i < overCap; ++i )
+		{
+			std::filesystem::remove( oldLogs[i].second );
+		}
+	}
+}
+
 void Tree::LogSystem::CreateSinks()
 {
-	if ( Sys::CmdLine()->GetFlag( "nocolor" ) )
+	if ( Sys::CmdLine()->GetFlag( "no-color" ) )
 	{
 		m_stdoutLogSink = std::make_shared<spdlog::sinks::stdout_sink_mt>();
 	}
@@ -283,6 +371,56 @@ void Tree::LogSystem::CreateSinks()
 #endif
 
 	m_consoleLogSink = std::make_shared<ConsoleLogSinkMT>();
+
+	try
+	{
+		std::filesystem::path logFilePath;
+
+		if ( !Sys::CmdLine()->GetFlag( "log-file" ) )
+		{
+			ManageOldLogFiles();
+			std::filesystem::path logPath = Platform::GetLogDirectoryPath();
+			logFilePath = logPath / Platform::UTF8ToPath( s_logFileName );
+
+			if ( !std::filesystem::exists( logPath ) )
+			{
+				std::filesystem::create_directories( logPath );
+			}
+		}
+		else
+		{
+			logFilePath = Platform::UTF8ToPath( Sys::CmdLine()->GetStringOption( "log-file", s_logFileName ) );
+		}
+
+#if WINDOWS
+		// I hate C++
+		m_fileLogSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>( logFilePath.wstring() );
+#else
+		m_fileLogSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>( logFilePath.string() );
+#endif
+
+		m_logFilePathStr = Platform::PathToUTF8( logFilePath );
+	}
+	catch ( const spdlog::spdlog_ex& ex )
+	{
+		Platform::DebugLog( "Log init failed: {}", ex.what() );
+	}
+}
+
+void Tree::LogSystem::SetPatterns()
+{
+	const char* nocolor_pattern = "[%H:%M:%S] [%n] [%l] [%s:%#:%!] %v";
+	const char* color_pattern = "[%H:%M:%S] [%n] [%^%l%$] [%s:%#:%!] %v";
+
+	const char* pattern;
+	if ( Sys::CmdLine()->GetFlag( "nocolor" ) )
+		pattern = nocolor_pattern;
+	else
+		pattern = color_pattern;
+
+	spdlog::set_pattern( pattern );
+
+	m_consoleLogSink->set_pattern( "[%H:%M:%S] [%n] [%l] %v" );
 }
 
 std::vector<spdlog::sink_ptr> Tree::LogSystem::GetSinks() const
