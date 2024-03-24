@@ -101,7 +101,11 @@ int Tree::TreeMain( std::vector<std::string> arguments )
 		// Modules have been loaded. Start engine dependencies.
 		//
 
+		// -- CmdLine --
+
 		Sys::CmdLine()->ProcessArguments( arguments );
+
+		// -- Log --
 
 		if ( Sys::Log()->Startup() != ESYSTEMINIT_SUCCESS )
 		{
@@ -113,6 +117,19 @@ int Tree::TreeMain( std::vector<std::string> arguments )
 				Sys::Log()->Shutdown();
 			} );
 
+		// -- ManagedHost --
+
+		if ( Sys::ManagedHost()->Startup() != ESYSTEMINIT_SUCCESS )
+		{
+			return TREEMAIN_FAILURE_SYSTEM;
+		}
+
+		auto managedHostGuard = sg::make_scope_guard( []
+			{
+				Sys::ManagedHost()->Shutdown();
+			} );
+
+		// -- Engine --
 
 		EngineStartupConfig config;
 
