@@ -33,9 +33,13 @@ workspace "TreeEngine"
     filter {}
 
 
-function thirdpartylib( name )
+function thirdpartylib( names )
     -- my precious little hack...
-    return "ThirdParty/Lib/" .. name .. "%{cfg.buildcfg:gsub('Debug', 'd'):gsub('Release', '')}"
+    if type(names) == "table" then
+        return "ThirdParty/Lib/%{cfg.buildcfg:gsub('Debug', '" .. names.debug .. "'):gsub('Release', '" .. names.release .. "')}"
+    else
+        return "ThirdParty/Lib/" .. names
+    end
 end
 
 group "Managed"
@@ -61,8 +65,9 @@ group "Native"
             kind = "SharedLib",
             target = "Engine",
             links = {
-                thirdpartylib( "fmt" ),
-                "%{cfg.buildtarget.directory}/Tree.NativeCommon"
+                "%{cfg.buildtarget.directory}/Tree.NativeCommon",
+                thirdpartylib{ debug="fmtd", release="fmt" },
+                thirdpartylib( "nethost" )
             },
             dependson = { "Tree.NativeCommon" },
         }
@@ -85,11 +90,12 @@ group "Native/Launchers"
             server = "ConsoleApp"
         },
         links = {
-            thirdpartylib( "fmt" ),
-            "%{cfg.buildtarget.directory}/Engine/Tree.NativeCommon"
+            "%{cfg.buildtarget.directory}/Engine/Tree.NativeCommon",
+            thirdpartylib{ debug="fmtd", release="fmt" },
         },
         dependson = { "Tree.NativeCommon", "Tree.Root", "Tree.Trunk" },
-        defines = { "LAUNCHER" }
+        defines = { "LAUNCHER" },
+        postbuildcommands = { "{COPYDIR} %[ThirdParty/Bin] %[%{cfg.buildtarget.directory}/Engine]" }
     }
 
 group "Tools"

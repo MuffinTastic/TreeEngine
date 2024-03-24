@@ -33,6 +33,10 @@ function treeproject(properties)
             if properties.dependson then
                 dependson(properties.dependson)
             end
+
+            if properties.postbuildcommands then
+                postbuildcommands(properties.postbuildcommands)
+            end
     end
 
 
