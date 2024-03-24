@@ -83,7 +83,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ```
 
-## fmt
+## fmt 10.2.1
 
 ```
 Copyright (c) 2012 - present, Victor Zverovich and {fmt} contributors
@@ -113,4 +113,5 @@ As an exception, if, as a result of your compiling your source code, portions
 of this Software are embedded into a machine-executable object form of such
 source code, you may redistribute such embedded portions in such object form
 without including the above copyright and permission notices.
+
 ```
