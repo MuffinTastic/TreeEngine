@@ -284,7 +284,9 @@ void Tree::LogSystem::ManageOldLogFiles()
 		return;
 	}
 
+	//
 	// Take stock of old logs
+	//
 
 	std::vector<std::pair<int, std::filesystem::path>> oldLogs;
 
@@ -307,8 +309,9 @@ void Tree::LogSystem::ManageOldLogFiles()
 
 			auto result = std::from_chars( oldLogNumStr.data(), oldLogNumStr.data() + oldLogNumStr.size(), oldLogNum );
 
-			if ( result.ec != std::errc{} ) // we had an error converting to int, probably invalid, skip it
+			if ( result.ec != std::errc{} )
 			{
+				// We had an error converting to int, probably invalid, skip it
 				continue;
 			}
 
@@ -319,7 +322,9 @@ void Tree::LogSystem::ManageOldLogFiles()
 			[]( auto& first, auto& second ) { return first.first < second.first; } );
 	}
 
+	//
 	// Rename last log
+	//
 
 	{
 		auto lastLogFilePath = logPath / s_logFileName;
@@ -341,11 +346,13 @@ void Tree::LogSystem::ManageOldLogFiles()
 		}
 	}
 
+	//
 	// Delete logs that are too old
+	//
 
-	if ( !Sys::CmdLine()->GetFlag( "keep-all-logs" ) )
+	if ( !Sys::CmdLine()->GetFlag( "keep-old-logs" ) )
 	{
-		int keepLogCount = Sys::CmdLine()->GetIntOption( "keep-logs", s_oldLogCountDefault );
+		int keepLogCount = Sys::CmdLine()->GetIntOption( "keep-old-logs", s_oldLogCountDefault );
 		int overCap = static_cast<int>( oldLogs.size() ) - keepLogCount;
 
 		for ( int i = 0; i < overCap; ++i )
@@ -357,7 +364,7 @@ void Tree::LogSystem::ManageOldLogFiles()
 
 void Tree::LogSystem::CreateSinks()
 {
-	if ( Sys::CmdLine()->GetFlag( "no-color" ) )
+	if ( Sys::CmdLine()->GetFlag( "log-no-color" ) )
 	{
 		m_stdoutLogSink = std::make_shared<spdlog::sinks::stdout_sink_mt>();
 	}
@@ -409,8 +416,8 @@ void Tree::LogSystem::CreateSinks()
 
 void Tree::LogSystem::SetPatterns()
 {
-	const char* nocolor_pattern = "[%H:%M:%S] [%n] [%l] [%s:%#:%!] %v";
-	const char* color_pattern = "[%H:%M:%S] [%n] [%^%l%$] [%s:%#:%!] %v";
+	const char* nocolor_pattern = "[%H:%M:%S] [%n]\t[%l] [%s:%#:%!] %v";
+	const char* color_pattern = "[%H:%M:%S] [%n]\t[%^%l%$] [%s:%#:%!] %v";
 
 	const char* pattern;
 	if ( Sys::CmdLine()->GetFlag( "nocolor" ) )
