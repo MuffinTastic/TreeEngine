@@ -24,7 +24,7 @@ namespace Tree::Platform
 	std::filesystem::path UTF8ToPath( std::string_view str );
 
 	struct SharedLibrary;
-	SharedLibrary* LoadSharedLibrary( std::string path );
+	SharedLibrary* LoadSharedLibrary( std::filesystem::path path );
 	void UnloadSharedLibrary( SharedLibrary* sharedLibrary );
 
 	void* GetSharedLibraryFunc( SharedLibrary* sharedLibrary, std::string name );

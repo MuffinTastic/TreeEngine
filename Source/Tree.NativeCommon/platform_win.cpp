@@ -62,11 +62,10 @@ std::filesystem::path Tree::Platform::UTF8ToPath( std::string_view str )
 	return std::filesystem::path( utf8::utf8to16( str ) );
 }
 
-Tree::Platform::SharedLibrary* Tree::Platform::LoadSharedLibrary( std::string path )
+Tree::Platform::SharedLibrary* Tree::Platform::LoadSharedLibrary( std::filesystem::path path )
 {
-	std::u16string u16path = utf8::utf8to16( path );
-	wchar_t* wcpath = reinterpret_cast<wchar_t*>( u16path.data() );
-	HMODULE library = LoadLibraryExW( wcpath, NULL, LOAD_WITH_ALTERED_SEARCH_PATH );
+	std::wstring wpath = path.wstring();
+	HMODULE library = LoadLibraryExW( wpath.c_str(), NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
 	return reinterpret_cast<SharedLibrary*>( library );
 }
 

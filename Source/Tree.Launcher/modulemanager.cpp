@@ -13,7 +13,7 @@ Tree::ModuleManager& Tree::ModuleManager::Instance()
 
 Tree::EModuleLoadCode Tree::ModuleManager::LoadModules( std::vector<std::string> names )
 {
-	std::filesystem::path enginePath = Platform::GetEngineDirectoryUTF8();
+	std::filesystem::path enginePath = Platform::GetEngineDirectoryPath();
 
 	//
 	// Load all the modules from disk.
@@ -21,14 +21,13 @@ Tree::EModuleLoadCode Tree::ModuleManager::LoadModules( std::vector<std::string>
 
 	for ( auto it = names.begin(); it != names.end(); ++it )
 	{
-		std::string filename = *it + SHAREDLIB_EXT;
-		std::string relativePath = (enginePath / filename).string();
+		std::filesystem::path modulePath = enginePath / Platform::UTF8ToPath( *it + SHAREDLIB_EXT );
 
-		auto library = Platform::LoadSharedLibrary( relativePath );
+		auto library = Platform::LoadSharedLibrary( modulePath );
 		if ( library == nullptr )
 		{
 			// We don't have LogSystem yet, so let's just do a platform log.
-			Platform::DebugLog( "Couldn't load shared library '{}'.", relativePath);
+			Platform::DebugLog( "Couldn't load shared library '{}'.", Platform::PathToUTF8( modulePath ) );
 			return EMODULELOAD_FAILURE;
 		}
 
