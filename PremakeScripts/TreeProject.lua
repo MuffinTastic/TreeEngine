@@ -37,6 +37,10 @@ function treeproject(properties)
             if properties.postbuildcommands then
                 postbuildcommands(properties.postbuildcommands)
             end
+
+            if properties.generateruntimecfg then
+                generateruntimecfg "On"
+            end
     end
 
 

@@ -8,6 +8,12 @@ local config = p.config
 local fileconfig = p.fileconfig
 local dotnet = p.tools.dotnet
 
+p.api.register {
+    name = "generateruntimecfg",
+    scope = "config",
+    kind = "boolean"
+}
+
 premake.override(premake.vstudio.dotnetbase, "projectProperties", function(base, prj)
     _p(1,'<PropertyGroup>')
     local cfg = project.getfirstconfig(prj)
@@ -21,6 +27,10 @@ premake.override(premake.vstudio.dotnetbase, "projectProperties", function(base,
         _p(2, '<Platforms>%s</Platforms>', table.concat(platforms, ';'))
     else
         _p(2, '<Platforms>AnyCPU</Platforms>')
+    end
+
+    if cfg.generateruntimecfg then
+        _p(2, '<GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>')
     end
 
     _p(1,'</PropertyGroup>')

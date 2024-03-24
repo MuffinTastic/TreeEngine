@@ -47,7 +47,8 @@ group "Managed"
         name = "Tree.Trunk",
         language = "C#",
         kind = "SharedLib",
-        target = "Engine"
+        target = "Engine",
+        generateruntimecfg = true
     }
     links { "Tree.Interop" }
 
