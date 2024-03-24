@@ -27,7 +27,7 @@ namespace Tree
 
 		// I would use std::function here, but these typedefs are incompatible with it
 		hostfxr_initialize_for_runtime_config_fn m_initRuntimeFn;
-		hostfxr_set_error_writer_fn m_setRuntimeErrorWriterFn;
+		//hostfxr_set_error_writer_fn m_setRuntimeErrorWriterFn;
 		hostfxr_get_runtime_delegate_fn m_getRuntimeDelegateFn;
 		hostfxr_set_runtime_property_value_fn m_setRuntimePropertyFn;
 		hostfxr_close_fn m_closeFn;
@@ -85,8 +85,8 @@ bool Tree::ManagedHostSystem::LoadHostFXR()
 
 	m_initRuntimeFn = static_cast<hostfxr_initialize_for_runtime_config_fn>(
 		Platform::GetSharedLibraryFunc(m_hostfxrLibrary, "hostfxr_initialize_for_runtime_config" ) );
-	m_setRuntimeErrorWriterFn = static_cast<hostfxr_set_error_writer_fn>(
-		Platform::GetSharedLibraryFunc( m_hostfxrLibrary, "hostfxr_set_error_writer" ) );
+	//m_setRuntimeErrorWriterFn = static_cast<hostfxr_set_error_writer_fn>(
+	//	Platform::GetSharedLibraryFunc( m_hostfxrLibrary, "hostfxr_set_error_writer" ) );
 	m_getRuntimeDelegateFn = static_cast<hostfxr_get_runtime_delegate_fn>(
 		Platform::GetSharedLibraryFunc( m_hostfxrLibrary, "hostfxr_get_runtime_delegate" ) );
 	m_setRuntimePropertyFn = static_cast<hostfxr_set_runtime_property_value_fn>(
@@ -95,7 +95,7 @@ bool Tree::ManagedHostSystem::LoadHostFXR()
 		Platform::GetSharedLibraryFunc( m_hostfxrLibrary, "hostfxr_close" ) );
 
 	if ( !m_initRuntimeFn
-		|| !m_setRuntimeErrorWriterFn
+		//|| !m_setRuntimeErrorWriterFn
 		|| !m_getRuntimeDelegateFn
 		|| !m_setRuntimePropertyFn
 		|| !m_closeFn )
@@ -104,8 +104,6 @@ bool Tree::ManagedHostSystem::LoadHostFXR()
 		Platform::UnloadSharedLibrary( m_hostfxrLibrary );
 		return false;
 	}
-
-	m_logger->Info( "Loaded HostFXR" );
 
 	return true;
 }
