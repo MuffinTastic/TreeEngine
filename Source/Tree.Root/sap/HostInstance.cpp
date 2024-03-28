@@ -98,7 +98,6 @@ namespace Tree
 			ScopedSapString name = SapString::New( InName );
 			AssemblyLoadContext alc;
 			alc.m_ContextId = s_ManagedFunctions.CreateAssemblyLoadContextFptr( name );
-			alc.m_Host = this;
 			return alc;
 		}
 

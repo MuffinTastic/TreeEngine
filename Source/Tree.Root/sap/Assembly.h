@@ -34,7 +34,6 @@ namespace Tree
 			const std::vector<Type*>& GetTypes() const;
 
 		private:
-			HostInstance* m_Host = nullptr;
 			int32_t m_AssemblyID = -1;
 			AssemblyLoadStatus m_LoadStatus = AssemblyLoadStatus::UnknownError;
 			std::string m_Name;
@@ -62,8 +61,6 @@ namespace Tree
 		private:
 			int32_t m_ContextId;
 			StableVector<ManagedAssembly> m_LoadedAssemblies;
-
-			HostInstance* m_Host = nullptr;
 
 			friend class HostInstance;
 		};

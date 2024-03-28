@@ -51,8 +51,6 @@ namespace Tree
 			std::filesystem::path m_SapManagedAssemblyPath;
 			void* m_HostFXRContext = nullptr;
 			bool m_Initialized = false;
-
-			friend class AssemblyLoadContext;
 		};
 	}
 }

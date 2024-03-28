@@ -49,7 +49,6 @@ namespace Tree
 			auto filepath = SapString::New( InFilePath );
 
 			auto [idx, result] = m_LoadedAssemblies.EmplaceBack();
-			result.m_Host = m_Host;
 			result.m_AssemblyID = s_ManagedFunctions.LoadManagedAssemblyFptr( m_ContextId, filepath );
 			result.m_LoadStatus = s_ManagedFunctions.GetLastLoadStatusFptr();
 
