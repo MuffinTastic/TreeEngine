@@ -12,6 +12,9 @@
 #include "interfaces/ilogsystem.h"
 #include "Tree.NativeCommon/sys.h"
 
+#include "sap/common.h"
+#include "sap/string.h"
+
 #define TREE_TRUNK_ASSEMBLY_NAME "Tree.Trunk"
 
 // Managed shared libraries end in .dll no matter the platform
@@ -169,11 +172,11 @@ bool Tree::ManagedHostSystem::LoadNETCore()
 			m_closeFn( context );
 		} );
 
-	m_setRuntimePropertyFn( context, L"APP_CONTEXT_BASE_DIRECTORY", wEnginePath.c_str() );
-	m_setRuntimePropertyFn( context, L"APP_PATHS", wEnginePath.c_str() );
-	m_setRuntimePropertyFn( context, L"APP_NI_PATHS", wEnginePath.c_str() );
-	m_setRuntimePropertyFn( context, L"NATIVE_DLL_SEARCH_DIRECTORIES", wEnginePath.c_str() );
-	m_setRuntimePropertyFn( context, L"PLATFORM_RESOURCE_ROOTS", wEnginePath.c_str() );
+	m_setRuntimePropertyFn( context, SAP_STR("APP_CONTEXT_BASE_DIRECTORY"), wEnginePath.c_str() );
+	m_setRuntimePropertyFn( context, SAP_STR("APP_PATHS"), wEnginePath.c_str() );
+	m_setRuntimePropertyFn( context, SAP_STR("APP_NI_PATHS"), wEnginePath.c_str() );
+	m_setRuntimePropertyFn( context, SAP_STR("NATIVE_DLL_SEARCH_DIRECTORIES"), wEnginePath.c_str() );
+	m_setRuntimePropertyFn( context, SAP_STR("PLATFORM_RESOURCE_ROOTS"), wEnginePath.c_str() );
 
 	void* loadAssemblyFn = nullptr;
 	void* getFunctionPointerFn = nullptr;
@@ -198,6 +201,12 @@ bool Tree::ManagedHostSystem::LoadNETCore()
 	return true;
 }
 
+void TestPRintYeaaggh( Tree::Sap::SapString str )
+{
+	std::string contensts = str;
+	Tree::Sys::Log()->Info( "This is the thing: {}", contensts );
+}
+
 bool Tree::ManagedHostSystem::LoadTreeTrunk()
 {
 	std::filesystem::path enginePath = Platform::GetEngineDirectoryPath();
@@ -209,8 +218,8 @@ bool Tree::ManagedHostSystem::LoadTreeTrunk()
 	void* testFn = nullptr;
 
 	m_getFunctionPointerFn(
-		L"Tree.Trunk.SapEntry, Tree.Trunk",
-		L"Entry",
+		SAP_STR("Tree.Trunk.SapEntry, Tree.Trunk"),
+		SAP_STR("Entry"),
 		UNMANAGEDCALLERSONLY_METHOD,
 		nullptr, nullptr,
 		&testFn
@@ -222,7 +231,7 @@ bool Tree::ManagedHostSystem::LoadTreeTrunk()
 		return false;
 	}
 
-	static_cast<void ( * )( int )>( testFn )( 69 );
+	static_cast<void ( * )( void* )>( testFn )( &TestPRintYeaaggh );
 
 	return true;
 }
