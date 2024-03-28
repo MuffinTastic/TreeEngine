@@ -17,9 +17,14 @@ internal static class ManagedHost
     [UnmanagedCallersOnly]
     private static unsafe void Initialize(
         delegate*<NativeString, void> InExceptionCallback,
-        delegate*<NativeString, void> InInfoCallback )
+        delegate*<NativeString, void> InInfoCallback,
+        delegate*<NativeString, void> InWarningCallback,
+        delegate*<NativeString, void> InErrorCallback )
     {
         s_ExceptionCallback = InExceptionCallback;
+        s_InfoCallback = InInfoCallback;
+        s_WarningCallback = InWarningCallback;
+        s_ErrorCallback = InErrorCallback;
     }
 
     internal static void HandleException( Exception InException )

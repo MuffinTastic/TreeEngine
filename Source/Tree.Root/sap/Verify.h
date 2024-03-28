@@ -1,12 +1,12 @@
 #pragma once
 
 #ifdef __clang__
-	#define CORAL_HAS_SOURCE_LOCATION 0
+	#define SAP_HAS_SOURCE_LOCATION 0
 #else
-	#define CORAL_HAS_SOURCE_LOCATION __has_include(<source_location>)
+	#define SAP_HAS_SOURCE_LOCATION __has_include(<source_location>)
 #endif
 
-#if CORAL_HAS_SOURCE_LOCATION
+#if SAP_HAS_SOURCE_LOCATION
 #include <source_location>
 
 #define CORAL_SOURCE_LOCATION std::source_location location = std::source_location::current(); const char* file = location.file_name(); int line = location.line()

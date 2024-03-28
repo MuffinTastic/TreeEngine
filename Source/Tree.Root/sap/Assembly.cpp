@@ -1,5 +1,4 @@
 #include "Assembly.h"
-#include "HostInstance.h"
 #include "SapManagedFunctions.h"
 #include "Verify.h"
 #include "StringHelper.h"

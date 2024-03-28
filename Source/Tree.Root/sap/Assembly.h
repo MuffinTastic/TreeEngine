@@ -6,6 +6,8 @@
 
 namespace Tree
 {
+	class ManagedHostSystem;
+
 	namespace Sap
 	{
 		enum class AssemblyLoadStatus
@@ -60,8 +62,7 @@ namespace Tree
 			int32_t m_ContextId;
 			StableVector<ManagedAssembly> m_LoadedAssemblies;
 
-			friend class HostInstance;
-			friend class ManagedHostSystem;
+			friend class Tree::ManagedHostSystem;
 		};
 
 	}
