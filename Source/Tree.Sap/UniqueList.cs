@@ -6,32 +6,32 @@ namespace Tree.Sap;
 
 public class UniqueIdList<T>
 {
-	private readonly Dictionary<int, T> m_Objects = new();
+    private readonly Dictionary<int, T> m_Objects = new();
 
-	public bool Contains(int id)
-	{
-		return m_Objects.ContainsKey(id);
-	}
+    public bool Contains( int id )
+    {
+        return m_Objects.ContainsKey( id );
+    }
 
-	public int Add(T? obj)
-	{
-		if (obj == null)
-		{
-			throw new ArgumentNullException(nameof(obj));
-		}
+    public int Add( T? obj )
+    {
+        if ( obj == null )
+        {
+            throw new ArgumentNullException( nameof( obj ) );
+        }
 
-		int hashCode = RuntimeHelpers.GetHashCode(obj);
-		_ = m_Objects.TryAdd(hashCode, obj);
-		return hashCode;
-	}
+        int hashCode = RuntimeHelpers.GetHashCode( obj );
+        _ = m_Objects.TryAdd( hashCode, obj );
+        return hashCode;
+    }
 
-	public bool TryGetValue(int id, out T? obj)
-	{
-		return m_Objects.TryGetValue(id, out obj);
-	}
+    public bool TryGetValue( int id, out T? obj )
+    {
+        return m_Objects.TryGetValue( id, out obj );
+    }
 
-	public void Clear()
-	{
-		m_Objects.Clear();
-	}
+    public void Clear()
+    {
+        m_Objects.Clear();
+    }
 }

@@ -9,17 +9,17 @@ internal enum MessageLevel { Info = 1, Warning = 2, Error = 4 }
 
 internal static class ManagedHost
 {
-	private static unsafe delegate*<NativeString, void> s_ExceptionCallback;
+    private static unsafe delegate*< NativeString, void > s_ExceptionCallback;
     private static unsafe delegate*< NativeString, void > s_InfoCallback;
     private static unsafe delegate*< NativeString, void > s_WarningCallback;
     private static unsafe delegate*< NativeString, void > s_ErrorCallback;
 
     [UnmanagedCallersOnly]
     private static unsafe void Initialize(
-        delegate*<NativeString, void> InExceptionCallback,
-        delegate*<NativeString, void> InInfoCallback,
-        delegate*<NativeString, void> InWarningCallback,
-        delegate*<NativeString, void> InErrorCallback )
+        delegate*< NativeString, void > InExceptionCallback,
+        delegate*< NativeString, void > InInfoCallback,
+        delegate*< NativeString, void > InWarningCallback,
+        delegate*< NativeString, void > InErrorCallback )
     {
         s_ExceptionCallback = InExceptionCallback;
         s_InfoCallback = InInfoCallback;

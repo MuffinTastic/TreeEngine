@@ -56,6 +56,5 @@ namespace Tree
 			const SapChar* Name;
 			void* NativeFunctionPtr;
 		};
-
 	}
 }
