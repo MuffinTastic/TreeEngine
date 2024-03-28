@@ -45,6 +45,10 @@ function treeproject(properties)
             if properties.allowunsafeblocks then
                 allowunsafeblocks "On"
             end
+
+            if properties.nuget then
+                nuget(properties.nuget)
+            end
     end
 
 
