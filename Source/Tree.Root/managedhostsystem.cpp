@@ -14,6 +14,7 @@
 
 #include "sap/common.h"
 #include "sap/string.h"
+#include "sap/array.h"
 
 #define TREE_TRUNK_ASSEMBLY_NAME "Tree.Trunk"
 
@@ -260,6 +261,14 @@ void TestPRintYeaaggh( Tree::Sap::SapString str )
 	Tree::Sys::Log()->Info( "This is the thing: {}", contensts );
 }
 
+void TheArray( Tree::Sap::SapArray<float> floats )
+{
+	for ( auto it = floats.begin(); it != floats.end(); ++it )
+	{
+		Tree::Sys::Log()->Info( "Float: {}", *it );
+	}
+}
+
 bool Tree::ManagedHostSystem::LoadTreeTrunk()
 {
 	std::filesystem::path enginePath = Platform::GetEngineDirectoryPath();
@@ -283,7 +292,15 @@ bool Tree::ManagedHostSystem::LoadTreeTrunk()
 		return false;
 	}
 
-	static_cast<void ( * )( void* )>( testFn )( &TestPRintYeaaggh );
+	std::vector<void*> funcs;
+	funcs.push_back( &TestPRintYeaaggh );
+	funcs.push_back( &TheArray );
+
+	auto saparray = Sap::SapArray<void*>::New( funcs );
+
+	auto fn = static_cast<void ( * )( Sap::SapArray<void*> )>( testFn );
+
+	fn( saparray );
 
 	return true;
 }

@@ -10,20 +10,36 @@ namespace Tree.Trunk;
 
 public class SapEntry
 {
-    internal static unsafe delegate*<SapString, void> TestFunc;
+    internal static unsafe delegate*<SapString, void> stringFunc;
+    internal static unsafe delegate*<SapArray<float>, void> arrayFunc;
+
 
     [UnmanagedCallersOnly]
-    public static void Entry( nint test )
+    public static void Entry( SapArray<nint> testpointers )
     {
-        Console.WriteLine( $"Hello from C#, {test}" );
+        //Console.WriteLine( $"Hello from C#, {testpointers.Count()}" );
+        //testpointers.Dispose();
 
-        SapString teststr = "Yeag! ユニコードいずぐれーと";
+        return;
 
         unsafe
         {
-            TestFunc = (delegate*<SapString, void>) test;
+            stringFunc = (delegate*<SapString, void>) testpointers[0];
+            arrayFunc = (delegate*< SapArray<float>, void >) testpointers[1];
 
-            TestFunc( teststr );
+            using SapString teststr = "Yeag! ユニコードいずぐれーと";
+            stringFunc( teststr );
+
+            SapArray<float> floats = new( 20 );
+            for ( int i = 0; i < 20; ++i )
+            {
+                floats[i] = i;
+            }
+
+            arrayFunc( floats );
+
+            floats.Dispose();
         }
+
     }
 }
