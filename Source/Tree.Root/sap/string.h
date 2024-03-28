@@ -1,186 +1,70 @@
-// Modified from https://github.com/StudioCherno/Coral
-
-// MIT License
-// 
-// Copyright( c ) 2023 Studio Cherno
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files( the "Software" ), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions :
-// 
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-
 #pragma once
 
-#include "common.h"
-#include "memory.h"
+#include "Core.hpp"
 
-#include "Tree.NativeCommon/unicode.h"
+namespace Coral {
 
-namespace Tree
-{
-	namespace Sap
+	class String
 	{
-		namespace StringHelper
+	public:
+		static String New(const char* InString);
+		static String New(std::string_view InString);
+		static void Free(String& InString);
+
+		void Assign(std::string_view InString);
+
+		operator std::string() const;
+
+		bool operator==(const String& InOther) const;
+		bool operator==(std::string_view InOther) const;
+
+		CharType* Data() { return m_String; }
+		const CharType* Data() const { return m_String; }
+
+	private:
+		CharType* m_String = nullptr;
+		Bool32 m_IsDisposed = false; // NOTE(Peter): Required for the layout to match the C# NativeString struct, unused in C++
+	};
+
+	struct ScopedString
+	{
+		ScopedString(String InString)
+		    : m_String(InString) {}
+
+		ScopedString& operator=(String InOther)
 		{
-	#ifdef SAP_WIDE_CHARS
-			inline static std::wstring ConvertUtf8ToWide( std::string_view str )
-			{
-				return utf8::utf8towchar( str );
-			}
-
-			inline static std::string ConvertWideToUtf8( std::wstring_view str )
-			{
-				return utf8::wcharto8( str );
-			}
-	#else
-			inline static std::string ConvertUtf8ToWide( std::string_view str )
-			{
-				return std::string( str );
-			}
-
-			inline static std::string ConvertWideToUtf8( std::string_view str )
-			{
-				return std::string( str );
-			}
-	#endif
+			String::Free(m_String);
+			m_String = InOther;
+			return *this;
 		}
 
-		// Owned by managed code
-		class SapString
+		ScopedString& operator=(const ScopedString& InOther)
 		{
-		public:
-			inline static SapString New( const char* str )
-			{
-				SapString result;
-				result.Assign( str );
-				return result;
-			}
+			String::Free(m_String);
+			m_String = InOther.m_String;
+			return *this;
+		}
 
-
-			inline static SapString New( std::string_view str )
-			{
-				SapString result;
-				result.Assign( str );
-				return result;
-			}
-
-
-			inline static void Free( SapString& str )
-			{
-				if ( str.m_str == nullptr )
-					return;
-
-				FreeCoTaskMem( str.m_str );
-				str.m_str = nullptr;
-			}
-
-			void Assign( std::string_view str )
-			{
-				if ( m_str != nullptr )
-					FreeCoTaskMem( m_str );
-
-				m_str = StringToCoTaskMemAuto( StringHelper::ConvertUtf8ToWide( str ) );
-			}
-
-			inline operator std::string() const
-			{
-				SapStringView string( m_str );
-
-#ifdef SAP_WIDE_CHARS
-				return StringHelper::ConvertWideToUtf8( string );
-#else
-				return std::string( string );
-#endif
-			}
-
-			inline bool operator==( const SapString& other ) const
-			{
-				if ( m_str == other.m_str )
-					return true;
-
-				if ( m_str == nullptr || other.m_str == nullptr )
-					return false;
-
-#ifdef SAP_WIDE_CHARS
-				return wcscmp( m_str, other.m_str ) == 0;
-#else
-				return strcmp( m_str, other.m_str ) == 0;
-#endif
-			}
-
-			inline bool operator==( std::string_view other ) const
-			{
-#ifdef SAP_WIDE_CHARS
-				auto str = StringHelper::ConvertUtf8ToWide( other );
-				return wcscmp( m_str, str.data() ) == 0;
-#else
-				return strcmp( m_str, str.data() ) == 0;
-#endif
-			}
-
-			inline SapChar* Data() { return m_str; }
-			inline const SapChar* Data() const { return m_str; }
-
-		private:
-			SapChar* m_str = nullptr;
-			SapBool32 m_IsDisposed = false;
-		};
-
-		// Owned by native code
-		struct ScopedSapString
+		~ScopedString()
 		{
-			ScopedSapString( SapString str )
-				: m_str( str )
-			{
-			}
+			String::Free(m_String);
+		}
 
-			ScopedSapString& operator=( SapString other )
-			{
-				SapString::Free( m_str );
-				m_str = other;
-				return *this;
-			}
+		operator std::string() const { return m_String; }
+		operator String() const { return m_String; }
 
-			ScopedSapString& operator=( const ScopedSapString& other )
-			{
-				SapString::Free( m_str );
-				m_str = other.m_str;
-				return *this;
-			}
+		bool operator==(const ScopedString& InOther) const
+		{
+			return m_String == InOther.m_String;
+		}
 
-			~ScopedSapString()
-			{
-				SapString::Free( m_str );
-			}
+		bool operator==(std::string_view InOther) const
+		{
+			return m_String == InOther;
+		}
 
-			inline operator std::string() const { return m_str; }
-			inline operator SapString() const { return m_str; }
+	private:
+		String m_String;
+	};
 
-			inline bool operator==( const ScopedSapString& other ) const
-			{
-				return m_str == other.m_str;
-			}
-
-			inline bool operator==( std::string_view other ) const
-			{
-				return m_str == other;
-			}
-
-		private:
-			SapString m_str;
-		};
-	}
 }
