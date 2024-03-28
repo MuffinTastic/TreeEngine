@@ -14,6 +14,12 @@ p.api.register {
     kind = "boolean"
 }
 
+p.api.register {
+    name = "allowunsafeblocks",
+    scope = "config",
+    kind = "boolean"
+}
+
 premake.override(premake.vstudio.dotnetbase, "projectProperties", function(base, prj)
     _p(1,'<PropertyGroup>')
     local cfg = project.getfirstconfig(prj)
@@ -31,6 +37,10 @@ premake.override(premake.vstudio.dotnetbase, "projectProperties", function(base,
 
     if cfg.generateruntimecfg then
         _p(2, '<GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>')
+    end
+
+    if cfg.allowunsafeblocks then
+        _p(2, '<AllowUnsafeBlocks>true</AllowUnsafeBlocks>')
     end
 
     _p(1,'</PropertyGroup>')

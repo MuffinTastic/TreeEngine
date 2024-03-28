@@ -41,6 +41,10 @@ function treeproject(properties)
             if properties.generateruntimecfg then
                 generateruntimecfg "On"
             end
+
+            if properties.allowunsafeblocks then
+                allowunsafeblocks "On"
+            end
     end
 
 

@@ -48,15 +48,17 @@ group "Managed"
         language = "C#",
         kind = "SharedLib",
         target = "Engine",
-        generateruntimecfg = true
+        generateruntimecfg = true,
+        allowunsafeblocks = true
     }
-    links { "Tree.Interop" }
+    links { "Tree.Engine" }
 
     treeproject {
-        name = "Tree.Interop",
+        name = "Tree.Engine",
         language = "C#",
         kind = "SharedLib",
-        target = "Engine"
+        target = "Engine",
+        allowunsafeblocks = true
     }
 
 group "Native"
