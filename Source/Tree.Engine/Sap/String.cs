@@ -31,6 +31,7 @@ using System.Threading.Tasks;
 
 namespace Tree.Sap;
 
+// Use IDisposable interface if this is intended to be owned by managed code
 [StructLayout( LayoutKind.Sequential )]
 public struct SapString : IDisposable
 {

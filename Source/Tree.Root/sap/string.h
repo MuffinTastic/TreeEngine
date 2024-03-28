@@ -58,6 +58,7 @@ namespace Tree
 	#endif
 		}
 
+		// Owned by managed code
 		class SapString
 		{
 		public:
@@ -138,6 +139,7 @@ namespace Tree
 			SapBool32 m_IsDisposed = false;
 		};
 
+		// Owned by native code
 		struct ScopedSapString
 		{
 			ScopedSapString( SapString str )
