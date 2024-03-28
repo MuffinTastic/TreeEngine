@@ -25,7 +25,7 @@ namespace Tree
 
 		private:
 			SapChar* m_String = nullptr;
-			Bool32 m_IsDisposed = false; // NOTE(Peter): Required for the layout to match the C# NativeString struct, unused in C++
+			Bool32 m_IsDisposed = false;
 		};
 
 		struct ScopedSapString

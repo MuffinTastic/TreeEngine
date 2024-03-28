@@ -12,6 +12,11 @@
 #include "interfaces/ilogsystem.h"
 #include "Tree.NativeCommon/sys.h"
 
+#include "sap/HostInstance.h"
+#include "sap/GC.h"
+#include "sap/SapArray.h"
+#include "sap/Attribute.h"
+
 #define TREE_TRUNK_ASSEMBLY_NAME "Tree.Trunk"
 
 // Managed shared libraries end in .dll no matter the platform
@@ -251,6 +256,8 @@ bool Tree::ManagedHostSystem::LoadNETCore()
 
 	return true;
 	*/
+
+	return true;
 }
 
 void TestPRintYeaaggh( Tree::Sap::SapString str )

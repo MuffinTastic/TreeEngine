@@ -75,15 +75,15 @@ namespace Tree
 					MessageCallback( message, MessageLevel::Error );
 				} );
 
-			m_CoralManagedAssemblyPath = std::filesystem::path( m_Settings.CoralDirectory ) / "Coral.Managed.dll";
+			m_SapManagedAssemblyPath = std::filesystem::path( m_Settings.SapDirectory ) / "Tree.Trunk.dll";
 
-			if ( !std::filesystem::exists( m_CoralManagedAssemblyPath ) )
+			if ( !std::filesystem::exists( m_SapManagedAssemblyPath ) )
 			{
-				MessageCallback( "Failed to find Coral.Managed.dll", MessageLevel::Error );
+				MessageCallback( "Failed to find Tree.Trunk.dll", MessageLevel::Error );
 				return false;
 			}
 
-			m_Initialized = InitializeCoralManaged();
+			m_Initialized = InitializeSapManaged();
 
 			return m_Initialized;
 		}
@@ -148,7 +148,7 @@ namespace Tree
 				basePath
 			};
 
-#elif defined(CORAL_LINUX)
+#elif LINUX
 			auto searchPaths = std::array
 			{
 				std::filesystem::path( "/usr/lib/dotnet/host/fxr/" ),
@@ -209,15 +209,15 @@ namespace Tree
 			s_CoreCLRFunctions.CloseHostFXR = LoadFunctionPtr<hostfxr_close_fn>( libraryHandle, "hostfxr_close" );
 		}
 
-		bool HostInstance::InitializeCoralManaged()
+		bool HostInstance::InitializeSapManaged()
 		{
 			// Fetch load_assembly_and_get_function_pointer_fn from CoreCLR
 			{
-				auto runtimeConfigPath = std::filesystem::path( m_Settings.CoralDirectory ) / "Coral.Managed.runtimeconfig.json";
+				auto runtimeConfigPath = std::filesystem::path( m_Settings.SapDirectory ) / "Tree.Trunk.runtimeconfig.json";
 
 				if ( !std::filesystem::exists( runtimeConfigPath ) )
 				{
-					MessageCallback( "Failed to find Coral.Managed.runtimeconfig.json", MessageLevel::Error );
+					MessageCallback( "Failed to find Tree.Trunk.runtimeconfig.json", MessageLevel::Error );
 					return false;
 				}
 
@@ -230,12 +230,12 @@ namespace Tree
 			}
 
 			using InitializeFn = void( * )( void( * )( SapString, MessageLevel ), void( * )( SapString ) );
-			InitializeFn coralManagedEntryPoint = nullptr;
-			coralManagedEntryPoint = LoadSapManagedFunctionPtr<InitializeFn>( SAP_STR( "Tree.Sap.ManagedHost, Coral.Managed" ), SAP_STR( "Initialize" ) );
+			InitializeFn sapManagedEntryPoint = nullptr;
+			sapManagedEntryPoint = LoadSapManagedFunctionPtr<InitializeFn>( SAP_STR( "Tree.Sap.ManagedHost, Tree.Trunk" ), SAP_STR( "Initialize" ) );
 
-			LoadCoralFunctions();
+			LoadSapFunctions();
 
-			coralManagedEntryPoint( []( SapString InMessage, MessageLevel InLevel )
+			sapManagedEntryPoint( []( SapString InMessage, MessageLevel InLevel )
 				{
 					if ( MessageFilter & InLevel )
 					{
@@ -260,64 +260,64 @@ namespace Tree
 			return true;
 		}
 
-		void HostInstance::LoadCoralFunctions()
+		void HostInstance::LoadSapFunctions()
 		{
-			s_ManagedFunctions.CreateAssemblyLoadContextFptr = LoadSapManagedFunctionPtr<CreateAssemblyLoadContextFn>( SAP_STR( "Tree.Sap.AssemblyLoader, Coral.Managed" ), SAP_STR( "CreateAssemblyLoadContext" ) );
-			s_ManagedFunctions.UnloadAssemblyLoadContextFptr = LoadSapManagedFunctionPtr<UnloadAssemblyLoadContextFn>( SAP_STR( "Tree.Sap.AssemblyLoader, Coral.Managed" ), SAP_STR( "UnloadAssemblyLoadContext" ) );
-			s_ManagedFunctions.LoadManagedAssemblyFptr = LoadSapManagedFunctionPtr<LoadManagedAssemblyFn>( SAP_STR( "Tree.Sap.AssemblyLoader, Coral.Managed" ), SAP_STR( "LoadAssembly" ) );
-			s_ManagedFunctions.UnloadAssemblyLoadContextFptr = LoadSapManagedFunctionPtr<UnloadAssemblyLoadContextFn>( SAP_STR( "Tree.Sap.AssemblyLoader, Coral.Managed" ), SAP_STR( "UnloadAssemblyLoadContext" ) );
-			s_ManagedFunctions.GetLastLoadStatusFptr = LoadSapManagedFunctionPtr<GetLastLoadStatusFn>( SAP_STR( "Tree.Sap.AssemblyLoader, Coral.Managed" ), SAP_STR( "GetLastLoadStatus" ) );
-			s_ManagedFunctions.GetAssemblyNameFptr = LoadSapManagedFunctionPtr<GetAssemblyNameFn>( SAP_STR( "Tree.Sap.AssemblyLoader, Coral.Managed" ), SAP_STR( "GetAssemblyName" ) );
+			s_ManagedFunctions.CreateAssemblyLoadContextFptr = LoadSapManagedFunctionPtr<CreateAssemblyLoadContextFn>( SAP_STR( "Tree.Sap.AssemblyLoader, Tree.Trunk" ), SAP_STR( "CreateAssemblyLoadContext" ) );
+			s_ManagedFunctions.UnloadAssemblyLoadContextFptr = LoadSapManagedFunctionPtr<UnloadAssemblyLoadContextFn>( SAP_STR( "Tree.Sap.AssemblyLoader, Tree.Trunk" ), SAP_STR( "UnloadAssemblyLoadContext" ) );
+			s_ManagedFunctions.LoadManagedAssemblyFptr = LoadSapManagedFunctionPtr<LoadManagedAssemblyFn>( SAP_STR( "Tree.Sap.AssemblyLoader, Tree.Trunk" ), SAP_STR( "LoadAssembly" ) );
+			s_ManagedFunctions.UnloadAssemblyLoadContextFptr = LoadSapManagedFunctionPtr<UnloadAssemblyLoadContextFn>( SAP_STR( "Tree.Sap.AssemblyLoader, Tree.Trunk" ), SAP_STR( "UnloadAssemblyLoadContext" ) );
+			s_ManagedFunctions.GetLastLoadStatusFptr = LoadSapManagedFunctionPtr<GetLastLoadStatusFn>( SAP_STR( "Tree.Sap.AssemblyLoader, Tree.Trunk" ), SAP_STR( "GetLastLoadStatus" ) );
+			s_ManagedFunctions.GetAssemblyNameFptr = LoadSapManagedFunctionPtr<GetAssemblyNameFn>( SAP_STR( "Tree.Sap.AssemblyLoader, Tree.Trunk" ), SAP_STR( "GetAssemblyName" ) );
 
-			s_ManagedFunctions.GetAssemblyTypesFptr = LoadSapManagedFunctionPtr<GetAssemblyTypesFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetAssemblyTypes" ) );
-			s_ManagedFunctions.GetTypeIdFptr = LoadSapManagedFunctionPtr<GetTypeIdFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetTypeId" ) );
-			s_ManagedFunctions.GetFullTypeNameFptr = LoadSapManagedFunctionPtr<GetFullTypeNameFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetFullTypeName" ) );
-			s_ManagedFunctions.GetAssemblyQualifiedNameFptr = LoadSapManagedFunctionPtr<GetAssemblyQualifiedNameFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetAssemblyQualifiedName" ) );
-			s_ManagedFunctions.GetBaseTypeFptr = LoadSapManagedFunctionPtr<GetBaseTypeFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetBaseType" ) );
-			s_ManagedFunctions.GetTypeSizeFptr = LoadSapManagedFunctionPtr<GetTypeSizeFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetTypeSize" ) );
-			s_ManagedFunctions.IsTypeSubclassOfFptr = LoadSapManagedFunctionPtr<IsTypeSubclassOfFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "IsTypeSubclassOf" ) );
-			s_ManagedFunctions.IsTypeAssignableToFptr = LoadSapManagedFunctionPtr<IsTypeAssignableToFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "IsTypeAssignableTo" ) );
-			s_ManagedFunctions.IsTypeAssignableFromFptr = LoadSapManagedFunctionPtr<IsTypeAssignableFromFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "IsTypeAssignableFrom" ) );
-			s_ManagedFunctions.IsTypeSZArrayFptr = LoadSapManagedFunctionPtr<IsTypeSZArrayFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "IsTypeSZArray" ) );
-			s_ManagedFunctions.GetElementTypeFptr = LoadSapManagedFunctionPtr<GetElementTypeFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetElementType" ) );
-			s_ManagedFunctions.GetTypeMethodsFptr = LoadSapManagedFunctionPtr<GetTypeMethodsFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetTypeMethods" ) );
-			s_ManagedFunctions.GetTypeFieldsFptr = LoadSapManagedFunctionPtr<GetTypeFieldsFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetTypeFields" ) );
-			s_ManagedFunctions.GetTypePropertiesFptr = LoadSapManagedFunctionPtr<GetTypePropertiesFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetTypeProperties" ) );
-			s_ManagedFunctions.HasTypeAttributeFptr = LoadSapManagedFunctionPtr<HasTypeAttributeFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "HasTypeAttribute" ) );
-			s_ManagedFunctions.GetTypeAttributesFptr = LoadSapManagedFunctionPtr<GetTypeAttributesFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetTypeAttributes" ) );
-			s_ManagedFunctions.GetTypeManagedTypeFptr = LoadSapManagedFunctionPtr<GetTypeManagedTypeFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetTypeManagedType" ) );
-			s_ManagedFunctions.InvokeStaticMethodFptr = LoadSapManagedFunctionPtr<InvokeStaticMethodFn>( SAP_STR( "Tree.Sap.ManagedObject, Coral.Managed" ), SAP_STR( "InvokeStaticMethod" ) );
-			s_ManagedFunctions.InvokeStaticMethodRetFptr = LoadSapManagedFunctionPtr<InvokeStaticMethodRetFn>( SAP_STR( "Tree.Sap.ManagedObject, Coral.Managed" ), SAP_STR( "InvokeStaticMethodRet" ) );
+			s_ManagedFunctions.GetAssemblyTypesFptr = LoadSapManagedFunctionPtr<GetAssemblyTypesFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetAssemblyTypes" ) );
+			s_ManagedFunctions.GetTypeIdFptr = LoadSapManagedFunctionPtr<GetTypeIdFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetTypeId" ) );
+			s_ManagedFunctions.GetFullTypeNameFptr = LoadSapManagedFunctionPtr<GetFullTypeNameFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetFullTypeName" ) );
+			s_ManagedFunctions.GetAssemblyQualifiedNameFptr = LoadSapManagedFunctionPtr<GetAssemblyQualifiedNameFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetAssemblyQualifiedName" ) );
+			s_ManagedFunctions.GetBaseTypeFptr = LoadSapManagedFunctionPtr<GetBaseTypeFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetBaseType" ) );
+			s_ManagedFunctions.GetTypeSizeFptr = LoadSapManagedFunctionPtr<GetTypeSizeFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetTypeSize" ) );
+			s_ManagedFunctions.IsTypeSubclassOfFptr = LoadSapManagedFunctionPtr<IsTypeSubclassOfFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "IsTypeSubclassOf" ) );
+			s_ManagedFunctions.IsTypeAssignableToFptr = LoadSapManagedFunctionPtr<IsTypeAssignableToFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "IsTypeAssignableTo" ) );
+			s_ManagedFunctions.IsTypeAssignableFromFptr = LoadSapManagedFunctionPtr<IsTypeAssignableFromFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "IsTypeAssignableFrom" ) );
+			s_ManagedFunctions.IsTypeSZArrayFptr = LoadSapManagedFunctionPtr<IsTypeSZArrayFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "IsTypeSZArray" ) );
+			s_ManagedFunctions.GetElementTypeFptr = LoadSapManagedFunctionPtr<GetElementTypeFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetElementType" ) );
+			s_ManagedFunctions.GetTypeMethodsFptr = LoadSapManagedFunctionPtr<GetTypeMethodsFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetTypeMethods" ) );
+			s_ManagedFunctions.GetTypeFieldsFptr = LoadSapManagedFunctionPtr<GetTypeFieldsFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetTypeFields" ) );
+			s_ManagedFunctions.GetTypePropertiesFptr = LoadSapManagedFunctionPtr<GetTypePropertiesFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetTypeProperties" ) );
+			s_ManagedFunctions.HasTypeAttributeFptr = LoadSapManagedFunctionPtr<HasTypeAttributeFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "HasTypeAttribute" ) );
+			s_ManagedFunctions.GetTypeAttributesFptr = LoadSapManagedFunctionPtr<GetTypeAttributesFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetTypeAttributes" ) );
+			s_ManagedFunctions.GetTypeManagedTypeFptr = LoadSapManagedFunctionPtr<GetTypeManagedTypeFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetTypeManagedType" ) );
+			s_ManagedFunctions.InvokeStaticMethodFptr = LoadSapManagedFunctionPtr<InvokeStaticMethodFn>( SAP_STR( "Tree.Sap.ManagedObject, Tree.Trunk" ), SAP_STR( "InvokeStaticMethod" ) );
+			s_ManagedFunctions.InvokeStaticMethodRetFptr = LoadSapManagedFunctionPtr<InvokeStaticMethodRetFn>( SAP_STR( "Tree.Sap.ManagedObject, Tree.Trunk" ), SAP_STR( "InvokeStaticMethodRet" ) );
 
-			s_ManagedFunctions.GetMethodInfoNameFptr = LoadSapManagedFunctionPtr<GetMethodInfoNameFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetMethodInfoName" ) );
-			s_ManagedFunctions.GetMethodInfoReturnTypeFptr = LoadSapManagedFunctionPtr<GetMethodInfoReturnTypeFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetMethodInfoReturnType" ) );
-			s_ManagedFunctions.GetMethodInfoParameterTypesFptr = LoadSapManagedFunctionPtr<GetMethodInfoParameterTypesFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetMethodInfoParameterTypes" ) );
-			s_ManagedFunctions.GetMethodInfoAccessibilityFptr = LoadSapManagedFunctionPtr<GetMethodInfoAccessibilityFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetMethodInfoAccessibility" ) );
-			s_ManagedFunctions.GetMethodInfoAttributesFptr = LoadSapManagedFunctionPtr<GetMethodInfoAttributesFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetMethodInfoAttributes" ) );
+			s_ManagedFunctions.GetMethodInfoNameFptr = LoadSapManagedFunctionPtr<GetMethodInfoNameFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetMethodInfoName" ) );
+			s_ManagedFunctions.GetMethodInfoReturnTypeFptr = LoadSapManagedFunctionPtr<GetMethodInfoReturnTypeFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetMethodInfoReturnType" ) );
+			s_ManagedFunctions.GetMethodInfoParameterTypesFptr = LoadSapManagedFunctionPtr<GetMethodInfoParameterTypesFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetMethodInfoParameterTypes" ) );
+			s_ManagedFunctions.GetMethodInfoAccessibilityFptr = LoadSapManagedFunctionPtr<GetMethodInfoAccessibilityFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetMethodInfoAccessibility" ) );
+			s_ManagedFunctions.GetMethodInfoAttributesFptr = LoadSapManagedFunctionPtr<GetMethodInfoAttributesFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetMethodInfoAttributes" ) );
 
-			s_ManagedFunctions.GetFieldInfoNameFptr = LoadSapManagedFunctionPtr<GetFieldInfoNameFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetFieldInfoName" ) );
-			s_ManagedFunctions.GetFieldInfoTypeFptr = LoadSapManagedFunctionPtr<GetFieldInfoTypeFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetFieldInfoType" ) );
-			s_ManagedFunctions.GetFieldInfoAccessibilityFptr = LoadSapManagedFunctionPtr<GetFieldInfoAccessibilityFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetFieldInfoAccessibility" ) );
-			s_ManagedFunctions.GetFieldInfoAttributesFptr = LoadSapManagedFunctionPtr<GetFieldInfoAttributesFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetFieldInfoAttributes" ) );
+			s_ManagedFunctions.GetFieldInfoNameFptr = LoadSapManagedFunctionPtr<GetFieldInfoNameFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetFieldInfoName" ) );
+			s_ManagedFunctions.GetFieldInfoTypeFptr = LoadSapManagedFunctionPtr<GetFieldInfoTypeFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetFieldInfoType" ) );
+			s_ManagedFunctions.GetFieldInfoAccessibilityFptr = LoadSapManagedFunctionPtr<GetFieldInfoAccessibilityFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetFieldInfoAccessibility" ) );
+			s_ManagedFunctions.GetFieldInfoAttributesFptr = LoadSapManagedFunctionPtr<GetFieldInfoAttributesFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetFieldInfoAttributes" ) );
 
-			s_ManagedFunctions.GetPropertyInfoNameFptr = LoadSapManagedFunctionPtr<GetPropertyInfoNameFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetPropertyInfoName" ) );
-			s_ManagedFunctions.GetPropertyInfoTypeFptr = LoadSapManagedFunctionPtr<GetPropertyInfoTypeFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetPropertyInfoType" ) );
-			s_ManagedFunctions.GetPropertyInfoAttributesFptr = LoadSapManagedFunctionPtr<GetPropertyInfoAttributesFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetPropertyInfoAttributes" ) );
+			s_ManagedFunctions.GetPropertyInfoNameFptr = LoadSapManagedFunctionPtr<GetPropertyInfoNameFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetPropertyInfoName" ) );
+			s_ManagedFunctions.GetPropertyInfoTypeFptr = LoadSapManagedFunctionPtr<GetPropertyInfoTypeFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetPropertyInfoType" ) );
+			s_ManagedFunctions.GetPropertyInfoAttributesFptr = LoadSapManagedFunctionPtr<GetPropertyInfoAttributesFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetPropertyInfoAttributes" ) );
 
-			s_ManagedFunctions.GetAttributeFieldValueFptr = LoadSapManagedFunctionPtr<GetAttributeFieldValueFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetAttributeFieldValue" ) );
-			s_ManagedFunctions.GetAttributeTypeFptr = LoadSapManagedFunctionPtr<GetAttributeTypeFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetAttributeType" ) );
+			s_ManagedFunctions.GetAttributeFieldValueFptr = LoadSapManagedFunctionPtr<GetAttributeFieldValueFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetAttributeFieldValue" ) );
+			s_ManagedFunctions.GetAttributeTypeFptr = LoadSapManagedFunctionPtr<GetAttributeTypeFn>( SAP_STR( "Tree.Sap.TypeInterface, Tree.Trunk" ), SAP_STR( "GetAttributeType" ) );
 
-			s_ManagedFunctions.SetInternalCallsFptr = LoadSapManagedFunctionPtr<SetInternalCallsFn>( SAP_STR( "Tree.Sap.Interop.InternalCallsManager, Coral.Managed" ), SAP_STR( "SetInternalCalls" ) );
-			s_ManagedFunctions.CreateObjectFptr = LoadSapManagedFunctionPtr<CreateObjectFn>( SAP_STR( "Tree.Sap.ManagedObject, Coral.Managed" ), SAP_STR( "CreateObject" ) );
-			s_ManagedFunctions.InvokeMethodFptr = LoadSapManagedFunctionPtr<InvokeMethodFn>( SAP_STR( "Tree.Sap.ManagedObject, Coral.Managed" ), SAP_STR( "InvokeMethod" ) );
-			s_ManagedFunctions.InvokeMethodRetFptr = LoadSapManagedFunctionPtr<InvokeMethodRetFn>( SAP_STR( "Tree.Sap.ManagedObject, Coral.Managed" ), SAP_STR( "InvokeMethodRet" ) );
-			s_ManagedFunctions.SetFieldValueFptr = LoadSapManagedFunctionPtr<SetFieldValueFn>( SAP_STR( "Tree.Sap.ManagedObject, Coral.Managed" ), SAP_STR( "SetFieldValue" ) );
-			s_ManagedFunctions.GetFieldValueFptr = LoadSapManagedFunctionPtr<GetFieldValueFn>( SAP_STR( "Tree.Sap.ManagedObject, Coral.Managed" ), SAP_STR( "GetFieldValue" ) );
-			s_ManagedFunctions.SetPropertyValueFptr = LoadSapManagedFunctionPtr<SetFieldValueFn>( SAP_STR( "Tree.Sap.ManagedObject, Coral.Managed" ), SAP_STR( "SetPropertyValue" ) );
-			s_ManagedFunctions.GetPropertyValueFptr = LoadSapManagedFunctionPtr<GetFieldValueFn>( SAP_STR( "Tree.Sap.ManagedObject, Coral.Managed" ), SAP_STR( "GetPropertyValue" ) );
-			s_ManagedFunctions.DestroyObjectFptr = LoadSapManagedFunctionPtr<DestroyObjectFn>( SAP_STR( "Tree.Sap.ManagedObject, Coral.Managed" ), SAP_STR( "DestroyObject" ) );
-			s_ManagedFunctions.CollectGarbageFptr = LoadSapManagedFunctionPtr<CollectGarbageFn>( SAP_STR( "Tree.Sap.GarbageCollector, Coral.Managed" ), SAP_STR( "CollectGarbage" ) );
-			s_ManagedFunctions.WaitForPendingFinalizersFptr = LoadSapManagedFunctionPtr<WaitForPendingFinalizersFn>( SAP_STR( "Tree.Sap.GarbageCollector, Coral.Managed" ), SAP_STR( "WaitForPendingFinalizers" ) );
+			s_ManagedFunctions.SetInternalCallsFptr = LoadSapManagedFunctionPtr<SetInternalCallsFn>( SAP_STR( "Tree.Sap.Interop.InternalCallsManager, Tree.Trunk" ), SAP_STR( "SetInternalCalls" ) );
+			s_ManagedFunctions.CreateObjectFptr = LoadSapManagedFunctionPtr<CreateObjectFn>( SAP_STR( "Tree.Sap.ManagedObject, Tree.Trunk" ), SAP_STR( "CreateObject" ) );
+			s_ManagedFunctions.InvokeMethodFptr = LoadSapManagedFunctionPtr<InvokeMethodFn>( SAP_STR( "Tree.Sap.ManagedObject, Tree.Trunk" ), SAP_STR( "InvokeMethod" ) );
+			s_ManagedFunctions.InvokeMethodRetFptr = LoadSapManagedFunctionPtr<InvokeMethodRetFn>( SAP_STR( "Tree.Sap.ManagedObject, Tree.Trunk" ), SAP_STR( "InvokeMethodRet" ) );
+			s_ManagedFunctions.SetFieldValueFptr = LoadSapManagedFunctionPtr<SetFieldValueFn>( SAP_STR( "Tree.Sap.ManagedObject, Tree.Trunk" ), SAP_STR( "SetFieldValue" ) );
+			s_ManagedFunctions.GetFieldValueFptr = LoadSapManagedFunctionPtr<GetFieldValueFn>( SAP_STR( "Tree.Sap.ManagedObject, Tree.Trunk" ), SAP_STR( "GetFieldValue" ) );
+			s_ManagedFunctions.SetPropertyValueFptr = LoadSapManagedFunctionPtr<SetFieldValueFn>( SAP_STR( "Tree.Sap.ManagedObject, Tree.Trunk" ), SAP_STR( "SetPropertyValue" ) );
+			s_ManagedFunctions.GetPropertyValueFptr = LoadSapManagedFunctionPtr<GetFieldValueFn>( SAP_STR( "Tree.Sap.ManagedObject, Tree.Trunk" ), SAP_STR( "GetPropertyValue" ) );
+			s_ManagedFunctions.DestroyObjectFptr = LoadSapManagedFunctionPtr<DestroyObjectFn>( SAP_STR( "Tree.Sap.ManagedObject, Tree.Trunk" ), SAP_STR( "DestroyObject" ) );
+			s_ManagedFunctions.CollectGarbageFptr = LoadSapManagedFunctionPtr<CollectGarbageFn>( SAP_STR( "Tree.Sap.GarbageCollector, Tree.Trunk" ), SAP_STR( "CollectGarbage" ) );
+			s_ManagedFunctions.WaitForPendingFinalizersFptr = LoadSapManagedFunctionPtr<WaitForPendingFinalizersFn>( SAP_STR( "Tree.Sap.GarbageCollector, Tree.Trunk" ), SAP_STR( "WaitForPendingFinalizers" ) );
 		}
 
 		void* HostInstance::LoadSapManagedFunctionPtr( const std::filesystem::path& InAssemblyPath, const SapChar* InTypeName, const SapChar* InMethodName, const SapChar* InDelegateType ) const

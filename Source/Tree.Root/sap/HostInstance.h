@@ -16,10 +16,7 @@ namespace Tree
 
 		struct HostSettings
 		{
-			/// <summary>
-			/// The file path to Coral.runtimeconfig.json (e.g C:\Dev\MyProject\ThirdParty\Coral)
-			/// </summary>
-			std::string CoralDirectory;
+			std::string SapDirectory;
 
 			MessageCallbackFn MessageCallback = nullptr;
 			MessageLevel MessageFilter = MessageLevel::All;
@@ -38,20 +35,20 @@ namespace Tree
 
 		private:
 			void LoadHostFXR() const;
-			bool InitializeCoralManaged();
-			void LoadCoralFunctions();
+			bool InitializeSapManaged();
+			void LoadSapFunctions();
 
 			void* LoadSapManagedFunctionPtr( const std::filesystem::path& InAssemblyPath, const SapChar* InTypeName, const SapChar* InMethodName, const SapChar* InDelegateType = SAP_UNMANAGED_CALLERS_ONLY ) const;
 
 			template<typename TFunc>
 			TFunc LoadSapManagedFunctionPtr( const SapChar* InTypeName, const SapChar* InMethodName, const SapChar* InDelegateType = SAP_UNMANAGED_CALLERS_ONLY ) const
 			{
-				return (TFunc)LoadSapManagedFunctionPtr( m_CoralManagedAssemblyPath, InTypeName, InMethodName, InDelegateType );
+				return (TFunc)LoadSapManagedFunctionPtr( m_SapManagedAssemblyPath, InTypeName, InMethodName, InDelegateType );
 			}
 
 		private:
 			HostSettings m_Settings;
-			std::filesystem::path m_CoralManagedAssemblyPath;
+			std::filesystem::path m_SapManagedAssemblyPath;
 			void* m_HostFXRContext = nullptr;
 			bool m_Initialized = false;
 
