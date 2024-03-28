@@ -111,12 +111,15 @@ group "Native/Launchers"
 
 group "Tools"
     treeproject {
-        name = "Tree.GlueGen",
+        name = "Tree.SapGen",
         language = "C#",
         kind = "ConsoleApp",
         target = "Tools"
     }
-        nuget { "Antlr4.Runtime.Standard:4.13.1" }
+        nuget {
+            "ClangSharp:17.0.1",
+            "libClangSharp.runtime.win-x64:17.0.4"
+        }
 
 
 workspace "*"
