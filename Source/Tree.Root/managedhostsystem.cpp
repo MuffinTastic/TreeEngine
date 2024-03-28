@@ -180,7 +180,7 @@ void Tree::ManagedHostSystem::UnloadAssemblyLoadContext( Sap::AssemblyLoadContex
 	InLoadContext.m_LoadedAssemblies.Clear();
 }
 
-std::filesystem::path GetHostFXRPath()
+static std::filesystem::path GetHostFXRPath()
 {
 #ifdef WINDOWS
 	std::filesystem::path basePath = "";

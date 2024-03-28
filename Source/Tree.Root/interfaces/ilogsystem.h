@@ -6,6 +6,7 @@
 #include <fmt/format.h>
 
 #include "Tree.NativeCommon/system.h"
+#include "Tree.NativeCommon/debug.h"
 
 #define LOGSYSTEM_NAME "LogSystem_v01"
 
@@ -31,30 +32,6 @@ namespace Tree
 	{
 		int count;
 		ConsoleLogEntrySap* entries;
-	};
-
-	struct LogFormat
-	{
-		std::string m_text;
-		std::source_location m_location;
-
-		LogFormat( const char* text, const std::source_location location = std::source_location::current() )
-			: m_text( text ), m_location( location )
-		{
-
-		}
-
-		LogFormat( const std::string_view text, const std::source_location location = std::source_location::current() )
-			: m_text( text ), m_location( location )
-		{
-
-		}
-
-		LogFormat( const std::string text, const std::source_location location = std::source_location::current() )
-			: m_text( text ), m_location( location )
-		{
-
-		}
 	};
 
 	class ILogger

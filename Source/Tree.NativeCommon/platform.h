@@ -6,6 +6,8 @@
 
 #include <fmt/format.h>
 
+#include "Tree.NativeCommon/debug.h"
+
 namespace Tree::Platform
 {
 	// These return absolute (fully qualified) paths
@@ -47,13 +49,18 @@ namespace Tree::Platform
 	void ChangeCurrentDirectoryPath( std::filesystem::path path );
 	void ChangeCurrentDirectoryUTF8( std::string path );
 
-	void DebugLog( std::string text );
+	void InternalDebugLog( const char* file, int line, const char* function, const std::string_view text );
 
 	template <typename... Args>
-	void DebugLog( const std::string_view format, const Args&... arguments )
+	void DebugLog( const LogFormat format, const Args&... arguments )
 	{
-		std::string formatted = fmt::vformat( format, fmt::make_format_args( arguments... ) );
-		DebugLog( formatted );
+		std::string formatted = fmt::vformat( format.m_text, fmt::make_format_args( arguments... ) );
+		InternalDebugLog(
+			format.m_location.file_name(),
+			format.m_location.line(),
+			format.m_location.function_name(),
+			formatted
+		);
 	}
 
 	void FatalExit();

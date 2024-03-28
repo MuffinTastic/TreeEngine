@@ -93,9 +93,9 @@ void Tree::Platform::ChangeCurrentDirectoryUTF8( std::string path )
 	ChangeCurrentDirectoryPath( UTF8ToPath( path ) );
 }
 
-void Tree::Platform::DebugLog( std::string text )
+void Tree::Platform::InternalDebugLog( const char* file, int line, const char* function, const std::string_view text )
 {
-	std::string formatted = fmt::format( "[{}] {}\r\n", ENGINE_NAME, text );
+	std::string formatted = fmt::format( "[{}] [{}:{}:{}] {}\r\n", ENGINE_NAME, file, line, function, text );
 	std::wstring wctext = utf8::utf8towchar( formatted );
 	OutputDebugStringW( wctext.data() );
 }
