@@ -3,7 +3,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Reflection;
 
-namespace Coral.Managed.Interop;
+namespace Tree.Sap.Interop;
 
 using static ManagedHost;
 

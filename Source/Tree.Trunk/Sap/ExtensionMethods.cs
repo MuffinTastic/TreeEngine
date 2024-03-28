@@ -1,6 +1,6 @@
 using System;
 
-namespace Coral.Managed;
+namespace Tree.Sap;
 
 public static class ExtensionMethods
 {

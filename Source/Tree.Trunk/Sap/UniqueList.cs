@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace Coral.Managed;
+namespace Tree.Sap;
 
 public class UniqueIdList<T>
 {

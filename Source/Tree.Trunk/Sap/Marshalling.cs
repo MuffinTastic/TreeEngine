@@ -1,11 +1,11 @@
-﻿using Coral.Managed.Interop;
+﻿using Tree.Sap.Interop;
 
 using System;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace Coral.Managed;
+namespace Tree.Sap;
 
 public static class Marshalling
 {

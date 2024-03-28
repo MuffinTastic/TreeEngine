@@ -18,8 +18,6 @@ namespace Tree
 			UnknownError
 		};
 
-		class HostInstance;
-
 		class ManagedAssembly
 		{
 		public:
@@ -63,6 +61,7 @@ namespace Tree
 			StableVector<ManagedAssembly> m_LoadedAssemblies;
 
 			friend class HostInstance;
+			friend class ManagedHostSystem;
 		};
 
 	}

@@ -8,6 +8,7 @@ using Tree.Sap;
 
 namespace Tree.Trunk;
 
+/*
 public class SapEntry
 {
     internal static unsafe delegate*<SapString, void> stringFunc;
@@ -43,3 +44,4 @@ public class SapEntry
 
     }
 }
+*/

@@ -1,9 +1,9 @@
-﻿using Coral.Managed.Interop;
+﻿using Tree.Sap.Interop;
 
 using System;
 using System.Runtime.InteropServices;
 
-namespace Coral.Managed;
+namespace Tree.Sap;
 
 internal static class GarbageCollector
 {

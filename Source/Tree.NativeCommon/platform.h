@@ -37,6 +37,13 @@ namespace Tree::Platform
 		return func;
 	}
 
+	template <typename T>
+	T GetSharedLibraryFuncPtr( SharedLibrary* sharedLibrary, std::string name )
+	{
+		void* ptr = Platform::GetSharedLibraryFunc( sharedLibrary, name );
+		return reinterpret_cast<T>( ptr );
+	}
+
 	void ChangeCurrentDirectoryPath( std::filesystem::path path );
 	void ChangeCurrentDirectoryUTF8( std::string path );
 

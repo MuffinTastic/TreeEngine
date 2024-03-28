@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
-namespace Coral.Managed.Interop;
+namespace Tree.Sap.Interop;
 
 public sealed class NativeArrayEnumerator<T> : IEnumerator<T>
 {

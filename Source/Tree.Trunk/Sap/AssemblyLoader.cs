@@ -1,4 +1,4 @@
-﻿using Coral.Managed.Interop;
+﻿using Tree.Sap.Interop;
 
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 
-namespace Coral.Managed;
+namespace Tree.Sap;
 
 using static ManagedHost;
 
