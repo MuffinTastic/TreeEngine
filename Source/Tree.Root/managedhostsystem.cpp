@@ -12,10 +12,6 @@
 #include "interfaces/ilogsystem.h"
 #include "Tree.NativeCommon/sys.h"
 
-#include "sap/common.h"
-#include "sap/string.h"
-#include "sap/array.h"
-
 #define TREE_TRUNK_ASSEMBLY_NAME "Tree.Trunk"
 
 // Managed shared libraries end in .dll no matter the platform
@@ -196,6 +192,7 @@ void Tree::ManagedHostSystem::UnloadHostFXR()
 
 bool Tree::ManagedHostSystem::LoadNETCore()
 {
+	/*
 	HostFXRStatusCode code;
 
 	std::filesystem::path enginePath = Platform::GetEngineDirectoryPath();
@@ -253,6 +250,7 @@ bool Tree::ManagedHostSystem::LoadNETCore()
 	m_getFunctionPointerFn = static_cast<get_function_pointer_fn>( getFunctionPointerFn );
 
 	return true;
+	*/
 }
 
 void TestPRintYeaaggh( Tree::Sap::SapString str )

@@ -1,35 +1,38 @@
 #pragma once
 
-#include "Core.hpp"
+#include "Core.h"
 
-namespace Coral {
-
-	class Type;
-
-	class Attribute
+namespace Tree
+{
+	namespace Sap
 	{
-	public:
-		Type& GetType();
+		class Type;
 
-		template<typename TReturn>
-		TReturn GetFieldValue(std::string_view InFieldName)
+		class Attribute
 		{
-			TReturn result;
-			GetFieldValueInternal(InFieldName, &result);
-			return result;
-		}
+		public:
+			Type& GetType();
 
-	private:
-		void GetFieldValueInternal(std::string_view InFieldName, void* OutValue) const;
+			template<typename TReturn>
+			TReturn GetFieldValue( std::string_view InFieldName )
+			{
+				TReturn result;
+				GetFieldValueInternal( InFieldName, &result );
+				return result;
+			}
 
-	private:
-		ManagedHandle m_Handle = -1;
-		Type* m_Type = nullptr;
+		private:
+			void GetFieldValueInternal( std::string_view InFieldName, void* OutValue ) const;
 
-		friend class Type;
-		friend class MethodInfo;
-		friend class FieldInfo;
-		friend class PropertyInfo;
-	};
+		private:
+			ManagedHandle m_Handle = -1;
+			Type* m_Type = nullptr;
 
+			friend class Type;
+			friend class MethodInfo;
+			friend class FieldInfo;
+			friend class PropertyInfo;
+		};
+
+	}
 }

@@ -1,25 +1,29 @@
 #pragma once
 
-#include "Core.hpp"
-#include "StableVector.hpp"
+#include <unordered_map>
 
-namespace Coral {
+#include "Core.h"
+#include "StableVector.h"
 
-	class Type;
-
-	class TypeCache
+namespace Tree
+{
+	namespace Sap
 	{
-	public:
-		static TypeCache& Get();
+		class Type;
 
-		Type* CacheType(Type&& InType);
-		Type* GetTypeByName(std::string_view InName) const;
-		Type* GetTypeByID(TypeId InTypeID) const;
+		class TypeCache
+		{
+		public:
+			static TypeCache& Get();
 
-	private:
-		StableVector<Type> m_Types;
-		std::unordered_map<std::string, Type*> m_NameCache;
-		std::unordered_map<TypeId, Type*> m_IDCache;
-	};
+			Type* CacheType( Type&& InType );
+			Type* GetTypeByName( std::string_view InName ) const;
+			Type* GetTypeByID( TypeId InTypeID ) const;
 
+		private:
+			StableVector<Type> m_Types;
+			std::unordered_map<std::string, Type*> m_NameCache;
+			std::unordered_map<TypeId, Type*> m_IDCache;
+		};
+	}
 }

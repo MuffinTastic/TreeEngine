@@ -1,136 +1,141 @@
 #pragma once
 
-#include "Core.hpp"
-#include "String.hpp"
-#include "ManagedObject.hpp"
-#include "MethodInfo.hpp"
-#include "FieldInfo.hpp"
-#include "PropertyInfo.hpp"
+#include <vector>
 
-namespace Coral {
+#include "Core.h"
+#include "SapString.h"
+#include "ManagedObject.h"
+#include "MethodInfo.h"
+#include "FieldInfo.h"
+#include "PropertyInfo.h"
 
-	class Type
+
+namespace Tree
+{
+	namespace Sap
 	{
-	public:
-		String GetFullName() const;
-		String GetAssemblyQualifiedName() const;
-
-		Type& GetBaseType();
-
-		int32_t GetSize() const;
-
-		bool IsSubclassOf(const Type& InOther) const;
-		bool IsAssignableTo(const Type& InOther) const;
-		bool IsAssignableFrom(const Type& InOther) const;
-
-		std::vector<MethodInfo> GetMethods() const;
-		std::vector<FieldInfo> GetFields() const;
-		std::vector<PropertyInfo> GetProperties() const;
-
-		bool HasAttribute(const Type& InAttributeType) const;
-		std::vector<Attribute> GetAttributes() const;
-
-		ManagedType GetManagedType() const;
-
-		bool IsSZArray() const;
-		Type& GetElementType();
-
-		bool operator==(const Type& InOther) const;
-
-		operator bool() const { return m_Id != -1; }
-
-		TypeId GetTypeId() const { return m_Id; }
-
-	public:
-		template<typename... TArgs>
-		ManagedObject CreateInstance(TArgs&&... InArguments)
+		class Type
 		{
-			constexpr size_t argumentCount = sizeof...(InArguments);
+		public:
+			SapString GetFullName() const;
+			SapString GetAssemblyQualifiedName() const;
 
-			ManagedObject result;
+			Type& GetBaseType();
 
-			if constexpr (argumentCount > 0)
+			int32_t GetSize() const;
+
+			bool IsSubclassOf( const Type& InOther ) const;
+			bool IsAssignableTo( const Type& InOther ) const;
+			bool IsAssignableFrom( const Type& InOther ) const;
+
+			std::vector<MethodInfo> GetMethods() const;
+			std::vector<FieldInfo> GetFields() const;
+			std::vector<PropertyInfo> GetProperties() const;
+
+			bool HasAttribute( const Type& InAttributeType ) const;
+			std::vector<Attribute> GetAttributes() const;
+
+			ManagedType GetManagedType() const;
+
+			bool IsSZArray() const;
+			Type& GetElementType();
+
+			bool operator==( const Type& InOther ) const;
+
+			operator bool() const { return m_Id != -1; }
+
+			TypeId GetTypeId() const { return m_Id; }
+
+		public:
+			template<typename... TArgs>
+			ManagedObject CreateInstance( TArgs&&... InArguments )
 			{
-				const void* argumentsArr[argumentCount];
-				ManagedType argumentTypes[argumentCount];
-				AddToArray<TArgs...>(argumentsArr, argumentTypes, std::forward<TArgs>(InArguments)..., std::make_index_sequence<argumentCount> {});
-				result = CreateInstanceInternal(argumentsArr, argumentTypes, argumentCount);
+				constexpr size_t argumentCount = sizeof...( InArguments );
+
+				ManagedObject result;
+
+				if constexpr ( argumentCount > 0 )
+				{
+					const void* argumentsArr[argumentCount];
+					ManagedType argumentTypes[argumentCount];
+					AddToArray<TArgs...>( argumentsArr, argumentTypes, std::forward<TArgs>( InArguments )..., std::make_index_sequence<argumentCount> {} );
+					result = CreateInstanceInternal( argumentsArr, argumentTypes, argumentCount );
+				}
+				else
+				{
+					result = CreateInstanceInternal( nullptr, nullptr, 0 );
+				}
+
+				return result;
 			}
-			else
+
+			template <typename TReturn, typename... TArgs>
+			TReturn InvokeStaticMethod( std::string_view InMethodName, TArgs&&... InParameters )
 			{
-				result = CreateInstanceInternal(nullptr, nullptr, 0);
+				constexpr size_t parameterCount = sizeof...( InParameters );
+
+				TReturn result;
+
+				if constexpr ( parameterCount > 0 )
+				{
+					const void* parameterValues[parameterCount];
+					ManagedType parameterTypes[parameterCount];
+					AddToArray<TArgs...>( parameterValues, parameterTypes, std::forward<TArgs>( InParameters )..., std::make_index_sequence<parameterCount> {} );
+					InvokeStaticMethodRetInternal( InMethodName, parameterValues, parameterTypes, parameterCount, &result );
+				}
+				else
+				{
+					InvokeStaticMethodRetInternal( InMethodName, nullptr, nullptr, 0, &result );
+				}
+
+				return result;
 			}
 
-			return result;
-		}
+			template <typename... TArgs>
+			void InvokeStaticMethod( std::string_view InMethodName, TArgs&&... InParameters )
+			{
+				constexpr size_t parameterCount = sizeof...( InParameters );
 
-		template <typename TReturn, typename... TArgs>
-		TReturn InvokeStaticMethod(std::string_view InMethodName, TArgs&&... InParameters)
+				if constexpr ( parameterCount > 0 )
+				{
+					const void* parameterValues[parameterCount];
+					ManagedType parameterTypes[parameterCount];
+					AddToArray<TArgs...>( parameterValues, parameterTypes, std::forward<TArgs>( InParameters )..., std::make_index_sequence<parameterCount> {} );
+					InvokeStaticMethodInternal( InMethodName, parameterValues, parameterTypes, parameterCount );
+				}
+				else
+				{
+					InvokeStaticMethodInternal( InMethodName, nullptr, nullptr, 0 );
+				}
+			}
+
+		private:
+			ManagedObject CreateInstanceInternal( const void** InParameters, const ManagedType* InParameterTypes, size_t InLength );
+			void InvokeStaticMethodInternal( std::string_view InMethodName, const void** InParameters, const ManagedType* InParameterTypes, size_t InLength ) const;
+			void InvokeStaticMethodRetInternal( std::string_view InMethodName, const void** InParameters, const ManagedType* InParameterTypes, size_t InLength, void* InResultStorage ) const;
+
+		private:
+			TypeId m_Id = -1;
+			Type* m_BaseType = nullptr;
+			Type* m_ElementType = nullptr;
+
+			friend class HostInstance;
+			friend class ManagedAssembly;
+			friend class AssemblyLoadContext;
+			friend class MethodInfo;
+			friend class FieldInfo;
+			friend class PropertyInfo;
+			friend class Attribute;
+			friend class ReflectionType;
+		};
+
+		class ReflectionType
 		{
-			constexpr size_t parameterCount = sizeof...(InParameters);
+		public:
+			operator Type& ( ) const;
 
-			TReturn result;
-
-			if constexpr (parameterCount > 0)
-			{
-				const void* parameterValues[parameterCount];
-				ManagedType parameterTypes[parameterCount];
-				AddToArray<TArgs...>(parameterValues, parameterTypes, std::forward<TArgs>(InParameters)..., std::make_index_sequence<parameterCount> {});
-				InvokeStaticMethodRetInternal(InMethodName, parameterValues, parameterTypes, parameterCount, &result);
-			}
-			else
-			{
-				InvokeStaticMethodRetInternal(InMethodName, nullptr, nullptr, 0, &result);
-			}
-
-			return result;
-		}
-
-		template <typename... TArgs>
-		void InvokeStaticMethod(std::string_view InMethodName, TArgs&&... InParameters)
-		{
-			constexpr size_t parameterCount = sizeof...(InParameters);
-
-			if constexpr (parameterCount > 0)
-			{
-				const void* parameterValues[parameterCount];
-				ManagedType parameterTypes[parameterCount];
-				AddToArray<TArgs...>(parameterValues, parameterTypes, std::forward<TArgs>(InParameters)..., std::make_index_sequence<parameterCount> {});
-				InvokeStaticMethodInternal(InMethodName, parameterValues, parameterTypes, parameterCount);
-			}
-			else
-			{
-				InvokeStaticMethodInternal(InMethodName, nullptr, nullptr, 0);
-			}
-		}
-
-	private:
-		ManagedObject CreateInstanceInternal(const void** InParameters, const ManagedType* InParameterTypes, size_t InLength);
-		void InvokeStaticMethodInternal(std::string_view InMethodName, const void** InParameters, const ManagedType* InParameterTypes, size_t InLength) const;
-		void InvokeStaticMethodRetInternal(std::string_view InMethodName, const void** InParameters, const ManagedType* InParameterTypes, size_t InLength, void* InResultStorage) const;
-
-	private:
-		TypeId m_Id = -1;
-		Type* m_BaseType = nullptr;
-		Type* m_ElementType = nullptr;
-
-		friend class HostInstance;
-		friend class ManagedAssembly;
-		friend class AssemblyLoadContext;
-		friend class MethodInfo;
-		friend class FieldInfo;
-		friend class PropertyInfo;
-		friend class Attribute;
-		friend class ReflectionType;
-	};
-
-	class ReflectionType
-	{
-	public:
-		operator Type&() const;
-
-	private:
-		TypeId m_TypeID;
-	};
-
+		private:
+			TypeId m_TypeID;
+		};
+	}
 }

@@ -1,69 +1,72 @@
 #pragma once
 
-#include "Type.hpp"
+#include "Type.h"
 
-#include "StableVector.hpp"
+#include "StableVector.h"
 
-namespace Coral {
-
-	enum class AssemblyLoadStatus
+namespace Tree
+{
+	namespace Sap
 	{
-		Success,
-		FileNotFound,
-		FileLoadFailure,
-		InvalidFilePath,
-		InvalidAssembly,
-		UnknownError
-	};
+		enum class AssemblyLoadStatus
+		{
+			Success,
+			FileNotFound,
+			FileLoadFailure,
+			InvalidFilePath,
+			InvalidAssembly,
+			UnknownError
+		};
 
-	class HostInstance;
+		class HostInstance;
 
-	class ManagedAssembly
-	{
-	public:
-		int32_t GetAssemblyID() const { return m_AssemblyID; }
-		AssemblyLoadStatus GetLoadStatus() const { return m_LoadStatus; }
-		std::string_view GetName() const { return m_Name; }
+		class ManagedAssembly
+		{
+		public:
+			int32_t GetAssemblyID() const { return m_AssemblyID; }
+			AssemblyLoadStatus GetLoadStatus() const { return m_LoadStatus; }
+			std::string_view GetName() const { return m_Name; }
 
-		void AddInternalCall(std::string_view InClassName, std::string_view InVariableName, void* InFunctionPtr);
-		void UploadInternalCalls();
+			void AddInternalCall( std::string_view InClassName, std::string_view InVariableName, void* InFunctionPtr );
+			void UploadInternalCalls();
 
-		Type& GetType(std::string_view InClassName) const;
-		const std::vector<Type*>& GetTypes() const;
-		
-	private:
-		HostInstance* m_Host = nullptr;
-		int32_t m_AssemblyID = -1;
-		AssemblyLoadStatus m_LoadStatus = AssemblyLoadStatus::UnknownError;
-		std::string m_Name;
+			Type& GetType( std::string_view InClassName ) const;
+			const std::vector<Type*>& GetTypes() const;
 
-	#if defined(CORAL_WIDE_CHARS)
-		std::vector<std::wstring> m_InternalCallNameStorage;
-	#else
-		std::vector<std::string> m_InternalCallNameStorage;
-	#endif
-		
-		std::vector<InternalCall> m_InternalCalls;
+		private:
+			HostInstance* m_Host = nullptr;
+			int32_t m_AssemblyID = -1;
+			AssemblyLoadStatus m_LoadStatus = AssemblyLoadStatus::UnknownError;
+			std::string m_Name;
 
-		std::vector<Type*> m_Types;
+#if defined(SAP_WIDE_CHARS)
+			std::vector<std::wstring> m_InternalCallNameStorage;
+#else
+			std::vector<std::string> m_InternalCallNameStorage;
+#endif
 
-		friend class HostInstance;
-		friend class AssemblyLoadContext;
-	};
+			std::vector<InternalCall> m_InternalCalls;
 
-	class AssemblyLoadContext
-	{
-	public:
-		ManagedAssembly& LoadAssembly(std::string_view InFilePath);
-		const StableVector<ManagedAssembly>& GetLoadedAssemblies() const { return m_LoadedAssemblies; }
+			std::vector<Type*> m_Types;
 
-	private:
-		int32_t m_ContextId;
-		StableVector<ManagedAssembly> m_LoadedAssemblies;
+			friend class HostInstance;
+			friend class AssemblyLoadContext;
+		};
 
-		HostInstance* m_Host = nullptr;
+		class AssemblyLoadContext
+		{
+		public:
+			ManagedAssembly& LoadAssembly( std::string_view InFilePath );
+			const StableVector<ManagedAssembly>& GetLoadedAssemblies() const { return m_LoadedAssemblies; }
 
-		friend class HostInstance;
-	};
+		private:
+			int32_t m_ContextId;
+			StableVector<ManagedAssembly> m_LoadedAssemblies;
 
+			HostInstance* m_Host = nullptr;
+
+			friend class HostInstance;
+		};
+
+	}
 }

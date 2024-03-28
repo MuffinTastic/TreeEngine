@@ -1,28 +1,31 @@
-#include "Attribute.hpp"
-#include "Type.hpp"
-#include "CoralManagedFunctions.hpp"
-#include "TypeCache.hpp"
-#include "String.hpp"
+#include "Attribute.h"
+#include "Type.h"
+#include "SapManagedFunctions.h"
+#include "TypeCache.h"
+#include "SapString.h"
 
-namespace Coral {
-
-	Type& Attribute::GetType()
+namespace Tree
+{
+	namespace Sap
 	{
-		if (!m_Type)
+		Type& Attribute::GetType()
 		{
-			Type type;
-			s_ManagedFunctions.GetAttributeTypeFptr(m_Handle, &type.m_Id);
-			m_Type = TypeCache::Get().CacheType(std::move(type));
+			if ( !m_Type )
+			{
+				Type type;
+				s_ManagedFunctions.GetAttributeTypeFptr( m_Handle, &type.m_Id );
+				m_Type = TypeCache::Get().CacheType( std::move( type ) );
+			}
+
+			return *m_Type;
 		}
 
-		return *m_Type;
-	}
+		void Attribute::GetFieldValueInternal( std::string_view InFieldName, void* OutValue ) const
+		{
+			auto fieldName = SapString::New( InFieldName );
+			s_ManagedFunctions.GetAttributeFieldValueFptr( m_Handle, fieldName, OutValue );
+			SapString::Free( fieldName );
+		}
 
-	void Attribute::GetFieldValueInternal(std::string_view InFieldName, void* OutValue) const
-	{
-		auto fieldName = String::New(InFieldName);
-		s_ManagedFunctions.GetAttributeFieldValueFptr(m_Handle, fieldName, OutValue);
-		String::Free(fieldName);
 	}
-
 }

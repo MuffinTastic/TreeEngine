@@ -1,21 +1,23 @@
-﻿#include "GC.hpp"
-#include "CoralManagedFunctions.hpp"
+﻿#include "GC.h"
+#include "SapManagedFunctions.h"
 
-namespace Coral {
+namespace Tree
+{
+	namespace Sap
+	{
+		void GC::Collect()
+		{
+			Collect( -1, GCCollectionMode::Default, true, false );
+		}
 
-	void GC::Collect()
-	{
-		Collect(-1, GCCollectionMode::Default, true, false);
-	}
-	
-	void GC::Collect(int32_t InGeneration, GCCollectionMode InCollectionMode, bool InBlocking, bool InCompacting)
-	{
-		s_ManagedFunctions.CollectGarbageFptr(InGeneration, InCollectionMode, InBlocking, InCompacting);
-	}
+		void GC::Collect( int32_t InGeneration, GCCollectionMode InCollectionMode, bool InBlocking, bool InCompacting )
+		{
+			s_ManagedFunctions.CollectGarbageFptr( InGeneration, InCollectionMode, InBlocking, InCompacting );
+		}
 
-	void GC::WaitForPendingFinalizers()
-	{
-		s_ManagedFunctions.WaitForPendingFinalizersFptr();
+		void GC::WaitForPendingFinalizers()
+		{
+			s_ManagedFunctions.WaitForPendingFinalizersFptr();
+		}
 	}
-	
 }

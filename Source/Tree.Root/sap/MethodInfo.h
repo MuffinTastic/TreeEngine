@@ -1,31 +1,35 @@
 #pragma once
 
-#include "Core.hpp"
-#include "String.hpp"
+#include <vector>
 
-namespace Coral {
+#include "Core.h"
+#include "SapString.h"
 
-	class Type;
-	class Attribute;
-
-	class MethodInfo
+namespace Tree
+{
+	namespace Sap
 	{
-	public:
-		String GetName() const;
+		class Type;
+		class Attribute;
 
-		Type& GetReturnType();
-		const std::vector<Type*>& GetParameterTypes();
+		class MethodInfo
+		{
+		public:
+			SapString GetName() const;
 
-		TypeAccessibility GetAccessibility() const;
+			Type& GetReturnType();
+			const std::vector<Type*>& GetParameterTypes();
 
-		std::vector<Attribute> GetAttributes() const;
+			TypeAccessibility GetAccessibility() const;
 
-	private:
-		ManagedHandle m_Handle = -1;
-		Type* m_ReturnType = nullptr;
-		std::vector<Type*> m_ParameterTypes;
+			std::vector<Attribute> GetAttributes() const;
 
-		friend class Type;
-	};
+		private:
+			ManagedHandle m_Handle = -1;
+			Type* m_ReturnType = nullptr;
+			std::vector<Type*> m_ParameterTypes;
 
+			friend class Type;
+		};
+	}
 }

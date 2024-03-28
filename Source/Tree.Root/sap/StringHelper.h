@@ -1,19 +1,21 @@
 #pragma once
 
-#include "Core.hpp"
+#include "Core.h"
 
-namespace Coral {
-
-	class StringHelper
+namespace Tree
+{
+	namespace Sap
 	{
-	public:
-	#if defined(CORAL_WIDE_CHARS)
-		static std::wstring ConvertUtf8ToWide(std::string_view InString);
-		static std::string ConvertWideToUtf8(std::wstring_view InString);
-	#else
-		static std::string ConvertUtf8ToWide(std::string_view InString);
-		static std::string ConvertWideToUtf8(std::string_view InString);
-	#endif
-	};
-
+		class StringHelper
+		{
+		public:
+#if defined(SAP_WIDE_CHARS)
+			static std::wstring ConvertUtf8ToWide( std::string_view InString );
+			static std::string ConvertWideToUtf8( std::wstring_view InString );
+#else
+			static std::string ConvertUtf8ToWide( std::string_view InString );
+			static std::string ConvertWideToUtf8( std::string_view InString );
+#endif
+		};
+	}
 }

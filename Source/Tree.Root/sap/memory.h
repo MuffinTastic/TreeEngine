@@ -1,17 +1,18 @@
 #pragma once
 
-#include "Core.hpp"
+#include "Core.h"
 
-namespace Coral {
-
-	struct Memory
+namespace Tree
+{
+	namespace Sap
 	{
-		static void* AllocHGlobal(size_t InSize);
-		static void FreeHGlobal(void* InPtr);
+		struct Memory
+		{
+			static void* AllocHGlobal( size_t InSize );
+			static void FreeHGlobal( void* InPtr );
 
-		static CharType* StringToCoTaskMemAuto(StringView InString);
-		static void FreeCoTaskMem(void* InMemory);
-
-	};
-
+			static SapChar* StringToCoTaskMemAuto( SapStringView InString );
+			static void FreeCoTaskMem( void* InMemory );
+		};
+	}
 }

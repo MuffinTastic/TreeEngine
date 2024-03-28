@@ -1,30 +1,33 @@
 ﻿#pragma once
 
-namespace Coral {
+#include <cstdint>
 
-	enum class GCCollectionMode
+namespace Tree
+{
+	namespace Sap
 	{
-		// Default is the same as using Forced directly
-		Default,
+		enum class GCCollectionMode
+		{
+			// Default is the same as using Forced directly
+			Default,
 
-		// Forces the garbage collection to occur immediately
-		Forced,
+			// Forces the garbage collection to occur immediately
+			Forced,
 
-		// Allows the garbage collector to determine whether it should reclaim objects right now
-		Optimized,
+			// Allows the garbage collector to determine whether it should reclaim objects right now
+			Optimized,
 
-		// Requests that the garbage collector decommit as much memory as possible
-		Aggressive
-	};
-	
-	class GC
-	{
-	public:
-		static void Collect();
-		static void Collect(int32_t InGeneration, GCCollectionMode InCollectionMode = GCCollectionMode::Default, bool InBlocking = true, bool InCompacting = false);
+			// Requests that the garbage collector decommit as much memory as possible
+			Aggressive
+		};
 
-		static void WaitForPendingFinalizers();
-	};
-	
+		class GC
+		{
+		public:
+			static void Collect();
+			static void Collect( int32_t InGeneration, GCCollectionMode InCollectionMode = GCCollectionMode::Default, bool InBlocking = true, bool InCompacting = false );
+
+			static void WaitForPendingFinalizers();
+		};
+	}
 }
-

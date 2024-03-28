@@ -1,36 +1,33 @@
-#include "StringHelper.hpp"
+#include "StringHelper.h"
 
-#include <codecvt>
+#include "Tree.NativeCommon/unicode.h"
 
-namespace Coral {
-
-#if defined(CORAL_WIDE_CHARS)
-	std::wstring StringHelper::ConvertUtf8ToWide(std::string_view InString)
+namespace Tree
+{
+	namespace Sap
 	{
-		int length = MultiByteToWideChar(CP_UTF8, 0, InString.data(), static_cast<int>(InString.length()), nullptr, 0);
-		auto result = std::wstring(length, wchar_t(0));
-		MultiByteToWideChar(CP_UTF8, 0, InString.data(), static_cast<int>(InString.length()), result.data(), length);
-		return result;
-	}
+#if defined(SAP_WIDE_CHARS)
+		std::wstring StringHelper::ConvertUtf8ToWide( std::string_view str )
+		{
+			return utf8::utf8towchar( str );
+		}
 
-	std::string StringHelper::ConvertWideToUtf8(std::wstring_view InString)
-	{
-		int requiredLength = WideCharToMultiByte(CP_UTF8, 0, InString.data(), static_cast<int>(InString.length()), nullptr, 0, nullptr, nullptr);
-		std::string result(requiredLength, 0);
-		(void)WideCharToMultiByte(CP_UTF8, 0, InString.data(), static_cast<int>(InString.length()), result.data(), requiredLength, nullptr, nullptr);
-		return result;
-	}
-	
+		std::string StringHelper::ConvertWideToUtf8( std::wstring_view str )
+		{
+			return utf8::wcharto8( str );
+		}
+
 #else
-	std::string StringHelper::ConvertUtf8ToWide(std::string_view InString)
-	{
-		return std::string(InString);
-	}
+		std::string StringHelper::ConvertUtf8ToWide( std::string_view str )
+		{
+			return std::string( str );
+		}
 
-	std::string StringHelper::ConvertWideToUtf8(std::string_view InString)
-	{
-		return std::string(InString);
-	}
+		std::string StringHelper::ConvertWideToUtf8( std::string_view str )
+		{
+			return std::string( str );
+		}
 #endif
 
+	}
 }

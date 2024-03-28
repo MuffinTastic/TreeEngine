@@ -1,320 +1,331 @@
-#include "HostInstance.hpp"
-#include "Verify.hpp"
-#include "HostFXRErrorCodes.hpp"
-#include "CoralManagedFunctions.hpp"
-#include "StringHelper.hpp"
-#include "TypeCache.hpp"
+#include "HostInstance.h"
 
-#if defined(CORAL_WINDOWS)
-	#include <ShlObj_core.h>
+#include <filesystem>
+
+#ifdef WINDOWS
+#include <ShlObj_core.h>
 #else
-	#include <dlfcn.h>
+#include <dlfcn.h>
 #endif
 
-namespace Coral {
+#include <corehost/hostfxr.h>
+#include <corehost/coreclr_delegates.h>
 
-	struct CoreCLRFunctions
+#include "Verify.h"
+#include "HostFXRErrorCodes.h"
+#include "SapManagedFunctions.h"
+#include "StringHelper.h"
+#include "TypeCache.h"
+
+namespace Tree
+{
+	namespace Sap
 	{
-		hostfxr_set_error_writer_fn SetHostFXRErrorWriter = nullptr;
-		hostfxr_initialize_for_runtime_config_fn InitHostFXRForRuntimeConfig = nullptr;
-		hostfxr_get_runtime_delegate_fn GetRuntimeDelegate = nullptr;
-		hostfxr_close_fn CloseHostFXR = nullptr;
-		load_assembly_and_get_function_pointer_fn GetManagedFunctionPtr = nullptr;
-	};
-	static CoreCLRFunctions s_CoreCLRFunctions;
-
-	MessageCallbackFn MessageCallback = nullptr;
-	MessageLevel MessageFilter;
-	ExceptionCallbackFn ExceptionCallback = nullptr;
-
-	void DefaultMessageCallback(std::string_view InMessage, MessageLevel InLevel)
-	{
-		const char* level = "";
-
-		switch (InLevel)
+		struct CoreCLRFunctions
 		{
-		case MessageLevel::Info:
-			level = "Info";
-			break;
-		case MessageLevel::Warning:
-			level = "Warn";
-			break;
-		case MessageLevel::Error:
-			level = "Error";
-			break;
-		}
-
-		std::cout << "[Coral](" << level << "): " << InMessage << std::endl;
-	}
-
-	bool HostInstance::Initialize(HostSettings InSettings)
-	{
-		CORAL_VERIFY(!m_Initialized);
-
-		LoadHostFXR();
-
-		// Setup settings
-		m_Settings = std::move(InSettings);
-
-		if (!m_Settings.MessageCallback)
-			m_Settings.MessageCallback = DefaultMessageCallback;
-		MessageCallback = m_Settings.MessageCallback;
-		MessageFilter = m_Settings.MessageFilter;
-
-		s_CoreCLRFunctions.SetHostFXRErrorWriter([](const CharType* InMessage)
-		{
-			auto message = StringHelper::ConvertWideToUtf8(InMessage);
-			MessageCallback(message, MessageLevel::Error);
-		});
-
-		m_CoralManagedAssemblyPath = std::filesystem::path(m_Settings.CoralDirectory) / "Coral.Managed.dll";
-
-		if (!std::filesystem::exists(m_CoralManagedAssemblyPath))
-		{
-			MessageCallback("Failed to find Coral.Managed.dll", MessageLevel::Error);
-			return false;
-		}
-
-		m_Initialized = InitializeCoralManaged();
-
-		return m_Initialized;
-	}
-
-	void HostInstance::Shutdown()
-	{
-		s_CoreCLRFunctions.CloseHostFXR(m_HostFXRContext);
-	}
-	
-	AssemblyLoadContext HostInstance::CreateAssemblyLoadContext(std::string_view InName)
-	{
-		ScopedString name = String::New(InName);
-		AssemblyLoadContext alc;
-		alc.m_ContextId = s_ManagedFunctions.CreateAssemblyLoadContextFptr(name);
-		alc.m_Host = this;
-		return alc;
-	}
-
-	void HostInstance::UnloadAssemblyLoadContext(AssemblyLoadContext& InLoadContext)
-	{
-		s_ManagedFunctions.UnloadAssemblyLoadContextFptr(InLoadContext.m_ContextId);
-		InLoadContext.m_ContextId = -1;
-		InLoadContext.m_LoadedAssemblies.Clear();
-	}
-
-#ifdef _WIN32
-	template <typename TFunc>
-	TFunc LoadFunctionPtr(void* InLibraryHandle, const char* InFunctionName)
-	{
-		auto result = (TFunc)GetProcAddress((HMODULE)InLibraryHandle, InFunctionName);
-		CORAL_VERIFY(result);
-		return result;
-	}
-#else
-	template <typename TFunc>
-	TFunc LoadFunctionPtr(void* InLibraryHandle, const char* InFunctionName)
-	{
-		auto result = (TFunc)dlsym(InLibraryHandle, InFunctionName);
-		CORAL_VERIFY(result);
-		return result;
-	}
-#endif
-
-	std::filesystem::path GetHostFXRPath()
-	{
-#if defined(CORAL_WINDOWS)
-		std::filesystem::path basePath = "";
-		
-		// Find the Program Files folder
-		TCHAR pf[MAX_PATH];
-		SHGetSpecialFolderPath(
-		nullptr,
-		pf,
-		CSIDL_PROGRAM_FILES,
-		FALSE);
-
-		basePath = pf;
-		basePath /= "dotnet/host/fxr/";
-
-		auto searchPaths = std::array
-		{
-			basePath
+			hostfxr_set_error_writer_fn SetHostFXRErrorWriter = nullptr;
+			hostfxr_initialize_for_runtime_config_fn InitHostFXRForRuntimeConfig = nullptr;
+			hostfxr_get_runtime_delegate_fn GetRuntimeDelegate = nullptr;
+			hostfxr_close_fn CloseHostFXR = nullptr;
+			load_assembly_and_get_function_pointer_fn GetManagedFunctionPtr = nullptr;
 		};
+		static CoreCLRFunctions s_CoreCLRFunctions;
 
-#elif defined(CORAL_LINUX)
-		auto searchPaths = std::array
+		MessageCallbackFn MessageCallback = nullptr;
+		MessageLevel MessageFilter;
+		ExceptionCallbackFn ExceptionCallback = nullptr;
+
+		void DefaultMessageCallback( std::string_view InMessage, MessageLevel InLevel )
 		{
-			std::filesystem::path("/usr/lib/dotnet/host/fxr/"),
-			std::filesystem::path("/usr/share/dotnet/host/fxr/"),
-		};
-#endif
+			const char* level = "";
 
-		for (const auto& path : searchPaths)
-		{
-			if (!std::filesystem::exists(path))
-				continue;
-
-			for (const auto& dir : std::filesystem::recursive_directory_iterator(path))
+			switch ( InLevel )
 			{
-				if (!dir.is_directory())
-					continue;
-
-				auto dirPath = dir.path().string();
-
-				if (dirPath.find(CORAL_DOTNET_TARGET_VERSION_MAJOR_STR) == std::string::npos)
-					continue;
-
-				auto res = dir / std::filesystem::path(CORAL_HOSTFXR_NAME);
-				CORAL_VERIFY(std::filesystem::exists(res));
-				return res;
+			case MessageLevel::Info:
+				level = "Info";
+				break;
+			case MessageLevel::Warning:
+				level = "Warn";
+				break;
+			case MessageLevel::Error:
+				level = "Error";
+				break;
 			}
+
+			// TODO: Fix callback
 		}
 
-		return "";
-	}
-
-	void HostInstance::LoadHostFXR() const
-	{
-		// Retrieve the file path to the CoreCLR library
-		auto hostfxrPath = GetHostFXRPath();
-
-		// Load the CoreCLR library
-		void* libraryHandle = nullptr;
-
-#ifdef CORAL_WINDOWS
-	#ifdef CORAL_WIDE_CHARS
-		libraryHandle = LoadLibraryW(hostfxrPath.c_str());
-	#else
-		libraryHandle = LoadLibraryA(hostfxrPath.string().c_str());
-	#endif
-#else
-		libraryHandle = dlopen(hostfxrPath.string().data(), RTLD_NOW | RTLD_GLOBAL);
-#endif
-
-		CORAL_VERIFY(libraryHandle != nullptr);
-
-		// Load CoreCLR functions
-		s_CoreCLRFunctions.SetHostFXRErrorWriter = LoadFunctionPtr<hostfxr_set_error_writer_fn>(libraryHandle, "hostfxr_set_error_writer");
-		s_CoreCLRFunctions.InitHostFXRForRuntimeConfig = LoadFunctionPtr<hostfxr_initialize_for_runtime_config_fn>(libraryHandle, "hostfxr_initialize_for_runtime_config");
-		s_CoreCLRFunctions.GetRuntimeDelegate = LoadFunctionPtr<hostfxr_get_runtime_delegate_fn>(libraryHandle, "hostfxr_get_runtime_delegate");
-		s_CoreCLRFunctions.CloseHostFXR = LoadFunctionPtr<hostfxr_close_fn>(libraryHandle, "hostfxr_close");
-	}
-	
-	bool HostInstance::InitializeCoralManaged()
-	{
-		// Fetch load_assembly_and_get_function_pointer_fn from CoreCLR
+		bool HostInstance::Initialize( HostSettings InSettings )
 		{
-			auto runtimeConfigPath = std::filesystem::path(m_Settings.CoralDirectory) / "Coral.Managed.runtimeconfig.json";
+			SAP_VERIFY( !m_Initialized );
 
-			if (!std::filesystem::exists(runtimeConfigPath))
+			LoadHostFXR();
+
+			// Setup settings
+			m_Settings = std::move( InSettings );
+
+			if ( !m_Settings.MessageCallback )
+				m_Settings.MessageCallback = DefaultMessageCallback;
+			MessageCallback = m_Settings.MessageCallback;
+			MessageFilter = m_Settings.MessageFilter;
+
+			s_CoreCLRFunctions.SetHostFXRErrorWriter( []( const SapChar* InMessage )
+				{
+					auto message = StringHelper::ConvertWideToUtf8( InMessage );
+					MessageCallback( message, MessageLevel::Error );
+				} );
+
+			m_CoralManagedAssemblyPath = std::filesystem::path( m_Settings.CoralDirectory ) / "Coral.Managed.dll";
+
+			if ( !std::filesystem::exists( m_CoralManagedAssemblyPath ) )
 			{
-				MessageCallback("Failed to find Coral.Managed.runtimeconfig.json", MessageLevel::Error);
+				MessageCallback( "Failed to find Coral.Managed.dll", MessageLevel::Error );
 				return false;
 			}
 
-			int status = s_CoreCLRFunctions.InitHostFXRForRuntimeConfig(runtimeConfigPath.c_str(), nullptr, &m_HostFXRContext);
-			CORAL_VERIFY(status == StatusCode::Success || status == StatusCode::Success_HostAlreadyInitialized || status == StatusCode::Success_DifferentRuntimeProperties);
-			CORAL_VERIFY(m_HostFXRContext != nullptr);
+			m_Initialized = InitializeCoralManaged();
 
-			status = s_CoreCLRFunctions.GetRuntimeDelegate(m_HostFXRContext, hdt_load_assembly_and_get_function_pointer, (void**)&s_CoreCLRFunctions.GetManagedFunctionPtr);
-			CORAL_VERIFY(status == StatusCode::Success);
+			return m_Initialized;
 		}
 
-		using InitializeFn = void(*)(void(*)(String, MessageLevel), void(*)(String));
-		InitializeFn coralManagedEntryPoint = nullptr;
-		coralManagedEntryPoint = LoadCoralManagedFunctionPtr<InitializeFn>(CORAL_STR("Coral.Managed.ManagedHost, Coral.Managed"), CORAL_STR("Initialize"));
-
-		LoadCoralFunctions();
-
-		coralManagedEntryPoint([](String InMessage, MessageLevel InLevel)
+		void HostInstance::Shutdown()
 		{
-			if (MessageFilter & InLevel)
-			{
-				std::string message = InMessage;
-				MessageCallback(message, InLevel);
-			}
-		},
-		[](String InMessage)
+			s_CoreCLRFunctions.CloseHostFXR( m_HostFXRContext );
+		}
+
+		AssemblyLoadContext HostInstance::CreateAssemblyLoadContext( std::string_view InName )
 		{
-			std::string message = InMessage;
-			if (!ExceptionCallback)
+			ScopedSapString name = SapString::New( InName );
+			AssemblyLoadContext alc;
+			alc.m_ContextId = s_ManagedFunctions.CreateAssemblyLoadContextFptr( name );
+			alc.m_Host = this;
+			return alc;
+		}
+
+		void HostInstance::UnloadAssemblyLoadContext( AssemblyLoadContext& InLoadContext )
+		{
+			s_ManagedFunctions.UnloadAssemblyLoadContextFptr( InLoadContext.m_ContextId );
+			InLoadContext.m_ContextId = -1;
+			InLoadContext.m_LoadedAssemblies.Clear();
+		}
+
+#ifdef _WIN32
+		template <typename TFunc>
+		TFunc LoadFunctionPtr( void* InLibraryHandle, const char* InFunctionName )
+		{
+			auto result = (TFunc)GetProcAddress( (HMODULE)InLibraryHandle, InFunctionName );
+			SAP_VERIFY( result );
+			return result;
+		}
+#else
+		template <typename TFunc>
+		TFunc LoadFunctionPtr( void* InLibraryHandle, const char* InFunctionName )
+		{
+			auto result = (TFunc)dlsym( InLibraryHandle, InFunctionName );
+			SAP_VERIFY( result );
+			return result;
+		}
+#endif
+
+		std::filesystem::path GetHostFXRPath()
+		{
+#ifdef WINDOWS
+			std::filesystem::path basePath = "";
+
+			// Find the Program Files folder
+			TCHAR pf[MAX_PATH];
+			SHGetSpecialFolderPath(
+				nullptr,
+				pf,
+				CSIDL_PROGRAM_FILES,
+				FALSE );
+
+			basePath = pf;
+			basePath /= "dotnet/host/fxr/";
+
+			auto searchPaths = std::array
 			{
-				MessageCallback(message, MessageLevel::Error);
-				return;
+				basePath
+			};
+
+#elif defined(CORAL_LINUX)
+			auto searchPaths = std::array
+			{
+				std::filesystem::path( "/usr/lib/dotnet/host/fxr/" ),
+				std::filesystem::path( "/usr/share/dotnet/host/fxr/" ),
+			};
+#endif
+
+			for ( const auto& path : searchPaths )
+			{
+				if ( !std::filesystem::exists( path ) )
+					continue;
+
+				for ( const auto& dir : std::filesystem::recursive_directory_iterator( path ) )
+				{
+					if ( !dir.is_directory() )
+						continue;
+
+					auto dirPath = dir.path().string();
+
+					if ( dirPath.find( SAP_DOTNET_TARGET_VERSION_MAJOR_STR ) == std::string::npos )
+						continue;
+
+					auto res = dir / std::filesystem::path( SAP_HOSTFXR_NAME );
+					SAP_VERIFY( std::filesystem::exists( res ) );
+					return res;
+				}
 			}
-			
-			ExceptionCallback(message);
-		});
 
-		ExceptionCallback = m_Settings.ExceptionCallback;
+			return "";
+		}
 
-		return true;
-	}
+		void HostInstance::LoadHostFXR() const
+		{
+			// TODO: 
 
-	void HostInstance::LoadCoralFunctions()
-	{
-		s_ManagedFunctions.CreateAssemblyLoadContextFptr = LoadCoralManagedFunctionPtr<CreateAssemblyLoadContextFn>(CORAL_STR("Coral.Managed.AssemblyLoader, Coral.Managed"), CORAL_STR("CreateAssemblyLoadContext"));
-		s_ManagedFunctions.UnloadAssemblyLoadContextFptr = LoadCoralManagedFunctionPtr<UnloadAssemblyLoadContextFn>(CORAL_STR("Coral.Managed.AssemblyLoader, Coral.Managed"), CORAL_STR("UnloadAssemblyLoadContext"));
-		s_ManagedFunctions.LoadManagedAssemblyFptr = LoadCoralManagedFunctionPtr<LoadManagedAssemblyFn>(CORAL_STR("Coral.Managed.AssemblyLoader, Coral.Managed"), CORAL_STR("LoadAssembly"));
-		s_ManagedFunctions.UnloadAssemblyLoadContextFptr = LoadCoralManagedFunctionPtr<UnloadAssemblyLoadContextFn>(CORAL_STR("Coral.Managed.AssemblyLoader, Coral.Managed"), CORAL_STR("UnloadAssemblyLoadContext"));
-		s_ManagedFunctions.GetLastLoadStatusFptr = LoadCoralManagedFunctionPtr<GetLastLoadStatusFn>(CORAL_STR("Coral.Managed.AssemblyLoader, Coral.Managed"), CORAL_STR("GetLastLoadStatus"));
-		s_ManagedFunctions.GetAssemblyNameFptr = LoadCoralManagedFunctionPtr<GetAssemblyNameFn>(CORAL_STR("Coral.Managed.AssemblyLoader, Coral.Managed"), CORAL_STR("GetAssemblyName"));
+			// Retrieve the file path to the CoreCLR library
+			auto hostfxrPath = GetHostFXRPath();
 
-		s_ManagedFunctions.GetAssemblyTypesFptr = LoadCoralManagedFunctionPtr<GetAssemblyTypesFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetAssemblyTypes"));
-		s_ManagedFunctions.GetTypeIdFptr = LoadCoralManagedFunctionPtr<GetTypeIdFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetTypeId"));
-		s_ManagedFunctions.GetFullTypeNameFptr = LoadCoralManagedFunctionPtr<GetFullTypeNameFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetFullTypeName"));
-		s_ManagedFunctions.GetAssemblyQualifiedNameFptr = LoadCoralManagedFunctionPtr<GetAssemblyQualifiedNameFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetAssemblyQualifiedName"));
-		s_ManagedFunctions.GetBaseTypeFptr = LoadCoralManagedFunctionPtr<GetBaseTypeFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetBaseType"));
-		s_ManagedFunctions.GetTypeSizeFptr = LoadCoralManagedFunctionPtr<GetTypeSizeFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetTypeSize"));
-		s_ManagedFunctions.IsTypeSubclassOfFptr = LoadCoralManagedFunctionPtr<IsTypeSubclassOfFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("IsTypeSubclassOf"));
-		s_ManagedFunctions.IsTypeAssignableToFptr = LoadCoralManagedFunctionPtr<IsTypeAssignableToFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("IsTypeAssignableTo"));
-		s_ManagedFunctions.IsTypeAssignableFromFptr = LoadCoralManagedFunctionPtr<IsTypeAssignableFromFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("IsTypeAssignableFrom"));
-		s_ManagedFunctions.IsTypeSZArrayFptr = LoadCoralManagedFunctionPtr<IsTypeSZArrayFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("IsTypeSZArray"));
-		s_ManagedFunctions.GetElementTypeFptr = LoadCoralManagedFunctionPtr<GetElementTypeFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetElementType"));
-		s_ManagedFunctions.GetTypeMethodsFptr = LoadCoralManagedFunctionPtr<GetTypeMethodsFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetTypeMethods"));
-		s_ManagedFunctions.GetTypeFieldsFptr = LoadCoralManagedFunctionPtr<GetTypeFieldsFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetTypeFields"));
-		s_ManagedFunctions.GetTypePropertiesFptr = LoadCoralManagedFunctionPtr<GetTypePropertiesFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetTypeProperties"));
-		s_ManagedFunctions.HasTypeAttributeFptr = LoadCoralManagedFunctionPtr<HasTypeAttributeFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("HasTypeAttribute"));
-		s_ManagedFunctions.GetTypeAttributesFptr = LoadCoralManagedFunctionPtr<GetTypeAttributesFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetTypeAttributes"));
-		s_ManagedFunctions.GetTypeManagedTypeFptr = LoadCoralManagedFunctionPtr<GetTypeManagedTypeFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetTypeManagedType"));
-		s_ManagedFunctions.InvokeStaticMethodFptr = LoadCoralManagedFunctionPtr<InvokeStaticMethodFn>(CORAL_STR("Coral.Managed.ManagedObject, Coral.Managed"), CORAL_STR("InvokeStaticMethod"));
-		s_ManagedFunctions.InvokeStaticMethodRetFptr = LoadCoralManagedFunctionPtr<InvokeStaticMethodRetFn>(CORAL_STR("Coral.Managed.ManagedObject, Coral.Managed"), CORAL_STR("InvokeStaticMethodRet"));
+			// Load the CoreCLR library
+			void* libraryHandle = nullptr;
 
-		s_ManagedFunctions.GetMethodInfoNameFptr = LoadCoralManagedFunctionPtr<GetMethodInfoNameFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetMethodInfoName"));
-		s_ManagedFunctions.GetMethodInfoReturnTypeFptr = LoadCoralManagedFunctionPtr<GetMethodInfoReturnTypeFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetMethodInfoReturnType"));
-		s_ManagedFunctions.GetMethodInfoParameterTypesFptr = LoadCoralManagedFunctionPtr<GetMethodInfoParameterTypesFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetMethodInfoParameterTypes"));
-		s_ManagedFunctions.GetMethodInfoAccessibilityFptr = LoadCoralManagedFunctionPtr<GetMethodInfoAccessibilityFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetMethodInfoAccessibility"));
-		s_ManagedFunctions.GetMethodInfoAttributesFptr = LoadCoralManagedFunctionPtr<GetMethodInfoAttributesFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetMethodInfoAttributes"));
+#ifdef WINDOWS
+#ifdef SAP_WIDE_CHARS
+			libraryHandle = LoadLibraryW( hostfxrPath.c_str() );
+#else
+			libraryHandle = LoadLibraryA( hostfxrPath.string().c_str() );
+#endif
+#else
+			libraryHandle = dlopen( hostfxrPath.string().data(), RTLD_NOW | RTLD_GLOBAL );
+#endif
 
-		s_ManagedFunctions.GetFieldInfoNameFptr = LoadCoralManagedFunctionPtr<GetFieldInfoNameFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetFieldInfoName"));
-		s_ManagedFunctions.GetFieldInfoTypeFptr = LoadCoralManagedFunctionPtr<GetFieldInfoTypeFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetFieldInfoType"));
-		s_ManagedFunctions.GetFieldInfoAccessibilityFptr = LoadCoralManagedFunctionPtr<GetFieldInfoAccessibilityFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetFieldInfoAccessibility"));
-		s_ManagedFunctions.GetFieldInfoAttributesFptr = LoadCoralManagedFunctionPtr<GetFieldInfoAttributesFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetFieldInfoAttributes"));
+			SAP_VERIFY( libraryHandle != nullptr );
 
-		s_ManagedFunctions.GetPropertyInfoNameFptr = LoadCoralManagedFunctionPtr<GetPropertyInfoNameFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetPropertyInfoName"));
-		s_ManagedFunctions.GetPropertyInfoTypeFptr = LoadCoralManagedFunctionPtr<GetPropertyInfoTypeFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetPropertyInfoType"));
-		s_ManagedFunctions.GetPropertyInfoAttributesFptr = LoadCoralManagedFunctionPtr<GetPropertyInfoAttributesFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetPropertyInfoAttributes"));
+			// Load CoreCLR functions
+			s_CoreCLRFunctions.SetHostFXRErrorWriter = LoadFunctionPtr<hostfxr_set_error_writer_fn>( libraryHandle, "hostfxr_set_error_writer" );
+			s_CoreCLRFunctions.InitHostFXRForRuntimeConfig = LoadFunctionPtr<hostfxr_initialize_for_runtime_config_fn>( libraryHandle, "hostfxr_initialize_for_runtime_config" );
+			s_CoreCLRFunctions.GetRuntimeDelegate = LoadFunctionPtr<hostfxr_get_runtime_delegate_fn>( libraryHandle, "hostfxr_get_runtime_delegate" );
+			s_CoreCLRFunctions.CloseHostFXR = LoadFunctionPtr<hostfxr_close_fn>( libraryHandle, "hostfxr_close" );
+		}
 
-		s_ManagedFunctions.GetAttributeFieldValueFptr = LoadCoralManagedFunctionPtr<GetAttributeFieldValueFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetAttributeFieldValue"));
-		s_ManagedFunctions.GetAttributeTypeFptr = LoadCoralManagedFunctionPtr<GetAttributeTypeFn>(CORAL_STR("Coral.Managed.TypeInterface, Coral.Managed"), CORAL_STR("GetAttributeType"));
+		bool HostInstance::InitializeCoralManaged()
+		{
+			// Fetch load_assembly_and_get_function_pointer_fn from CoreCLR
+			{
+				auto runtimeConfigPath = std::filesystem::path( m_Settings.CoralDirectory ) / "Coral.Managed.runtimeconfig.json";
 
-		s_ManagedFunctions.SetInternalCallsFptr = LoadCoralManagedFunctionPtr<SetInternalCallsFn>(CORAL_STR("Coral.Managed.Interop.InternalCallsManager, Coral.Managed"), CORAL_STR("SetInternalCalls"));
-		s_ManagedFunctions.CreateObjectFptr = LoadCoralManagedFunctionPtr<CreateObjectFn>(CORAL_STR("Coral.Managed.ManagedObject, Coral.Managed"), CORAL_STR("CreateObject"));
-		s_ManagedFunctions.InvokeMethodFptr = LoadCoralManagedFunctionPtr<InvokeMethodFn>(CORAL_STR("Coral.Managed.ManagedObject, Coral.Managed"), CORAL_STR("InvokeMethod"));
-		s_ManagedFunctions.InvokeMethodRetFptr = LoadCoralManagedFunctionPtr<InvokeMethodRetFn>(CORAL_STR("Coral.Managed.ManagedObject, Coral.Managed"), CORAL_STR("InvokeMethodRet"));
-		s_ManagedFunctions.SetFieldValueFptr = LoadCoralManagedFunctionPtr<SetFieldValueFn>(CORAL_STR("Coral.Managed.ManagedObject, Coral.Managed"), CORAL_STR("SetFieldValue"));
-		s_ManagedFunctions.GetFieldValueFptr = LoadCoralManagedFunctionPtr<GetFieldValueFn>(CORAL_STR("Coral.Managed.ManagedObject, Coral.Managed"), CORAL_STR("GetFieldValue"));
-		s_ManagedFunctions.SetPropertyValueFptr = LoadCoralManagedFunctionPtr<SetFieldValueFn>(CORAL_STR("Coral.Managed.ManagedObject, Coral.Managed"), CORAL_STR("SetPropertyValue"));
-		s_ManagedFunctions.GetPropertyValueFptr = LoadCoralManagedFunctionPtr<GetFieldValueFn>(CORAL_STR("Coral.Managed.ManagedObject, Coral.Managed"), CORAL_STR("GetPropertyValue"));
-		s_ManagedFunctions.DestroyObjectFptr = LoadCoralManagedFunctionPtr<DestroyObjectFn>(CORAL_STR("Coral.Managed.ManagedObject, Coral.Managed"), CORAL_STR("DestroyObject"));
-		s_ManagedFunctions.CollectGarbageFptr = LoadCoralManagedFunctionPtr<CollectGarbageFn>(CORAL_STR("Coral.Managed.GarbageCollector, Coral.Managed"), CORAL_STR("CollectGarbage"));
-		s_ManagedFunctions.WaitForPendingFinalizersFptr = LoadCoralManagedFunctionPtr<WaitForPendingFinalizersFn>(CORAL_STR("Coral.Managed.GarbageCollector, Coral.Managed"), CORAL_STR("WaitForPendingFinalizers"));
-	}
+				if ( !std::filesystem::exists( runtimeConfigPath ) )
+				{
+					MessageCallback( "Failed to find Coral.Managed.runtimeconfig.json", MessageLevel::Error );
+					return false;
+				}
 
-	void* HostInstance::LoadCoralManagedFunctionPtr(const std::filesystem::path& InAssemblyPath, const CharType* InTypeName, const CharType* InMethodName, const CharType* InDelegateType) const
-	{
-		void* funcPtr = nullptr;
-		int status = s_CoreCLRFunctions.GetManagedFunctionPtr(InAssemblyPath.c_str(), InTypeName, InMethodName, InDelegateType, nullptr, &funcPtr);
-		CORAL_VERIFY(status == StatusCode::Success && funcPtr != nullptr);
-		return funcPtr;
+				int status = s_CoreCLRFunctions.InitHostFXRForRuntimeConfig( runtimeConfigPath.c_str(), nullptr, &m_HostFXRContext );
+				SAP_VERIFY( status == StatusCode::Success || status == StatusCode::Success_HostAlreadyInitialized || status == StatusCode::Success_DifferentRuntimeProperties );
+				SAP_VERIFY( m_HostFXRContext != nullptr );
+
+				status = s_CoreCLRFunctions.GetRuntimeDelegate( m_HostFXRContext, hdt_load_assembly_and_get_function_pointer, (void**)&s_CoreCLRFunctions.GetManagedFunctionPtr );
+				SAP_VERIFY( status == StatusCode::Success );
+			}
+
+			using InitializeFn = void( * )( void( * )( SapString, MessageLevel ), void( * )( SapString ) );
+			InitializeFn coralManagedEntryPoint = nullptr;
+			coralManagedEntryPoint = LoadSapManagedFunctionPtr<InitializeFn>( SAP_STR( "Tree.Sap.ManagedHost, Coral.Managed" ), SAP_STR( "Initialize" ) );
+
+			LoadCoralFunctions();
+
+			coralManagedEntryPoint( []( SapString InMessage, MessageLevel InLevel )
+				{
+					if ( MessageFilter & InLevel )
+					{
+						std::string message = InMessage;
+						MessageCallback( message, InLevel );
+					}
+				},
+				[]( SapString InMessage )
+				{
+					std::string message = InMessage;
+					if ( !ExceptionCallback )
+					{
+						MessageCallback( message, MessageLevel::Error );
+						return;
+					}
+
+					ExceptionCallback( message );
+				} );
+
+			ExceptionCallback = m_Settings.ExceptionCallback;
+
+			return true;
+		}
+
+		void HostInstance::LoadCoralFunctions()
+		{
+			s_ManagedFunctions.CreateAssemblyLoadContextFptr = LoadSapManagedFunctionPtr<CreateAssemblyLoadContextFn>( SAP_STR( "Tree.Sap.AssemblyLoader, Coral.Managed" ), SAP_STR( "CreateAssemblyLoadContext" ) );
+			s_ManagedFunctions.UnloadAssemblyLoadContextFptr = LoadSapManagedFunctionPtr<UnloadAssemblyLoadContextFn>( SAP_STR( "Tree.Sap.AssemblyLoader, Coral.Managed" ), SAP_STR( "UnloadAssemblyLoadContext" ) );
+			s_ManagedFunctions.LoadManagedAssemblyFptr = LoadSapManagedFunctionPtr<LoadManagedAssemblyFn>( SAP_STR( "Tree.Sap.AssemblyLoader, Coral.Managed" ), SAP_STR( "LoadAssembly" ) );
+			s_ManagedFunctions.UnloadAssemblyLoadContextFptr = LoadSapManagedFunctionPtr<UnloadAssemblyLoadContextFn>( SAP_STR( "Tree.Sap.AssemblyLoader, Coral.Managed" ), SAP_STR( "UnloadAssemblyLoadContext" ) );
+			s_ManagedFunctions.GetLastLoadStatusFptr = LoadSapManagedFunctionPtr<GetLastLoadStatusFn>( SAP_STR( "Tree.Sap.AssemblyLoader, Coral.Managed" ), SAP_STR( "GetLastLoadStatus" ) );
+			s_ManagedFunctions.GetAssemblyNameFptr = LoadSapManagedFunctionPtr<GetAssemblyNameFn>( SAP_STR( "Tree.Sap.AssemblyLoader, Coral.Managed" ), SAP_STR( "GetAssemblyName" ) );
+
+			s_ManagedFunctions.GetAssemblyTypesFptr = LoadSapManagedFunctionPtr<GetAssemblyTypesFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetAssemblyTypes" ) );
+			s_ManagedFunctions.GetTypeIdFptr = LoadSapManagedFunctionPtr<GetTypeIdFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetTypeId" ) );
+			s_ManagedFunctions.GetFullTypeNameFptr = LoadSapManagedFunctionPtr<GetFullTypeNameFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetFullTypeName" ) );
+			s_ManagedFunctions.GetAssemblyQualifiedNameFptr = LoadSapManagedFunctionPtr<GetAssemblyQualifiedNameFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetAssemblyQualifiedName" ) );
+			s_ManagedFunctions.GetBaseTypeFptr = LoadSapManagedFunctionPtr<GetBaseTypeFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetBaseType" ) );
+			s_ManagedFunctions.GetTypeSizeFptr = LoadSapManagedFunctionPtr<GetTypeSizeFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetTypeSize" ) );
+			s_ManagedFunctions.IsTypeSubclassOfFptr = LoadSapManagedFunctionPtr<IsTypeSubclassOfFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "IsTypeSubclassOf" ) );
+			s_ManagedFunctions.IsTypeAssignableToFptr = LoadSapManagedFunctionPtr<IsTypeAssignableToFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "IsTypeAssignableTo" ) );
+			s_ManagedFunctions.IsTypeAssignableFromFptr = LoadSapManagedFunctionPtr<IsTypeAssignableFromFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "IsTypeAssignableFrom" ) );
+			s_ManagedFunctions.IsTypeSZArrayFptr = LoadSapManagedFunctionPtr<IsTypeSZArrayFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "IsTypeSZArray" ) );
+			s_ManagedFunctions.GetElementTypeFptr = LoadSapManagedFunctionPtr<GetElementTypeFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetElementType" ) );
+			s_ManagedFunctions.GetTypeMethodsFptr = LoadSapManagedFunctionPtr<GetTypeMethodsFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetTypeMethods" ) );
+			s_ManagedFunctions.GetTypeFieldsFptr = LoadSapManagedFunctionPtr<GetTypeFieldsFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetTypeFields" ) );
+			s_ManagedFunctions.GetTypePropertiesFptr = LoadSapManagedFunctionPtr<GetTypePropertiesFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetTypeProperties" ) );
+			s_ManagedFunctions.HasTypeAttributeFptr = LoadSapManagedFunctionPtr<HasTypeAttributeFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "HasTypeAttribute" ) );
+			s_ManagedFunctions.GetTypeAttributesFptr = LoadSapManagedFunctionPtr<GetTypeAttributesFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetTypeAttributes" ) );
+			s_ManagedFunctions.GetTypeManagedTypeFptr = LoadSapManagedFunctionPtr<GetTypeManagedTypeFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetTypeManagedType" ) );
+			s_ManagedFunctions.InvokeStaticMethodFptr = LoadSapManagedFunctionPtr<InvokeStaticMethodFn>( SAP_STR( "Tree.Sap.ManagedObject, Coral.Managed" ), SAP_STR( "InvokeStaticMethod" ) );
+			s_ManagedFunctions.InvokeStaticMethodRetFptr = LoadSapManagedFunctionPtr<InvokeStaticMethodRetFn>( SAP_STR( "Tree.Sap.ManagedObject, Coral.Managed" ), SAP_STR( "InvokeStaticMethodRet" ) );
+
+			s_ManagedFunctions.GetMethodInfoNameFptr = LoadSapManagedFunctionPtr<GetMethodInfoNameFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetMethodInfoName" ) );
+			s_ManagedFunctions.GetMethodInfoReturnTypeFptr = LoadSapManagedFunctionPtr<GetMethodInfoReturnTypeFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetMethodInfoReturnType" ) );
+			s_ManagedFunctions.GetMethodInfoParameterTypesFptr = LoadSapManagedFunctionPtr<GetMethodInfoParameterTypesFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetMethodInfoParameterTypes" ) );
+			s_ManagedFunctions.GetMethodInfoAccessibilityFptr = LoadSapManagedFunctionPtr<GetMethodInfoAccessibilityFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetMethodInfoAccessibility" ) );
+			s_ManagedFunctions.GetMethodInfoAttributesFptr = LoadSapManagedFunctionPtr<GetMethodInfoAttributesFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetMethodInfoAttributes" ) );
+
+			s_ManagedFunctions.GetFieldInfoNameFptr = LoadSapManagedFunctionPtr<GetFieldInfoNameFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetFieldInfoName" ) );
+			s_ManagedFunctions.GetFieldInfoTypeFptr = LoadSapManagedFunctionPtr<GetFieldInfoTypeFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetFieldInfoType" ) );
+			s_ManagedFunctions.GetFieldInfoAccessibilityFptr = LoadSapManagedFunctionPtr<GetFieldInfoAccessibilityFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetFieldInfoAccessibility" ) );
+			s_ManagedFunctions.GetFieldInfoAttributesFptr = LoadSapManagedFunctionPtr<GetFieldInfoAttributesFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetFieldInfoAttributes" ) );
+
+			s_ManagedFunctions.GetPropertyInfoNameFptr = LoadSapManagedFunctionPtr<GetPropertyInfoNameFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetPropertyInfoName" ) );
+			s_ManagedFunctions.GetPropertyInfoTypeFptr = LoadSapManagedFunctionPtr<GetPropertyInfoTypeFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetPropertyInfoType" ) );
+			s_ManagedFunctions.GetPropertyInfoAttributesFptr = LoadSapManagedFunctionPtr<GetPropertyInfoAttributesFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetPropertyInfoAttributes" ) );
+
+			s_ManagedFunctions.GetAttributeFieldValueFptr = LoadSapManagedFunctionPtr<GetAttributeFieldValueFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetAttributeFieldValue" ) );
+			s_ManagedFunctions.GetAttributeTypeFptr = LoadSapManagedFunctionPtr<GetAttributeTypeFn>( SAP_STR( "Tree.Sap.TypeInterface, Coral.Managed" ), SAP_STR( "GetAttributeType" ) );
+
+			s_ManagedFunctions.SetInternalCallsFptr = LoadSapManagedFunctionPtr<SetInternalCallsFn>( SAP_STR( "Tree.Sap.Interop.InternalCallsManager, Coral.Managed" ), SAP_STR( "SetInternalCalls" ) );
+			s_ManagedFunctions.CreateObjectFptr = LoadSapManagedFunctionPtr<CreateObjectFn>( SAP_STR( "Tree.Sap.ManagedObject, Coral.Managed" ), SAP_STR( "CreateObject" ) );
+			s_ManagedFunctions.InvokeMethodFptr = LoadSapManagedFunctionPtr<InvokeMethodFn>( SAP_STR( "Tree.Sap.ManagedObject, Coral.Managed" ), SAP_STR( "InvokeMethod" ) );
+			s_ManagedFunctions.InvokeMethodRetFptr = LoadSapManagedFunctionPtr<InvokeMethodRetFn>( SAP_STR( "Tree.Sap.ManagedObject, Coral.Managed" ), SAP_STR( "InvokeMethodRet" ) );
+			s_ManagedFunctions.SetFieldValueFptr = LoadSapManagedFunctionPtr<SetFieldValueFn>( SAP_STR( "Tree.Sap.ManagedObject, Coral.Managed" ), SAP_STR( "SetFieldValue" ) );
+			s_ManagedFunctions.GetFieldValueFptr = LoadSapManagedFunctionPtr<GetFieldValueFn>( SAP_STR( "Tree.Sap.ManagedObject, Coral.Managed" ), SAP_STR( "GetFieldValue" ) );
+			s_ManagedFunctions.SetPropertyValueFptr = LoadSapManagedFunctionPtr<SetFieldValueFn>( SAP_STR( "Tree.Sap.ManagedObject, Coral.Managed" ), SAP_STR( "SetPropertyValue" ) );
+			s_ManagedFunctions.GetPropertyValueFptr = LoadSapManagedFunctionPtr<GetFieldValueFn>( SAP_STR( "Tree.Sap.ManagedObject, Coral.Managed" ), SAP_STR( "GetPropertyValue" ) );
+			s_ManagedFunctions.DestroyObjectFptr = LoadSapManagedFunctionPtr<DestroyObjectFn>( SAP_STR( "Tree.Sap.ManagedObject, Coral.Managed" ), SAP_STR( "DestroyObject" ) );
+			s_ManagedFunctions.CollectGarbageFptr = LoadSapManagedFunctionPtr<CollectGarbageFn>( SAP_STR( "Tree.Sap.GarbageCollector, Coral.Managed" ), SAP_STR( "CollectGarbage" ) );
+			s_ManagedFunctions.WaitForPendingFinalizersFptr = LoadSapManagedFunctionPtr<WaitForPendingFinalizersFn>( SAP_STR( "Tree.Sap.GarbageCollector, Coral.Managed" ), SAP_STR( "WaitForPendingFinalizers" ) );
+		}
+
+		void* HostInstance::LoadSapManagedFunctionPtr( const std::filesystem::path& InAssemblyPath, const SapChar* InTypeName, const SapChar* InMethodName, const SapChar* InDelegateType ) const
+		{
+			void* funcPtr = nullptr;
+			int status = s_CoreCLRFunctions.GetManagedFunctionPtr( InAssemblyPath.c_str(), InTypeName, InMethodName, InDelegateType, nullptr, &funcPtr );
+			SAP_VERIFY( status == StatusCode::Success && funcPtr != nullptr );
+			return funcPtr;
+		}
 	}
 }

@@ -1,31 +1,33 @@
-#include "TypeCache.hpp"
-#include "Type.hpp"
+#include "TypeCache.h"
+#include "Type.h"
 
-namespace Coral {
-
-	TypeCache& TypeCache::Get()
+namespace Tree
+{
+	namespace Sap
 	{
-		static TypeCache s_Instance;
-		return s_Instance;
-	}
+		TypeCache& TypeCache::Get()
+		{
+			static TypeCache s_Instance;
+			return s_Instance;
+		}
 
-	Type* TypeCache::CacheType(Type&& InType)
-	{
-		Type* type = &m_Types.Insert(std::move(InType)).second;
-		m_NameCache[type->GetFullName()] = type;
-		m_IDCache[type->GetTypeId()] = type;
-		return type;
-	}
+		Type* TypeCache::CacheType( Type&& InType )
+		{
+			Type* type = &m_Types.Insert( std::move( InType ) ).second;
+			m_NameCache[type->GetFullName()] = type;
+			m_IDCache[type->GetTypeId()] = type;
+			return type;
+		}
 
-	Type* TypeCache::GetTypeByName(std::string_view InName) const
-	{
-		auto name = std::string(InName);
-		return m_NameCache.contains(name) ? m_NameCache.at(name) : nullptr;
-	}
+		Type* TypeCache::GetTypeByName( std::string_view InName ) const
+		{
+			auto name = std::string( InName );
+			return m_NameCache.contains( name ) ? m_NameCache.at( name ) : nullptr;
+		}
 
-	Type* TypeCache::GetTypeByID(TypeId InTypeID) const
-	{
-		return m_IDCache.contains(InTypeID) ? m_IDCache.at(InTypeID) : nullptr;
+		Type* TypeCache::GetTypeByID( TypeId InTypeID ) const
+		{
+			return m_IDCache.contains( InTypeID ) ? m_IDCache.at( InTypeID ) : nullptr;
+		}
 	}
-
 }

@@ -22,11 +22,11 @@
 	#define CORAL_DEBUG_BREAK	
 #endif
 
-#define CORAL_VERIFY(expr) {\
+// TODO: Log error using Platform::DebugLog
+#define SAP_VERIFY(expr) {\
 						if(!(expr))\
 						{\
 							CORAL_SOURCE_LOCATION;\
-							std::cerr << "[Coral.Native]: Assert Failed! Expression: " << #expr << " at " << file << ":" << line << "\n";\
 							CORAL_DEBUG_BREAK;\
 						}\
 					}

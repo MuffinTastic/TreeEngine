@@ -2,57 +2,60 @@
 
 #include <string_view>
 
-#ifdef CORAL_WINDOWS
-	#define CORAL_CALLTYPE __cdecl
-	#define CORAL_HOSTFXR_NAME "hostfxr.dll"
+#ifdef WINDOWS
+	#define SAP_CALLTYPE __cdecl
+	#define SAP_HOSTFXR_NAME "hostfxr.dll"
 
 	#ifdef _WCHAR_T_DEFINED
-		#define CORAL_STR(s) L##s
-		#define CORAL_WIDE_CHARS
+		#define SAP_STR(s) L##s
+		#define SAP_WIDE_CHARS
 
-		using CharType = wchar_t;
-		using StringView = std::wstring_view;
+		using SapChar = wchar_t;
+		using SapStringView = std::wstring_view;
 
 	#else
-		#define CORAL_STR(s) s
+		#define SAP_STR(s) s
 
-		using CharType = unsigned short;
-		using StringView = std::string_view;
+		using SapChar = unsigned short;
+		using SapStringView = std::string_view;
 	#endif
 #else
-	#define CORAL_CALLTYPE
-	#define CORAL_STR(s) s
-	#define CORAL_HOSTFXR_NAME "libhostfxr.so"
+	#define SAP_CALLTYPE
+	#define SAP_STR(s) s
+	#define SAP_HOSTFXR_NAME "libhostfxr.so"
 
-	using CharType = char;
-	using StringView = std::string_view;
+	using SapChar = char;
+	using SapStringView = std::string_view;
 #endif
 
-#define CORAL_DOTNET_TARGET_VERSION_MAJOR 8
-#define CORAL_DOTNET_TARGET_VERSION_MAJOR_STR '8'
-#define CORAL_UNMANAGED_CALLERS_ONLY ((const CharType*)-1)
+#define SAP_DOTNET_TARGET_VERSION_MAJOR 8
+#define SAP_DOTNET_TARGET_VERSION_MAJOR_STR '8'
+#define SAP_UNMANAGED_CALLERS_ONLY ((const SapChar*)-1)
 
-namespace Coral {
-
-	using Bool32 = uint32_t;
-
-	enum class TypeAccessibility
+namespace Tree
+{
+	namespace Sap
 	{
-		Public,
-		Private,
-		Protected,
-		Internal,
-		ProtectedPublic,
-		PrivateProtected
-	};
+		using Bool32 = uint32_t;
 
-	using TypeId = int32_t;
-	using ManagedHandle = int32_t;
+		enum class TypeAccessibility
+		{
+			Public,
+			Private,
+			Protected,
+			Internal,
+			ProtectedPublic,
+			PrivateProtected
+		};
 
-	struct InternalCall
-	{
-		const CharType* Name;
-		void* NativeFunctionPtr;
-	};
+		using TypeId = int32_t;
+		using ManagedHandle = int32_t;
 
+		struct InternalCall
+		{
+			const SapChar* Name;
+			void* NativeFunctionPtr;
+		};
+
+	}
 }

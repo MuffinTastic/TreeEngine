@@ -1,58 +1,64 @@
-#include "Memory.hpp"
+#include "Memory.h"
 
-namespace Coral {
-
-	void* Memory::AllocHGlobal(size_t InSize)
-	{
-#if defined(_WIN32)
-		return LocalAlloc(LMEM_FIXED | LMEM_ZEROINIT, InSize);
-#else
-		return malloc(InSize);
+#ifdef WINDOWS
+#include <combaseapi.h>
 #endif
-	}
 
-	void Memory::FreeHGlobal(void* InPtr)
+namespace Tree
+{
+	namespace Sap
 	{
-#if defined(_WIN32)
-		LocalFree(InPtr);
-#else
-		free(InPtr);
-#endif
-	}
-
-	CharType* Memory::StringToCoTaskMemAuto(StringView InString)
-	{
-		size_t length = InString.length() + 1;
-		size_t size = length * sizeof(CharType);
-
-#if defined(_WIN32)
-		auto* buffer = static_cast<CharType*>(CoTaskMemAlloc(size));
-
-		if (buffer != nullptr)
+		void* Memory::AllocHGlobal( size_t InSize )
 		{
-			memset(buffer, 0xCE, size);
-			wcscpy(buffer, InString.data());
-		}
+#ifdef WINDOWS
+			return LocalAlloc( LMEM_FIXED | LMEM_ZEROINIT, InSize );
 #else
-		auto* buffer = static_cast<CharType*>(AllocHGlobal(size));
+			return malloc( InSize );
+#endif
+		}
 
-		if (buffer != nullptr)
+		void Memory::FreeHGlobal( void* InPtr )
 		{
-			memset(buffer, 0, size);
-			strcpy(buffer, InString.data());
-		}
-#endif
-
-		return buffer;
-	}
-
-	void Memory::FreeCoTaskMem(void* InMemory)
-	{
-#if defined(_WIN32)
-		CoTaskMemFree(InMemory);
+#ifdef WINDOWS
+			LocalFree( InPtr );
 #else
-		FreeHGlobal(InMemory);
+			free( InPtr );
 #endif
-	}
+		}
 
+		SapChar* Memory::StringToCoTaskMemAuto( SapStringView InString )
+		{
+			size_t length = InString.length() + 1;
+			size_t size = length * sizeof( SapChar );
+
+#ifdef WINDOWS
+			auto* buffer = static_cast<SapChar*>( CoTaskMemAlloc( size ) );
+
+			if ( buffer != nullptr )
+			{
+				memset( buffer, 0xCE, size );
+				wcscpy( buffer, InString.data() );
+			}
+#else
+			auto* buffer = static_cast<SapChar*>( AllocHGlobal( size ) );
+
+			if ( buffer != nullptr )
+			{
+				memset( buffer, 0, size );
+				strcpy( buffer, InString.data() );
+			}
+#endif
+
+			return buffer;
+		}
+
+		void Memory::FreeCoTaskMem( void* InMemory )
+		{
+#ifdef WINDOWS
+			CoTaskMemFree( InMemory );
+#else
+			FreeHGlobal( InMemory );
+#endif
+		}
+	}
 }
