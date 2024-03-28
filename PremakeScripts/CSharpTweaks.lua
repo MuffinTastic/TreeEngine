@@ -43,6 +43,8 @@ premake.override(premake.vstudio.dotnetbase, "projectProperties", function(base,
         _p(2, '<AllowUnsafeBlocks>true</AllowUnsafeBlocks>')
     end
 
+    _p(2, '<Nullable>enable</Nullable>')
+
     _p(1,'</PropertyGroup>')
 end)
 
