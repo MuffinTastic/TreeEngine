@@ -8,7 +8,7 @@ namespace Tree
 {
 	namespace Sap
 	{
-		SapString FieldInfo::GetName() const
+		String FieldInfo::GetName() const
 		{
 			return s_ManagedFunctions.GetFieldInfoNameFptr( m_Handle );
 		}

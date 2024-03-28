@@ -78,8 +78,7 @@ group "Native"
             target = "Engine",
             links = {
                 "%{cfg.buildtarget.directory}/Tree.NativeCommon",
-                thirdpartylib{ debug="fmtd", release="fmt" },
-                thirdpartylib( "nethost" )
+                thirdpartylib{ debug="fmtd", release="fmt" }
             },
             dependson = { "Tree.NativeCommon" },
         }

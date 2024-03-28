@@ -45,7 +45,7 @@ namespace Tree
 
 		ManagedAssembly& AssemblyLoadContext::LoadAssembly( std::string_view InFilePath )
 		{
-			auto filepath = SapString::New( InFilePath );
+			auto filepath = String::New( InFilePath );
 
 			auto [idx, result] = m_LoadedAssemblies.EmplaceBack();
 			result.m_AssemblyID = s_ManagedFunctions.LoadManagedAssemblyFptr( m_ContextId, filepath );
@@ -55,7 +55,7 @@ namespace Tree
 			{
 				auto assemblyName = s_ManagedFunctions.GetAssemblyNameFptr( result.m_AssemblyID );
 				result.m_Name = assemblyName;
-				SapString::Free( assemblyName );
+				String::Free( assemblyName );
 
 				int32_t typeCount = 0;
 				s_ManagedFunctions.GetAssemblyTypesFptr( result.m_AssemblyID, nullptr, &typeCount );
@@ -70,7 +70,7 @@ namespace Tree
 				}
 			}
 
-			SapString::Free( filepath );
+			String::Free( filepath );
 
 			return result;
 		}

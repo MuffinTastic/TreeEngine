@@ -19,7 +19,7 @@
 #include "Tree.NativeCommon/platform.h"
 
 #include "sap/GC.h"
-#include "sap/SapArray.h"
+#include "sap/Array.h"
 #include "sap/Attribute.h"
 
 #include "sap/Verify.h"
@@ -137,9 +137,9 @@ void Tree::ManagedHostSystem::Shutdown()
 	s_CoreCLRFunctions.CloseHostFXR( m_HostFXRContext );
 }
 
-void StringDemoClient( Tree::Sap::SapString str )
+void StringDemoClient( Tree::Sap::String str )
 {
-	Tree::Sys::Log()->Info( "vuhh {}", std::string( str ) );
+	Tree::Sys::Log()->Info( "test {}", std::string( str ) );
 }
 
 void Tree::ManagedHostSystem::LoadEngineFunctions()
@@ -166,7 +166,7 @@ void Tree::ManagedHostSystem::TrunkFunc()
 
 Tree::Sap::AssemblyLoadContext Tree::ManagedHostSystem::CreateAssemblyLoadContext( std::string_view InName )
 {
-	Sap::ScopedSapString name = Sap::SapString::New( InName );
+	Sap::ScopedString name = Sap::String::New( InName );
 	Sap::AssemblyLoadContext alc;
 	alc.m_ContextId = Sap::s_ManagedFunctions.CreateAssemblyLoadContextFptr( name );
 	return alc;
@@ -306,10 +306,10 @@ bool Tree::ManagedHostSystem::InitializeSapManaged()
 	LoadSapManagedAssembly( sapAssemblyPath );
 
 	using InitializeFn = void( * )(
-		void( * )( Sap::SapString ),
-		void( * )( Sap::SapString ),
-		void( * )( Sap::SapString ),
-		void( * )( Sap::SapString )
+		void( * )( Sap::String ),
+		void( * )( Sap::String ),
+		void( * )( Sap::String ),
+		void( * )( Sap::String )
 		);
 	InitializeFn sapManagedEntryPoint = nullptr;
 	sapManagedEntryPoint = LoadSapManagedFunctionPtr<InitializeFn>( SAP_STR( "Tree.Sap.ManagedHost, Tree.Sap" ), SAP_STR( "Initialize" ) );
@@ -317,25 +317,25 @@ bool Tree::ManagedHostSystem::InitializeSapManaged()
 	LoadSapFunctions();
 
 	sapManagedEntryPoint(
-		[]( Sap::SapString InMessage )
+		[]( Sap::String InMessage )
 		{
 			std::string message = InMessage;
 			auto host = dynamic_cast<Tree::ManagedHostSystem*>( Sys::ManagedHost() );
 			host->m_logger->Error( "C# exception caught: {}", message );
 		},
-		[]( Sap::SapString InMessage )
+		[]( Sap::String InMessage )
 		{
 			std::string message = InMessage;
 			auto host = dynamic_cast<Tree::ManagedHostSystem*>( Sys::ManagedHost() );
 			host->m_logger->Info( "{}", message );
 		},
-		[]( Sap::SapString InMessage )
+		[]( Sap::String InMessage )
 		{
 			std::string message = InMessage;
 			auto host = dynamic_cast<Tree::ManagedHostSystem*>( Sys::ManagedHost() );
 			host->m_logger->Warning( "{}", message );
 		},
-		[]( Sap::SapString InMessage )
+		[]( Sap::String InMessage )
 		{
 			std::string message = InMessage;
 			auto host = dynamic_cast<Tree::ManagedHostSystem*>( Sys::ManagedHost() );

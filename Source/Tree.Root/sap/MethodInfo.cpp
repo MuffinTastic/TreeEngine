@@ -8,7 +8,7 @@ namespace Tree
 {
 	namespace Sap
 	{
-		SapString MethodInfo::GetName() const
+		String MethodInfo::GetName() const
 		{
 			return s_ManagedFunctions.GetMethodInfoNameFptr( m_Handle );
 		}

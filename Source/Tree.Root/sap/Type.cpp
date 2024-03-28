@@ -7,12 +7,12 @@ namespace Tree
 {
 	namespace Sap
 	{
-		SapString Type::GetFullName() const
+		String Type::GetFullName() const
 		{
 			return s_ManagedFunctions.GetFullTypeNameFptr( m_Id );
 		}
 
-		SapString Type::GetAssemblyQualifiedName() const
+		String Type::GetAssemblyQualifiedName() const
 		{
 			return s_ManagedFunctions.GetAssemblyQualifiedNameFptr( m_Id );
 		}
@@ -147,16 +147,16 @@ namespace Tree
 
 		void Type::InvokeStaticMethodInternal( std::string_view InMethodName, const void** InParameters, const ManagedType* InParameterTypes, size_t InLength ) const
 		{
-			auto methodName = SapString::New( InMethodName );
+			auto methodName = String::New( InMethodName );
 			s_ManagedFunctions.InvokeStaticMethodFptr( m_Id, methodName, InParameters, InParameterTypes, static_cast<int32_t>( InLength ) );
-			SapString::Free( methodName );
+			String::Free( methodName );
 		}
 
 		void Type::InvokeStaticMethodRetInternal( std::string_view InMethodName, const void** InParameters, const ManagedType* InParameterTypes, size_t InLength, void* InResultStorage ) const
 		{
-			auto methodName = SapString::New( InMethodName );
+			auto methodName = String::New( InMethodName );
 			s_ManagedFunctions.InvokeStaticMethodRetFptr( m_Id, methodName, InParameters, InParameterTypes, static_cast<int32_t>( InLength ), InResultStorage );
-			SapString::Free( methodName );
+			String::Free( methodName );
 		}
 
 

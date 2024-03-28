@@ -8,7 +8,7 @@ namespace Tree
 {
 	namespace Sap
 	{
-		SapString PropertyInfo::GetName() const
+		String PropertyInfo::GetName() const
 		{
 			return s_ManagedFunctions.GetPropertyInfoNameFptr( m_Handle );
 		}
