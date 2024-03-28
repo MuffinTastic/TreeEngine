@@ -186,9 +186,8 @@ void Tree::UnicodeMSVCSink<Mutex>::sink_it_( const spdlog::details::log_msg& msg
 
 	std::string_view text( formatted.begin(), formatted.end() );
 
-	std::u16string u16text = utf8::utf8to16( text );
-	const wchar_t* wctext = reinterpret_cast<const wchar_t*>( u16text.data() );
-	OutputDebugStringW( wctext );
+	std::wstring wctext = utf8::utf8towchar( text );
+	OutputDebugStringW( wctext.data() );
 }
 #endif
 
