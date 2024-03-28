@@ -74,6 +74,12 @@ namespace Tree
 		};
 		static CoreCLRFunctions s_CoreCLRFunctions;
 
+		static void HostFXRErrorCallback( const SapChar* InMessage );
+		static void ExceptionCallback( Sap::String InMessage );
+		static void InfoCallback( Sap::String InMessage );
+		static void WarningCallback( Sap::String InMessage );
+		static void ErrorCallback( Sap::String InMessage );
+
 		Sap::AssemblyLoadContext CreateAssemblyLoadContext( std::string_view InName );
 		void UnloadAssemblyLoadContext( Sap::AssemblyLoadContext& InLoadContext );
 
@@ -109,12 +115,7 @@ Tree::ESystemInitCode Tree::ManagedHostSystem::Startup()
 
 	LoadHostFXR();
 
-	s_CoreCLRFunctions.SetHostFXRErrorWriter( []( const SapChar* InMessage )
-		{
-			auto message = Sap::StringHelper::ConvertWideToUtf8( InMessage );
-			auto host = dynamic_cast<Tree::ManagedHostSystem*>( Sys::ManagedHost() );
-			host->m_logger->Error( "{}", message );
-		} );
+	s_CoreCLRFunctions.SetHostFXRErrorWriter( &HostFXRErrorCallback );
 
 	if ( !InitializeSapManaged() )
 	{
@@ -250,6 +251,41 @@ void Tree::ManagedHostSystem::LoadHostFXR() const
 	s_CoreCLRFunctions.CloseHostFXR = Platform::GetSharedLibraryFuncPtr<hostfxr_close_fn>( sharedLibrary, "hostfxr_close" );
 }
 
+void Tree::ManagedHostSystem::HostFXRErrorCallback( const SapChar* InMessage )
+{
+	auto message = Sap::StringHelper::ConvertWideToUtf8( InMessage );
+	auto host = dynamic_cast<Tree::ManagedHostSystem*>( Sys::ManagedHost() );
+	host->m_logger->Error( "HostFXR error: {}", message );
+}
+
+void Tree::ManagedHostSystem::ExceptionCallback( Sap::String InMessage )
+{
+	std::string message = InMessage;
+	auto host = dynamic_cast<Tree::ManagedHostSystem*>( Sys::ManagedHost() );
+	host->m_logger->Error( "C# exception caught: {}", message );
+}
+
+void Tree::ManagedHostSystem::InfoCallback( Sap::String InMessage )
+{
+	std::string message = InMessage;
+	auto host = dynamic_cast<Tree::ManagedHostSystem*>( Sys::ManagedHost() );
+	host->m_logger->Info( "{}", message );
+}
+
+void Tree::ManagedHostSystem::WarningCallback( Sap::String InMessage )
+{
+	std::string message = InMessage;
+	auto host = dynamic_cast<Tree::ManagedHostSystem*>( Sys::ManagedHost() );
+	host->m_logger->Warning( "{}", message );
+}
+
+void Tree::ManagedHostSystem::ErrorCallback( Sap::String InMessage )
+{
+	std::string message = InMessage;
+	auto host = dynamic_cast<Tree::ManagedHostSystem*>( Sys::ManagedHost() );
+	host->m_logger->Error( "{}", message );
+}
+
 bool Tree::ManagedHostSystem::InitializeSapManaged()
 {
 	auto enginePath = Platform::GetEngineDirectoryPath();
@@ -317,30 +353,10 @@ bool Tree::ManagedHostSystem::InitializeSapManaged()
 	LoadSapFunctions();
 
 	sapManagedEntryPoint(
-		[]( Sap::String InMessage )
-		{
-			std::string message = InMessage;
-			auto host = dynamic_cast<Tree::ManagedHostSystem*>( Sys::ManagedHost() );
-			host->m_logger->Error( "C# exception caught: {}", message );
-		},
-		[]( Sap::String InMessage )
-		{
-			std::string message = InMessage;
-			auto host = dynamic_cast<Tree::ManagedHostSystem*>( Sys::ManagedHost() );
-			host->m_logger->Info( "{}", message );
-		},
-		[]( Sap::String InMessage )
-		{
-			std::string message = InMessage;
-			auto host = dynamic_cast<Tree::ManagedHostSystem*>( Sys::ManagedHost() );
-			host->m_logger->Warning( "{}", message );
-		},
-		[]( Sap::String InMessage )
-		{
-			std::string message = InMessage;
-			auto host = dynamic_cast<Tree::ManagedHostSystem*>( Sys::ManagedHost() );
-			host->m_logger->Error( "{}", message );
-		}
+		&ExceptionCallback,
+		&InfoCallback,
+		&WarningCallback,
+		&ErrorCallback
 		);
 
 	return true;
