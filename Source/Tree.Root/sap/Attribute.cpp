@@ -2,7 +2,7 @@
 #include "Type.h"
 #include "SapManagedFunctions.h"
 #include "TypeCache.h"
-#include "SapString.h"
+#include "String.h"
 
 namespace Tree
 {
@@ -22,9 +22,9 @@ namespace Tree
 
 		void Attribute::GetFieldValueInternal( std::string_view InFieldName, void* OutValue ) const
 		{
-			auto fieldName = SapString::New( InFieldName );
+			auto fieldName = String::New( InFieldName );
 			s_ManagedFunctions.GetAttributeFieldValueFptr( m_Handle, fieldName, OutValue );
-			SapString::Free( fieldName );
+			String::Free( fieldName );
 		}
 
 	}

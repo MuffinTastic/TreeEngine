@@ -33,6 +33,7 @@
 #include "sap/TypeCache.h"
 
 #define TREE_SAP_ASSEMBLY_NAME "Tree.Sap"
+#define TREE_ENGINE_ASSEMBLY_NAME "Tree.Engine"
 #define TREE_TRUNK_ASSEMBLY_NAME "Tree.Trunk"
 
 // Managed shared libraries end in .dll no matter the platform
@@ -53,6 +54,13 @@ namespace Tree
 		std::shared_ptr<ILogger> m_logger;
 
 	private:
+		Sap::AssemblyLoadContext m_loadContext;
+
+		void LoadEngineFunctions();
+
+		void TrunkFunc();
+
+	private:
 		struct CoreCLRFunctions
 		{
 			hostfxr_set_error_writer_fn SetHostFXRErrorWriter = nullptr;
@@ -65,7 +73,6 @@ namespace Tree
 			get_function_pointer_fn GetFunctionPtr = nullptr;
 		};
 		static CoreCLRFunctions s_CoreCLRFunctions;
-
 
 		Sap::AssemblyLoadContext CreateAssemblyLoadContext( std::string_view InName );
 		void UnloadAssemblyLoadContext( Sap::AssemblyLoadContext& InLoadContext );
@@ -115,20 +122,46 @@ Tree::ESystemInitCode Tree::ManagedHostSystem::Startup()
 		return ESYSTEMINIT_FAILURE;
 	}
 
-	auto hostContext = CreateAssemblyLoadContext( "MainContext" );
-	auto enginePath = Platform::GetEngineDirectoryPath();
-	auto trunkPath = enginePath / TREE_TRUNK_ASSEMBLY_NAME MANAGED_ASSEMBLY_EXT;
-	auto& assembly = hostContext.LoadAssembly( Platform::PathToUTF8( trunkPath ) );
-	auto entry = assembly.GetType( "Tree.Trunk.SapEntry" );
+	m_loadContext = CreateAssemblyLoadContext( "MainContext" );
 
-	entry.InvokeStaticMethod( "Entry" );
+	LoadEngineFunctions();
+
+	TrunkFunc();
 
     return ESYSTEMINIT_SUCCESS;
 }
 
 void Tree::ManagedHostSystem::Shutdown()
 {
+	UnloadAssemblyLoadContext( m_loadContext );
 	s_CoreCLRFunctions.CloseHostFXR( m_HostFXRContext );
+}
+
+void StringDemoClient( Tree::Sap::SapString str )
+{
+	Tree::Sys::Log()->Info( "vuhh {}", std::string( str ) );
+}
+
+void Tree::ManagedHostSystem::LoadEngineFunctions()
+{
+	std::filesystem::path enginePath = Platform::GetEngineDirectoryPath();
+	auto assemblyPath = enginePath / TREE_ENGINE_ASSEMBLY_NAME MANAGED_ASSEMBLY_EXT;
+	auto& assembly = m_loadContext.LoadAssembly( Platform::PathToUTF8( assemblyPath ) );
+
+	assembly.AddInternalCall( "Tree.Engine.EngineTest", "TestFunc", &StringDemoClient );
+	assembly.UploadInternalCalls();
+
+	m_logger->Info( "Uploaded internal calls" );
+}
+
+void Tree::ManagedHostSystem::TrunkFunc()
+{
+	std::filesystem::path enginePath = Platform::GetEngineDirectoryPath();
+	auto assemblyPath = enginePath / TREE_TRUNK_ASSEMBLY_NAME MANAGED_ASSEMBLY_EXT;
+	auto& assembly = m_loadContext.LoadAssembly( Platform::PathToUTF8( assemblyPath ) );
+
+	auto type = assembly.GetType( "Tree.Trunk.SapEntry" );
+	type.InvokeStaticMethod( "Entry" );
 }
 
 Tree::Sap::AssemblyLoadContext Tree::ManagedHostSystem::CreateAssemblyLoadContext( std::string_view InName )

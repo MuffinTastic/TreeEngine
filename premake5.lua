@@ -59,14 +59,13 @@ group "Managed"
         target = "Engine",
         allowunsafeblocks = true
     }
-    links { "Tree.Engine" }
+    links { "Tree.Sap" }
 
     treeproject {
         name = "Tree.Trunk",
         language = "C#",
         kind = "SharedLib",
         target = "Engine",
-        generateruntimecfg = true,
         allowunsafeblocks = true
     }
     links { "Tree.Sap", "Tree.Engine" }

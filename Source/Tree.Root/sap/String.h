@@ -6,18 +6,18 @@ namespace Tree
 {
 	namespace Sap
 	{
-		class SapString
+		class String
 		{
 		public:
-			static SapString New( const char* InString );
-			static SapString New( std::string_view InString );
-			static void Free( SapString& InString );
+			static String New( const char* InString );
+			static String New( std::string_view InString );
+			static void Free( String& InString );
 
 			void Assign( std::string_view InString );
 
 			operator std::string() const;
 
-			bool operator==( const SapString& InOther ) const;
+			bool operator==( const String& InOther ) const;
 			bool operator==( std::string_view InOther ) const;
 
 			SapChar* Data() { return m_String; }
@@ -28,36 +28,36 @@ namespace Tree
 			Bool32 m_IsDisposed = false;
 		};
 
-		struct ScopedSapString
+		struct ScopedString
 		{
-			ScopedSapString( SapString InString )
+			ScopedString( String InString )
 				: m_String( InString )
 			{
 			}
 
-			ScopedSapString& operator=( SapString InOther )
+			ScopedString& operator=( String InOther )
 			{
-				SapString::Free( m_String );
+				String::Free( m_String );
 				m_String = InOther;
 				return *this;
 			}
 
-			ScopedSapString& operator=( const ScopedSapString& InOther )
+			ScopedString& operator=( const ScopedString& InOther )
 			{
-				SapString::Free( m_String );
+				String::Free( m_String );
 				m_String = InOther.m_String;
 				return *this;
 			}
 
-			~ScopedSapString()
+			~ScopedString()
 			{
-				SapString::Free( m_String );
+				String::Free( m_String );
 			}
 
 			operator std::string() const { return m_String; }
-			operator SapString() const { return m_String; }
+			operator String() const { return m_String; }
 
-			bool operator==( const ScopedSapString& InOther ) const
+			bool operator==( const ScopedString& InOther ) const
 			{
 				return m_String == InOther.m_String;
 			}
@@ -68,7 +68,7 @@ namespace Tree
 			}
 
 		private:
-			SapString m_String;
+			String m_String;
 		};
 	}
 }

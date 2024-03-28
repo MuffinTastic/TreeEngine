@@ -1,4 +1,4 @@
-#include "SapString.h"
+#include "String.h"
 #include "StringHelper.h"
 #include "Memory.h"
 #include "Verify.h"
@@ -7,21 +7,21 @@ namespace Tree
 {
 	namespace Sap
 	{
-		SapString SapString::New( const char* InString )
+		String String::New( const char* InString )
 		{
-			SapString result;
+			String result;
 			result.Assign( InString );
 			return result;
 		}
 
-		SapString SapString::New( std::string_view InString )
+		String String::New( std::string_view InString )
 		{
-			SapString result;
+			String result;
 			result.Assign( InString );
 			return result;
 		}
 
-		void SapString::Free( SapString& InString )
+		void String::Free( String& InString )
 		{
 			if ( InString.m_String == nullptr )
 				return;
@@ -30,7 +30,7 @@ namespace Tree
 			InString.m_String = nullptr;
 		}
 
-		void SapString::Assign( std::string_view InString )
+		void String::Assign( std::string_view InString )
 		{
 			if ( m_String != nullptr )
 				Memory::FreeCoTaskMem( m_String );
@@ -38,7 +38,7 @@ namespace Tree
 			m_String = Memory::StringToCoTaskMemAuto( StringHelper::ConvertUtf8ToWide( InString ) );
 		}
 
-		SapString::operator std::string() const
+		String::operator std::string() const
 		{
 			SapStringView string( m_String );
 
@@ -49,7 +49,7 @@ namespace Tree
 #endif
 		}
 
-		bool SapString::operator==( const SapString& InOther ) const
+		bool String::operator==( const String& InOther ) const
 		{
 			if ( m_String == InOther.m_String )
 				return true;
@@ -64,7 +64,7 @@ namespace Tree
 #endif
 		}
 
-		bool SapString::operator==( std::string_view InOther ) const
+		bool String::operator==( std::string_view InOther ) const
 		{
 #if defined(SAP_WIDE_CHARS)
 			auto str = StringHelper::ConvertUtf8ToWide( InOther );

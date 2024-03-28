@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "Core.h"
-#include "SapString.h"
+#include "String.h"
 #include "ManagedObject.h"
 #include "MethodInfo.h"
 #include "FieldInfo.h"
@@ -17,8 +17,8 @@ namespace Tree
 		class Type
 		{
 		public:
-			SapString GetFullName() const;
-			SapString GetAssemblyQualifiedName() const;
+			String GetFullName() const;
+			String GetAssemblyQualifiedName() const;
 
 			Type& GetBaseType();
 

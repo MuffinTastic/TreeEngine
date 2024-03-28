@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core.h"
-#include "SapString.h"
+#include "String.h"
 
 namespace Tree
 {
@@ -15,18 +15,18 @@ namespace Tree
 		class ManagedField;
 
 		using SetInternalCallsFn = void( * )( void*, int32_t );
-		using CreateAssemblyLoadContextFn = int32_t( * )( SapString );
+		using CreateAssemblyLoadContextFn = int32_t( * )( String );
 		using UnloadAssemblyLoadContextFn = void( * )( int32_t );
-		using LoadManagedAssemblyFn = int32_t( * )( int32_t, SapString );
+		using LoadManagedAssemblyFn = int32_t( * )( int32_t, String );
 		using GetLastLoadStatusFn = AssemblyLoadStatus( * )( );
-		using GetAssemblyNameFn = SapString( * )( int32_t );
+		using GetAssemblyNameFn = String( * )( int32_t );
 
 #pragma region TypeInterface
 
 		using GetAssemblyTypesFn = void( * )( int32_t, TypeId*, int32_t* );
-		using GetTypeIdFn = void ( * )( SapString, TypeId* );
-		using GetFullTypeNameFn = SapString( * )( TypeId );
-		using GetAssemblyQualifiedNameFn = SapString( * )( TypeId );
+		using GetTypeIdFn = void ( * )( String, TypeId* );
+		using GetFullTypeNameFn = String( * )( TypeId );
+		using GetAssemblyQualifiedNameFn = String( * )( TypeId );
 		using GetBaseTypeFn = void( * )( TypeId, TypeId* );
 		using GetTypeSizeFn = int32_t( * )( TypeId );
 		using IsTypeSubclassOfFn = Bool32( * )( TypeId, TypeId );
@@ -44,7 +44,7 @@ namespace Tree
 #pragma endregion
 
 #pragma region MethodInfo
-		using GetMethodInfoNameFn = SapString( * )( ManagedHandle );
+		using GetMethodInfoNameFn = String( * )( ManagedHandle );
 		using GetMethodInfoReturnTypeFn = void( * )( ManagedHandle, TypeId* );
 		using GetMethodInfoParameterTypesFn = void( * )( ManagedHandle, TypeId*, int32_t* );
 		using GetMethodInfoAccessibilityFn = TypeAccessibility( * )( ManagedHandle );
@@ -52,32 +52,32 @@ namespace Tree
 #pragma endregion
 
 #pragma region FieldInfo
-		using GetFieldInfoNameFn = SapString( * )( ManagedHandle );
+		using GetFieldInfoNameFn = String( * )( ManagedHandle );
 		using GetFieldInfoTypeFn = void( * )( ManagedHandle, TypeId* );
 		using GetFieldInfoAccessibilityFn = TypeAccessibility( * )( ManagedHandle );
 		using GetFieldInfoAttributesFn = void( * )( ManagedHandle, TypeId*, int32_t* );
 #pragma endregion
 
 #pragma region PropertyInfo
-		using GetPropertyInfoNameFn = SapString( * )( ManagedHandle );
+		using GetPropertyInfoNameFn = String( * )( ManagedHandle );
 		using GetPropertyInfoTypeFn = void( * )( ManagedHandle, TypeId* );
 		using GetPropertyInfoAttributesFn = void( * )( ManagedHandle, TypeId*, int32_t* );
 #pragma endregion
 
 #pragma region Attribute
-		using GetAttributeFieldValueFn = void( * )( ManagedHandle, SapString, void* );
+		using GetAttributeFieldValueFn = void( * )( ManagedHandle, String, void* );
 		using GetAttributeTypeFn = void( * )( ManagedHandle, TypeId* );
 #pragma endregion
 
 		using CreateObjectFn = void* ( * )( TypeId, Bool32, const void**, const ManagedType*, int32_t );
-		using InvokeMethodFn = void( * )( void*, SapString, const void**, const ManagedType*, int32_t );
-		using InvokeMethodRetFn = void( * )( void*, SapString, const void**, const ManagedType*, int32_t, void* );
-		using InvokeStaticMethodFn = void ( * )( TypeId, SapString, const void**, const ManagedType*, int32_t );
-		using InvokeStaticMethodRetFn = void ( * )( TypeId, SapString, const void**, const ManagedType*, int32_t, void* );
-		using SetFieldValueFn = void( * )( void*, SapString, void* );
-		using GetFieldValueFn = void( * )( void*, SapString, void* );
-		using SetPropertyValueFn = void( * )( void*, SapString, void* );
-		using GetPropertyValueFn = void( * )( void*, SapString, void* );
+		using InvokeMethodFn = void( * )( void*, String, const void**, const ManagedType*, int32_t );
+		using InvokeMethodRetFn = void( * )( void*, String, const void**, const ManagedType*, int32_t, void* );
+		using InvokeStaticMethodFn = void ( * )( TypeId, String, const void**, const ManagedType*, int32_t );
+		using InvokeStaticMethodRetFn = void ( * )( TypeId, String, const void**, const ManagedType*, int32_t, void* );
+		using SetFieldValueFn = void( * )( void*, String, void* );
+		using GetFieldValueFn = void( * )( void*, String, void* );
+		using SetPropertyValueFn = void( * )( void*, String, void* );
+		using GetPropertyValueFn = void( * )( void*, String, void* );
 		using DestroyObjectFn = void( * )( void* );
 
 		using CollectGarbageFn = void( * )( int32_t, GCCollectionMode, Bool32, Bool32 );

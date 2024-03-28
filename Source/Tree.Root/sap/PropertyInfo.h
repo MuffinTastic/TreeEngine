@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "Core.h"
-#include "SapString.h"
+#include "String.h"
 
 namespace Tree
 {
@@ -15,7 +15,7 @@ namespace Tree
 		class PropertyInfo
 		{
 		public:
-			SapString GetName() const;
+			String GetName() const;
 			Type& GetType();
 
 			std::vector<Attribute> GetAttributes() const;

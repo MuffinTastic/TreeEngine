@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "Core.h"
-#include "SapString.h"
+#include "String.h"
 
 namespace Tree
 {
@@ -15,7 +15,7 @@ namespace Tree
 		class FieldInfo
 		{
 		public:
-			SapString GetName() const;
+			String GetName() const;
 			Type& GetType();
 
 			TypeAccessibility GetAccessibility() const;

@@ -7,12 +7,12 @@ namespace Tree
 	namespace Sap
 	{		
 		template<typename TValue>
-		class SapArray
+		class Array
 		{
 		public:
-			static SapArray New( int32_t InLength )
+			static Array New( int32_t InLength )
 			{
-				SapArray<TValue> result;
+				Array<TValue> result;
 				if ( InLength > 0 )
 				{
 					result.m_Ptr = static_cast<TValue*>( Memory::AllocHGlobal( InLength * sizeof( TValue ) ) );
@@ -21,9 +21,9 @@ namespace Tree
 				return result;
 			}
 
-			static SapArray New( const std::vector<TValue>& InValues )
+			static Array New( const std::vector<TValue>& InValues )
 			{
-				SapArray<TValue> result;
+				Array<TValue> result;
 
 				if ( !InValues.empty() )
 				{
@@ -35,9 +35,9 @@ namespace Tree
 				return result;
 			}
 
-			static SapArray New( std::initializer_list<TValue> InValues )
+			static Array New( std::initializer_list<TValue> InValues )
 			{
-				SapArray result;
+				Array result;
 
 				if ( InValues.size() > 0 )
 				{
@@ -49,7 +49,7 @@ namespace Tree
 				return result;
 			}
 
-			static void Free( SapArray InArray )
+			static void Free( Array InArray )
 			{
 				if ( !InArray.m_Ptr || InArray.m_Length == 0 )
 					return;
@@ -59,7 +59,7 @@ namespace Tree
 				InArray.m_Length = 0;
 			}
 
-			void Assign( const SapArray& InOther )
+			void Assign( const Array& InOther )
 			{
 				memcpy( m_Ptr, InOther.m_Ptr, InOther.m_Length * sizeof( TValue ) );
 			}
