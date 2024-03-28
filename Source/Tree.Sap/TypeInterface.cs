@@ -115,13 +115,13 @@ internal static class TypeInterface
 		{
 			if (!AssemblyLoader.TryGetAssembly(InAssemblyId, out var assembly))
 			{
-				LogMessage($"Couldn't get types for assembly '{InAssemblyId}', assembly not found.", MessageLevel.Error);
+				LogError($"Couldn't get types for assembly '{InAssemblyId}', assembly not found.");
 				return;
 			}
 
 			if (assembly == null)
 			{
-				LogMessage($"Couldn't get types for assembly '{InAssemblyId}', assembly was null.", MessageLevel.Error);
+				LogError($"Couldn't get types for assembly '{InAssemblyId}', assembly was null.");
 				return;
 			}
 
@@ -153,7 +153,7 @@ internal static class TypeInterface
 
 			if (type == null)
 			{
-				LogMessage($"Failed to find type with name '{InName}'.", MessageLevel.Error);
+				LogError($"Failed to find type with name '{InName}'.");
 				return;
 			}
 
@@ -800,7 +800,7 @@ internal static class TypeInterface
 
 			if (fieldInfo == null)
 			{
-				LogMessage($"Failed to find field with name '{InFieldName}' in attribute {targetType.FullName}.", MessageLevel.Error);
+				LogError($"Failed to find field with name '{InFieldName}' in attribute {targetType.FullName}.");
 				return;
 			}
 

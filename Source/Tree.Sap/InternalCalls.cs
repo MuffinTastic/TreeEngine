@@ -32,7 +32,7 @@ internal static class InternalCallsManager
 
 				if (name == null)
 				{
-					LogMessage($"Cannot register internal at index '{i}' call with null name!", MessageLevel.Error);
+					LogError($"Cannot register internal at index '{i}' call with null name!");
 					continue;
 				}
 
@@ -45,7 +45,7 @@ internal static class InternalCallsManager
 
 				if (type == null)
 				{
-					LogMessage($"Cannot register internal call '{name}', failed to type '{containingTypeName}'.", MessageLevel.Error);
+					LogError($"Cannot register internal call '{name}', failed to type '{containingTypeName}'.");
 					continue;
 				}
 
@@ -54,13 +54,13 @@ internal static class InternalCallsManager
 
 				if (field == null)
 				{
-					LogMessage($"Cannot register internal '{name}', failed to find it in type '{containingTypeName}'", MessageLevel.Error);
+					LogError($"Cannot register internal '{name}', failed to find it in type '{containingTypeName}'");
 					continue;
 				}
 
 				if (!field.FieldType.IsFunctionPointer)
 				{
-					LogMessage($"Field '{name}' is not a function pointer type!", MessageLevel.Error);
+					LogError($"Field '{name}' is not a function pointer type!");
 					continue;
 				}
 

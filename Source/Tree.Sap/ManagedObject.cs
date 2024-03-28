@@ -93,7 +93,7 @@ internal static class ManagedObject
 		{
 			if (!TypeInterface.s_CachedTypes.TryGetValue(InTypeID, out var type))
 			{
-				LogMessage($"Failed to find type with id '{InTypeID}'.", MessageLevel.Error);
+				LogError($"Failed to find type with id '{InTypeID}'.");
 				return IntPtr.Zero;
 			}
 
@@ -114,7 +114,7 @@ internal static class ManagedObject
 
 			if (constructor == null)
 			{
-				LogMessage($"Failed to find constructor for type {type.FullName} with {InParameterCount} parameters.", MessageLevel.Error);
+				LogError($"Failed to find constructor for type {type.FullName} with {InParameterCount} parameters.");
 				return IntPtr.Zero;
 			}
 
@@ -136,7 +136,7 @@ internal static class ManagedObject
 
 			if (result == null)
 			{
-				LogMessage($"Failed to instantiate type {type.FullName}.", MessageLevel.Error);
+				LogError($"Failed to instantiate type {type.FullName}.");
 			}
 
 			var handle = GCHandle.Alloc(result, InWeakRef ? GCHandleType.Weak : GCHandleType.Normal);
@@ -195,7 +195,7 @@ internal static class ManagedObject
 
 			if (methodInfo == null)
 			{
-				LogMessage($"Failed to find method '{InMethodName}' for type {InType.FullName} with {InParameterCount} parameters.", MessageLevel.Error);
+				LogError($"Failed to find method '{InMethodName}' for type {InType.FullName} with {InParameterCount} parameters.");
 				return null;
 			}
 
@@ -212,7 +212,7 @@ internal static class ManagedObject
 		{
 			if (!TypeInterface.s_CachedTypes.TryGetValue(InType, out var type))
 			{
-				LogMessage($"Cannot invoke method {InMethodName} on a null type.", MessageLevel.Error);
+				LogError($"Cannot invoke method {InMethodName} on a null type.");
 				return;
 			}
 
@@ -234,7 +234,7 @@ internal static class ManagedObject
 		{
 			if (!TypeInterface.s_CachedTypes.TryGetValue(InType, out var type))
 			{
-				LogMessage($"Cannot invoke method {InMethodName} on a null type.", MessageLevel.Error);
+				LogError($"Cannot invoke method {InMethodName} on a null type.");
 				return;
 			}
 
@@ -263,7 +263,7 @@ internal static class ManagedObject
 
 			if (target == null)
 			{
-				LogMessage($"Cannot invoke method {InMethodName} on a null type.", MessageLevel.Error);
+				LogError($"Cannot invoke method {InMethodName} on a null type.");
 				return;
 			}
 
@@ -289,7 +289,7 @@ internal static class ManagedObject
 
 			if (target == null)
 			{
-				LogMessage($"Cannot invoke method {InMethodName} on object with handle {InObjectHandle}. Target was null.", MessageLevel.Error);
+				LogError($"Cannot invoke method {InMethodName} on object with handle {InObjectHandle}. Target was null.");
 				return;
 			}
 
@@ -320,7 +320,7 @@ internal static class ManagedObject
 
 			if (target == null)
 			{
-				LogMessage($"Cannot set value of field {InFieldName} on object with handle {InTarget}. Target was null.", MessageLevel.Error);
+				LogError($"Cannot set value of field {InFieldName} on object with handle {InTarget}. Target was null.");
 				return;
 			}
 
@@ -329,7 +329,7 @@ internal static class ManagedObject
 
 			if (fieldInfo == null)
 			{
-				LogMessage($"Failed to find field '{InFieldName}' in type '{targetType.FullName}'.", MessageLevel.Error);
+				LogError($"Failed to find field '{InFieldName}' in type '{targetType.FullName}'.");
 				return;
 			}
 
@@ -351,7 +351,7 @@ internal static class ManagedObject
 
 			if (target == null)
 			{
-				LogMessage($"Cannot get value of field {InFieldName} from object with handle {InTarget}. Target was null.", MessageLevel.Error);
+				LogError($"Cannot get value of field {InFieldName} from object with handle {InTarget}. Target was null.");
 				return;
 			}
 
@@ -360,7 +360,7 @@ internal static class ManagedObject
 
 			if (fieldInfo == null)
 			{
-				LogMessage($"Failed to find field '{InFieldName}' in type '{targetType.FullName}'.", MessageLevel.Error);
+				LogError($"Failed to find field '{InFieldName}' in type '{targetType.FullName}'.");
 				return;
 			}
 
@@ -381,7 +381,7 @@ internal static class ManagedObject
 
 			if (target == null)
 			{
-				LogMessage($"Cannot set value of property {InPropertyName} on object with handle {InTarget}. Target was null.", MessageLevel.Error);
+				LogError($"Cannot set value of property {InPropertyName} on object with handle {InTarget}. Target was null.");
 				return;
 			}
 
@@ -390,13 +390,13 @@ internal static class ManagedObject
 		
 			if (propertyInfo == null)
 			{
-				LogMessage($"Failed to find property '{InPropertyName}' in type '{targetType.FullName}'", MessageLevel.Error);
+				LogError($"Failed to find property '{InPropertyName}' in type '{targetType.FullName}'");
 				return;
 			}
 
 			if (propertyInfo.SetMethod == null)
 			{
-				LogMessage($"Cannot set value of property '{InPropertyName}'. No setter was found.", MessageLevel.Error);
+				LogError($"Cannot set value of property '{InPropertyName}'. No setter was found.");
 				return;
 			}
 
@@ -418,7 +418,7 @@ internal static class ManagedObject
 
 			if (target == null)
 			{
-				LogMessage($"Cannot get value of property '{InPropertyName}' from object with handle {InTarget}. Target was null.", MessageLevel.Error);
+				LogError($"Cannot get value of property '{InPropertyName}' from object with handle {InTarget}. Target was null.");
 				return;
 			}
 
@@ -427,13 +427,13 @@ internal static class ManagedObject
 
 			if (propertyInfo == null)
 			{
-				LogMessage($"Failed to find property '{InPropertyName}' in type '{targetType.FullName}'.", MessageLevel.Error);
+				LogError($"Failed to find property '{InPropertyName}' in type '{targetType.FullName}'.");
 				return;
 			}
 
 			if (propertyInfo.GetMethod == null)
 			{
-				LogMessage($"Cannot get value of property '{InPropertyName}'. No getter was found.", MessageLevel.Error);
+				LogError($"Cannot get value of property '{InPropertyName}'. No getter was found.");
 				return;
 			}
 

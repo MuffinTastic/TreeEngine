@@ -117,13 +117,13 @@ public static class AssemblyLoader
 	{
 		if (!s_AssemblyContexts.TryGetValue(InContextId, out var alc))
 		{
-			LogMessage($"Cannot unload AssemblyLoadContext '{InContextId}', it was either never loaded or already unloaded.", MessageLevel.Warning);
+			LogWarning($"Cannot unload AssemblyLoadContext '{InContextId}', it was either never loaded or already unloaded.");
 			return;
 		}
 
 		if (alc == null)
 		{
-			LogMessage($"AssemblyLoadContext '{InContextId}' was found in dictionary but was null. This is most likely a bug.", MessageLevel.Error);
+			LogError($"AssemblyLoadContext '{InContextId}' was found in dictionary but was null. This is most likely a bug.");
 			return;
 		}
 
@@ -144,7 +144,7 @@ public static class AssemblyLoader
 					continue;
 				}
 
-				LogMessage($"Found unfreed object '{handle.Target}' from assembly '{assemblyName}'. Deallocating.", MessageLevel.Warning);
+				LogWarning($"Found unfreed object '{handle.Target}' from assembly '{assemblyName}'. Deallocating.");
 				handle.Free();
 			}
 		}
@@ -174,21 +174,21 @@ public static class AssemblyLoader
 
 			if (!File.Exists(InAssemblyFilePath))
 			{
-				LogMessage($"Failed to load assembly '{InAssemblyFilePath}', file not found.", MessageLevel.Error);
+				LogError($"Failed to load assembly '{InAssemblyFilePath}', file not found.");
 				s_LastLoadStatus = AssemblyLoadStatus.FileNotFound;
 				return -1;
 			}
 
 			if (!s_AssemblyContexts.TryGetValue(InContextId, out var alc))
 			{
-				LogMessage($"Failed to load assembly '{InAssemblyFilePath}', couldn't find AssemblyLoadContext with id {InContextId}.", MessageLevel.Error);
+				LogError($"Failed to load assembly '{InAssemblyFilePath}', couldn't find AssemblyLoadContext with id {InContextId}.");
 				s_LastLoadStatus = AssemblyLoadStatus.UnknownError;
 				return -1;
 			}
 
 			if (alc == null)
 			{
-				LogMessage($"Failed to load assembly '{InAssemblyFilePath}', AssemblyLoadContext with id {InContextId} was null.", MessageLevel.Error);
+				LogError($"Failed to load assembly '{InAssemblyFilePath}', AssemblyLoadContext with id {InContextId} was null.");
 				s_LastLoadStatus = AssemblyLoadStatus.UnknownError;
 				return -1;
 			}
@@ -201,7 +201,7 @@ public static class AssemblyLoader
 				assembly = alc.LoadFromStream(stream);
 			}
 
-			LogMessage($"Loading assembly '{InAssemblyFilePath}'", MessageLevel.Info);
+			LogInfo($"Loading assembly '{InAssemblyFilePath}'");
 			var assemblyName = assembly.GetName();
 			int assemblyId = assemblyName.Name!.GetHashCode();
 			s_AssemblyCache.Add(assemblyId, assembly);
@@ -224,7 +224,7 @@ public static class AssemblyLoader
 	{
 		if (!s_AssemblyCache.TryGetValue(InAssemblyId, out var assembly))
 		{
-			LogMessage($"Couldn't get assembly name for assembly '{InAssemblyId}', assembly not in dictionary.", MessageLevel.Error);
+			LogError($"Couldn't get assembly name for assembly '{InAssemblyId}', assembly not in dictionary.");
 			return "";
 		}
 

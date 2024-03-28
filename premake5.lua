@@ -44,14 +44,13 @@ end
 
 group "Managed"
     treeproject {
-        name = "Tree.Trunk",
+        name = "Tree.Sap",
         language = "C#",
         kind = "SharedLib",
         target = "Engine",
         generateruntimecfg = true,
         allowunsafeblocks = true
     }
-    links { "Tree.Engine" }
 
     treeproject {
         name = "Tree.Engine",
@@ -60,6 +59,17 @@ group "Managed"
         target = "Engine",
         allowunsafeblocks = true
     }
+    links { "Tree.Engine" }
+
+    treeproject {
+        name = "Tree.Trunk",
+        language = "C#",
+        kind = "SharedLib",
+        target = "Engine",
+        generateruntimecfg = true,
+        allowunsafeblocks = true
+    }
+    links { "Tree.Sap", "Tree.Engine" }
 
 group "Native"
     treeproject {
