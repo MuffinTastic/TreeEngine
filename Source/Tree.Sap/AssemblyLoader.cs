@@ -3,8 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.MemoryMappedFiles;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
@@ -195,11 +193,7 @@ public static class AssemblyLoader
 
 			Assembly? assembly = null;
 
-			using (var file = MemoryMappedFile.CreateFromFile(InAssemblyFilePath!))
-			{
-				using var stream = file.CreateViewStream();
-				assembly = alc.LoadFromStream(stream);
-			}
+			assembly = alc.LoadFromAssemblyPath( InAssemblyFilePath! );
 
 			LogInfo($"Loading assembly '{InAssemblyFilePath}'");
 			var assemblyName = assembly.GetName();

@@ -10,7 +10,6 @@ namespace Tree.Trunk;
 
 public class SapEntry
 {
-    [UnmanagedCallersOnly]
     public static void Entry()
     {
         Console.WriteLine( "Hello again from C#" );
