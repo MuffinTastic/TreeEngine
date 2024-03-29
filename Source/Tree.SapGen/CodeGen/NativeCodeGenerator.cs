@@ -18,11 +18,14 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
 		writer.WriteLine();
 
 		writer.WriteLine( "#pragma once" );
-		writer.WriteLine( $"#include \"..\\{headerPath}\"" );
-
+		writer.WriteLine( "#include \"Tree.Root/sap/String.h\"" );
+        writer.WriteLine( "#include \"Tree.Root/sap/Array.h\"" );
+        writer.WriteLine( $"#include \"{headerPath}\"" );
 		writer.WriteLine();
+		writer.WriteLine( "using namespace Tree;" );
+        writer.WriteLine();
 
-		foreach ( var unit in Units )
+        foreach ( var unit in Units )
 		{
 			if ( unit is Class c )
 			{
@@ -89,12 +92,9 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
 
 			var argStr = string.Join( ", ", args.Select( x =>
 			{
-				if ( x.Type == "std::string" )
-				{
-					return $"const char* {x.Name}";
-				}
+				string sub = Utils.GetNativeTypeSub( x.Type );
 
-				return $"{x.Type} {x.Name}";
+				return $"{sub} {x.Name}";
 			} ) );
 
 			var signature = $"extern \"C\" inline {method.ReturnType} __{c.Name}_{method.Name}( {argStr} )";
@@ -114,11 +114,22 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
 				var accessor = method.IsStatic ? $"{c.Name}::" : "instance->";
 
 				if ( method.ReturnType == "void" )
+				{
 					body += $"{accessor}{method.Name}( {@params} );";
-				else if ( method.ReturnType == "std::string" )
-					body += $"std::string text = {accessor}{method.Name}( {@params} );\r\nconst char* cstr = text.c_str();\r\nchar* dup = _strdup(cstr);\r\nreturn dup;";
+				}
 				else
-					body += $"return {accessor}{method.Name}( {@params} );";
+				{
+					body += $"auto val = {accessor}{method.Name}( {@params} );";
+
+					if ( Utils.NativeTypeIsString( method.ReturnType ) )
+					{
+						body += "return Sap::String::New( val )";
+					}
+					else
+					{
+						body += "return val;";
+					}
+				}
 			}
 
 			writer.WriteLine( signature );

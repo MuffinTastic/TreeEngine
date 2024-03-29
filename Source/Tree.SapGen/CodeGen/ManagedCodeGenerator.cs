@@ -29,7 +29,7 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 
 		foreach ( var method in sel.Methods )
 		{
-			var returnType = Utils.GetManagedType( method.ReturnType );
+			var returnType = Utils.GetManagedTypeSub( method.ReturnType );
 			var name = method.Name;
 
 			var returnsPointer = Utils.IsPointer( method.ReturnType ) && !method.IsConstructor && !method.IsDestructor;
@@ -82,7 +82,7 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 		if ( sel.Methods.Any( x => x.IsConstructor ) )
 		{
 			var ctor = sel.Methods.First( x => x.IsConstructor );
-			var managedCtorArgs = string.Join( ", ", ctor.Parameters.Select( x => $"{Utils.GetManagedType( x.Type )} {x.Name}" ) );
+			var managedCtorArgs = string.Join( ", ", ctor.Parameters.Select( x => $"{Utils.GetManagedTypeSub( x.Type )} {x.Name}" ) );
 
 			writer.WriteLine( $"public {sel.Name}( {managedCtorArgs} )" );
 			writer.WriteLine( "{" );
@@ -104,11 +104,11 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 			// Gather function signature
 			//
 			// Call parameters as comma-separated string
-			var managedCallParams = string.Join( ", ", method.Parameters.Select( x => $"{Utils.GetManagedType( x.Type )} {x.Name}" ) );
+			var managedCallParams = string.Join( ", ", method.Parameters.Select( x => $"{Utils.GetManagedTypeSub( x.Type )} {x.Name}" ) );
 			var name = method.Name;
 
 			// We return a pointer to the created object if it's a ctor/dtor, but otherwise we'll do auto-conversions to our managed types
-			var returnType = (method.IsConstructor || method.IsDestructor) ? "IntPtr" : Utils.GetManagedType( method.ReturnType );
+			var returnType = (method.IsConstructor || method.IsDestructor) ? "IntPtr" : Utils.GetManagedTypeSub( method.ReturnType );
 
 			var returnsPointer = Utils.IsPointer( method.ReturnType ) && !method.IsConstructor && !method.IsDestructor;
 
@@ -186,7 +186,7 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 
 		foreach ( var field in sel.Fields )
 		{
-			writer.WriteLine( $"public {Utils.GetManagedType( field.Type )} {field.Name};" );
+			writer.WriteLine( $"public {Utils.GetManagedTypeSub( field.Type )} {field.Name};" );
 		}
 
 		writer.Indent--;
@@ -202,7 +202,7 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 
 		foreach ( var method in sel.Methods )
 		{
-			var returnType = Utils.GetManagedType( method.ReturnType );
+			var returnType = Utils.GetManagedTypeSub( method.ReturnType );
 			var name = method.Name;
 
 			var returnsPointer = Utils.IsPointer( method.ReturnType ) && !method.IsConstructor && !method.IsDestructor;
@@ -243,9 +243,9 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 		{
 			writer.WriteLine();
 
-			var managedCallParams = string.Join( ", ", method.Parameters.Select( x => $"{Utils.GetManagedType( x.Type )} {x.Name}" ) );
+			var managedCallParams = string.Join( ", ", method.Parameters.Select( x => $"{Utils.GetManagedTypeSub( x.Type )} {x.Name}" ) );
 			var name = method.Name;
-			var returnType = Utils.GetManagedType( method.ReturnType );
+			var returnType = Utils.GetManagedTypeSub( method.ReturnType );
 			var accessLevel = (method.IsConstructor || method.IsDestructor) ? "private" : "public";
 			var returnsPointer = Utils.IsPointer( method.ReturnType ) && !method.IsConstructor && !method.IsDestructor;
 
