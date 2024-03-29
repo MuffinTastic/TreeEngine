@@ -8,13 +8,13 @@ local config = p.config
 local fileconfig = p.fileconfig
 local dotnet = p.tools.dotnet
 
-p.api.register {
+premake.api.register {
     name = "generateruntimecfg",
     scope = "config",
     kind = "boolean"
 }
 
-p.api.register {
+premake.api.register {
     name = "allowunsafeblocks",
     scope = "config",
     kind = "boolean"
@@ -62,5 +62,25 @@ premake.override(premake.vstudio.dotnetbase, "outputProps", function(base, cfg)
         _p(2,'<IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>')
     else
         _x(2,'<IntermediateOutputPath>%s\\</IntermediateOutputPath>', objdir)
+    end
+end)
+
+premake.override(premake.vstudio.dotnetbase, "buildEvents", function(base, prj)
+    local function output(name, steps)
+        if #steps > 0 then
+            steps = os.translateCommandsAndPaths(steps, prj.basedir, prj.location)
+            steps = table.implode(steps, "", "", "\r\n")
+            steps = premake.vstudio.vs2005.esc(steps)
+
+            _p(1, '<Target Name="%sBuild" AfterTargets="%sBuildEvent">', name, name)
+                _p(2,'<Exec Command="%s" />', steps)
+            _p(1, '</Target>')
+        end
+    end
+
+    local cfg = project.getfirstconfig(prj)
+    if #cfg.prebuildcommands > 0 or #cfg.postbuildcommands > 0 then
+        output("Pre", cfg.prebuildcommands)
+        output("Post", cfg.postbuildcommands)
     end
 end)
