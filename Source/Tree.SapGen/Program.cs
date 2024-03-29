@@ -88,7 +88,9 @@ public static class Program
             if ( file.EndsWith(".h") && !file.EndsWith( ".sap.h" ) )
             {
                 var contents = File.ReadAllText( file );
-                
+
+                if ( contents.Contains( "SAP_GEN_SKIP", StringComparison.CurrentCultureIgnoreCase ) )
+                    continue;
                 if ( !contents.Contains( "SAP_GEN", StringComparison.CurrentCultureIgnoreCase ) )
                     continue;
 
