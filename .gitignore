@@ -411,6 +411,8 @@ Build/
 ThirdParty/*
 !ThirdParty/Bin
 ThirdParty/Bin/*
+!ThirdParty/ToolBin
+ThirdParty/ToolBin/*
 !ThirdParty/Lib
 ThirdParty/Lib/*
 !ThirdParty/Include

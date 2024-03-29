@@ -17,6 +17,9 @@ public class ThreadDispatcher<T>
 
     public ThreadDispatcher( ThreadCallback threadStart, List<T> queue )
     {
+        if ( queue.Count == 0 )
+            return;
+
         var batchSize = queue.Count / m_ThreadCount;
         var remainder = queue.Count % m_ThreadCount;
 
@@ -24,7 +27,7 @@ public class ThreadDispatcher<T>
             batchSize++;
 
         if ( batchSize == 0 )
-            return; // Bail to avoid division by zero
+            return;
 
         var batched = queue
             .Select( ( Value, Index ) => new { Value, Index } )

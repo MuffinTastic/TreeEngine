@@ -1,4 +1,6 @@
-﻿namespace Tree.SapGen;
+﻿using System.Collections.Generic;
+
+namespace Tree.SapGen;
 
 public struct Method
 {

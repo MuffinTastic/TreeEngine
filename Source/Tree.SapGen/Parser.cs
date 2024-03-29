@@ -1,4 +1,8 @@
 ﻿using ClangSharp.Interop;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace Tree.SapGen;
 
@@ -9,19 +13,24 @@ public static class Parser
 	/// </summary>
 	private static string[] s_launchArgs = GetLaunchArgs();
 	private static string[] GetLaunchArgs()
-	{
-		// Generate includes from vcxproj
-		var includeDirs = VcxprojParser.ParseIncludes( "../Mocha.Host/Mocha.Host.vcxproj" );
+    {
+        string sourceDir = Directory.GetCurrentDirectory();
+		string thirdPartyIncludes = Path.Join( Directory.GetParent( sourceDir )!.FullName, "ThirdParty", "Include" );
+
+		var includeDirs = new List<string>
+		{
+			sourceDir,
+			thirdPartyIncludes
+		};
 
 		var args = new List<string>
 		{
 			"-x",
 			"c++",
 			"-fparse-all-comments",
-			"-std=c++20",
-			"-DVK_NO_PROTOTYPES",
-			"-DNOMINMAX",
-			"-DVK_USE_PLATFORM_WIN32_KHR"
+            "-Wno-pragma-once-outside-header",
+            "-std=c++20",
+			"-DNOMINMAX"
 		};
 
 		args.AddRange( includeDirs.Select( x => "-I" + x ) );
@@ -31,6 +40,8 @@ public static class Parser
 
 	public unsafe static List<IUnit> GetUnits( string path )
 	{
+		Utils.EnsureLibClang();
+
 		List<IUnit> units = new();
 
 		using var index = CXIndex.Create();

@@ -63,6 +63,9 @@ public static class Program
 
         QueueHeaders( ref queue, sourcePath );
 
+        if ( queue.Count == 0 )
+            return;
+
         var dispatcher = new ThreadDispatcher<string>(
             ( files ) =>
             {
@@ -112,11 +115,15 @@ public static class Program
         var nativeGenerator = new NativeCodeGenerator( units );
         var relativePath = Path.GetRelativePath( sourcePath, path );
         var nativeCode = nativeGenerator.GenerateNativeCode( relativePath );
-        File.WriteAllText( nativeOutPath, nativeCode );
+        Console.WriteLine( "Native Code:" );
+        Console.WriteLine( nativeCode );
+        //File.WriteAllText( nativeOutPath, nativeCode );
 
         var managedGenerator = new ManagedCodeGenerator( units );
         var managedCode = managedGenerator.GenerateManagedCode();
-        File.WriteAllText( managedOutPath, managedCode );
+        Console.WriteLine( "Managed Code:" );
+        Console.WriteLine( managedCode );
+        //File.WriteAllText( managedOutPath, managedCode );
 
         s_Files.Add( fileName );
         s_Units.AddRange( units );

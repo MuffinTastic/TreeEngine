@@ -116,6 +116,7 @@ group "Tools"
         language = "C#",
         kind = "ConsoleApp",
         target = "Tools",
+        allowunsafeblocks = true,
         nuget = {
             "ClangSharp:17.0.1",
             "libClangSharp.runtime.win-x64:17.0.4"

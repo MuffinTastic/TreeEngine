@@ -1,4 +1,7 @@
-﻿using System.CodeDom.Compiler;
+﻿using System;
+using System.CodeDom.Compiler;
+using System.Collections.Generic;
+using System.IO;
 
 namespace Tree.SapGen;
 
@@ -88,4 +91,21 @@ static class Utils
 
 		return (baseTextWriter, writer);
 	}
+
+	public static void EnsureLibClang()
+    {
+#if WINDOWS
+		string sourceDir = Directory.GetCurrentDirectory();
+        string toolLibraries = Path.Join( Directory.GetParent( sourceDir )!.FullName, "ThirdParty", "ToolBin" );
+
+        string exeFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+		string exeDir = Path.GetDirectoryName( exeFilePath )!;
+
+		string clangOldLocation = Path.Join( toolLibraries, "libclang.dll" );
+        string clangNewLocation = Path.Join( exeDir, "libclang.dll" );
+
+		if ( !File.Exists( clangNewLocation ) )
+			File.Copy( clangOldLocation, clangNewLocation );
+#endif
+    }
 }
