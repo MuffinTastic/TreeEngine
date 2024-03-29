@@ -121,7 +121,8 @@ group "Tools"
         },
         postbuildcommands = {
             "%[%{cfg.buildtarget.directory}%{cfg.buildtarget.basename}] %[%{wks.location}]"
-        }
+        },
+        alwaysrunpostbuild = true
     }
 
 workspace "*"

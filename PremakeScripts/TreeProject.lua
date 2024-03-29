@@ -49,6 +49,10 @@ function treeproject(properties)
             if properties.nuget then
                 nuget(properties.nuget)
             end
+
+            if properties.alwaysrunpostbuild then
+                alwaysrunpostbuild "On"
+            end
     end
 
 

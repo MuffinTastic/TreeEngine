@@ -19,6 +19,11 @@ premake.api.register {
     scope = "config",
     kind = "boolean"
 }
+premake.api.register {
+    name = "alwaysrunpostbuild",
+    scope = "config",
+    kind = "boolean"
+}
 
 premake.override(premake.vstudio.dotnetbase, "projectProperties", function(base, prj)
     _p(1,'<PropertyGroup>')
@@ -44,6 +49,10 @@ premake.override(premake.vstudio.dotnetbase, "projectProperties", function(base,
     end
 
     _p(2, '<Nullable>enable</Nullable>')
+
+    if cfg.alwaysrunpostbuild then
+        _p(2, '<RunPostBuildEvent>Always</RunPostBuildEvent>')
+    end
 
     _p(1,'</PropertyGroup>')
 end)
