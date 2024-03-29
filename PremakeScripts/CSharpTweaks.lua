@@ -52,6 +52,7 @@ premake.override(premake.vstudio.dotnetbase, "projectProperties", function(base,
 
     if cfg.alwaysrunpostbuild then
         _p(2, '<RunPostBuildEvent>Always</RunPostBuildEvent>')
+        _p(2, '<DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>')
     end
 
     _p(1,'</PropertyGroup>')
