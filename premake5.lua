@@ -58,18 +58,18 @@ group "Managed"
         kind = "SharedLib",
         target = "Engine",
         allowunsafeblocks = true,
+        links = { "Tree.Sap" },
         dependson = { "Tree.SapGen" }
     }
-    links { "Tree.Sap" }
 
     treeproject {
         name = "Tree.Trunk",
         language = "C#",
         kind = "SharedLib",
         target = "Engine",
+        links = { "Tree.Sap", "Tree.Engine" },
         allowunsafeblocks = true
     }
-    links { "Tree.Sap", "Tree.Engine" }
 
 group "Native"
     treeproject {
