@@ -56,9 +56,9 @@ namespace Tree::Platform
 	{
 		std::string formatted = fmt::vformat( format.m_text, fmt::make_format_args( arguments... ) );
 		InternalDebugLog(
-			format.m_location.file_name(),
-			format.m_location.line(),
-			format.m_location.function_name(),
+			format.file_name(),
+			format.line(),
+			format.function_name(),
 			formatted
 		);
 	}
