@@ -11,7 +11,13 @@ public static class Program
 {
     public static void Main( string[] args )
     {
-        Console.WriteLine( Directory.GetCurrentDirectory() );
+        if ( args.Length < 1 )
+        {
+            Console.WriteLine( "Need Source path" );
+            return;
+        }
+
+        Console.WriteLine( $"Running, received {args[0]}" );
     }
 
 

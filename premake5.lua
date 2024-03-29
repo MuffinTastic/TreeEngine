@@ -118,6 +118,9 @@ group "Tools"
         nuget = {
             "ClangSharp:17.0.1",
             "libClangSharp.runtime.win-x64:17.0.4"
+        },
+        postbuildcommands = {
+            "%[%{cfg.buildtarget.directory}%{cfg.buildtarget.basename}] %[%{wks.location}]"
         }
     }
 
