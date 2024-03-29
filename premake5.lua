@@ -121,7 +121,8 @@ group "Tools"
             "libClangSharp.runtime.win-x64:17.0.4"
         },
         postbuildcommands = {
-            "%[%{cfg.buildtarget.directory}%{cfg.buildtarget.basename}] %[%{wks.location}]"
+            "{CHDIR} %[%{wks.location}]",
+            "%[%{cfg.buildtarget.directory}%{cfg.buildtarget.basename}]"
         },
         alwaysrunpostbuild = true
     }
