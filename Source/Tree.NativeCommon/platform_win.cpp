@@ -6,7 +6,7 @@
 #include <iostream>
 #include "unicode.h"
 
-#include "Tree.NativeCommon/constants.h"
+#include "Tree.NativeCommon/defs.h"
 
 
 std::filesystem::path Tree::Platform::GetExecutableFilePath()

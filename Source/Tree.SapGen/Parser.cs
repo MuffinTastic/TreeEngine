@@ -66,7 +66,7 @@ public static class Parser
 					return false;
 
 				var attr = cursor.GetAttr( 0 );
-				if ( attr.Spelling.CString != "generate_bindings" )
+				if ( attr.Spelling.CString != "sap_gen" )
 					return false;
 
 				return true;
