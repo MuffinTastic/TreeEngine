@@ -57,7 +57,8 @@ group "Managed"
         language = "C#",
         kind = "SharedLib",
         target = "Engine",
-        allowunsafeblocks = true
+        allowunsafeblocks = true,
+        dependson = { "Tree.SapGen" }
     }
     links { "Tree.Sap" }
 
@@ -80,7 +81,7 @@ group "Native"
                 "%{cfg.buildtarget.directory}/Tree.NativeCommon",
                 thirdpartylib{ debug="fmtd", release="fmt" }
             },
-            dependson = { "Tree.NativeCommon" },
+            dependson = { "Tree.NativeCommon", "Tree.SapGen" }
         }
 
     treeproject {
