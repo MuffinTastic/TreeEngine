@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "defs.h"
 #include "platform.h"
 
 namespace Tree
