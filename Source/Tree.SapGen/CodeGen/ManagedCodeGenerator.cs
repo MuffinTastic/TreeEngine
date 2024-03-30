@@ -48,7 +48,8 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 	{
 		return new() {
             "System.Runtime.CompilerServices",
-			"Tree.Sap.Interop"
+            "System.Runtime.InteropServices",
+            "Tree.Sap.Interop"
 		};
 	}
 
@@ -259,7 +260,7 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 
         foreach ( var field in sel.Fields )
         {
-            writer.WriteLine( $"public {Utils.GetManagedUserTypeSub( field.Type )} {field.Name};" );
+            writer.WriteLine( $"public {Utils.GetManagedInternalTypeSub( field.Type )} {field.Name};" );
         }
 
         writer.Indent--;
