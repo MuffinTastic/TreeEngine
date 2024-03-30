@@ -16,27 +16,27 @@ public class Logger
         _logger = logger;
     }
 
-    public void Info( string text,
+    public void Info( object obj,
         [CallerMemberName] string memberName = "",
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0 )
     {
-        _logger.InternalInfo( sourceFilePath, sourceLineNumber, memberName, text );
+        _logger.InternalInfo( sourceFilePath, sourceLineNumber, memberName, obj.ToString() );
     }
 
-    public void Warning( string text,
+    public void Warning( object obj,
         [CallerMemberName] string memberName = "",
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0 )
     {
-        _logger.InternalWarning( sourceFilePath, sourceLineNumber, memberName, text );
+        _logger.InternalWarning( sourceFilePath, sourceLineNumber, memberName, obj.ToString() );
     }
 
-    public void Error( string text,
+    public void Error( object obj,
         [CallerMemberName] string memberName = "",
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0 )
     {
-        _logger.InternalError( sourceFilePath, sourceLineNumber, memberName, text );
+        _logger.InternalError( sourceFilePath, sourceLineNumber, memberName, obj.ToString() );
     }
 }
