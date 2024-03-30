@@ -122,6 +122,7 @@ namespace Tree
 		std::string m_logFilePathStr;
 
 		std::shared_ptr<ILogger> m_systemLogger;
+		std::vector<std::shared_ptr<ILogger>> m_managedLoggers;
 
 		void ManageOldLogFiles();
 		void CreateSinks();
@@ -267,7 +268,9 @@ std::shared_ptr<Tree::ILogger> Tree::LogSystem::CreateLogger( std::string name )
 
 Tree::ILogger* Tree::LogSystem::CreateLoggerSap( std::string name )
 {
-	return new Logger( name, GetSinks() );;
+	auto smartPtr = CreateLogger( name );
+	m_managedLoggers.push_back( smartPtr );
+	return smartPtr.get();
 }
 
 const Tree::ConsoleLogHistorySap Tree::LogSystem::GetConsoleLogHistorySap() const

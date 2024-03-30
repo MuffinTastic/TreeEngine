@@ -100,7 +100,6 @@ namespace Tree
 
 		virtual std::shared_ptr<ILogger> CreateLogger( std::string name ) = 0;
 
-		// This isn't wrapped in a shared pointer because C# will manage it.
 		SAP_GEN virtual ILogger* CreateLoggerSap( std::string name ) = 0;
 		virtual const ConsoleLogHistorySap GetConsoleLogHistorySap() const = 0;
 	};
