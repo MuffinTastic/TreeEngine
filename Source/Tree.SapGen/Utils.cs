@@ -2,6 +2,7 @@
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace Tree.SapGen;
 
@@ -30,7 +31,9 @@ static class Utils
 			{ "void",               "void" },
             { "uint32_t",           "uint" },
             { "int32_t",            "int" },
-            { "size_t",             "uint" },
+            { "uint64_t",           "ulong" },
+            { "int64_t",            "long" },
+            { "size_t",             "ulong" },
 
             { "char**",             "ref string" },
             { "char **",            "ref string" },
@@ -64,7 +67,9 @@ static class Utils
 			{ "void",               "void" },
             { "uint32_t",           "uint" },
             { "int32_t",            "int" },
-            { "size_t",             "uint" },
+            { "uint64_t",           "ulong" },
+            { "int64_t",            "long" },
+            { "size_t",             "ulong" },
 
             { "char**",             "NativeString*" },
             { "char **",            "NativeString*" },
