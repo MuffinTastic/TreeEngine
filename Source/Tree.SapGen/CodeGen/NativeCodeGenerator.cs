@@ -83,7 +83,7 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
 
                 if ( hasInstance && method.IsConverter )
                 {
-                    writer.WriteLine( $"return dynamic_cast<{method.ReturnType}>( instance );" );
+                    writer.WriteLine( $"return static_cast<{method.ReturnType}>( instance );" );
                 }
 				else if ( hasInstance && method.IsConstructor )
 				{
