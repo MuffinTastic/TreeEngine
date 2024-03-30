@@ -2,6 +2,7 @@
 using System.CodeDom.Compiler;
 using System.Linq;
 using System;
+using System.IO;
 
 namespace Tree.SapGen;
 
@@ -10,6 +11,11 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
 	public NativeCodeGenerator( List<IUnit> units ) : base( units )
 	{
 	}
+
+    public static string GetNamespace()
+    {
+        return "Tree::Sap::Generated";
+    }
 
 	public string GenerateNativeCode( string headerPath )
 	{
@@ -25,7 +31,9 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
         writer.WriteLine();
         writer.WriteLine( $"#include \"{headerPath}\"" );
 		writer.WriteLine();
-		writer.WriteLine( "using namespace Tree;" );
+		writer.WriteLine( $"namespace {GetNamespace()}" );
+        writer.WriteLine( "{" );
+        writer.Indent++;
 
         foreach ( var unit in Units )
 		{
@@ -35,12 +43,16 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
 			}
 
 			writer.WriteLine();
-		}
+        }
 
-		return baseTextWriter.ToString();
+        writer.Indent--;
+        writer.WriteLine( "}" );
+
+        return baseTextWriter.ToString();
 	}
 
-	private void GenerateFunctionCode( ref IndentedTextWriter writer, Class c )
+
+    private void GenerateFunctionCode( ref IndentedTextWriter writer, Class c )
 	{
 		foreach ( var method in c.Methods )
         {
@@ -107,12 +119,18 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
         }
 	}
 
+    public static string BuildFunctionIdent( string className, string methodName)
+    {
+        return $"__{className}_{methodName}";
+    }
+
 	private void BuildSignature( ref IndentedTextWriter writer, Class c, Method method, List<Variable> args )
     {
         var returnType = Utils.GetNativeTypeSub( method.ReturnType );
         var argStr = string.Join( ", ", args.Select( x => $"{Utils.GetNativeTypeSub( x.Type )} {x.Name}" ) );
 
-        var signature = $"extern \"C\" inline {returnType} __{c.Name}_{method.Name}( {argStr} )";
+        var identifier = BuildFunctionIdent( c.Name, method.Name );
+        var signature = $"extern \"C\" inline {returnType} {identifier}( {argStr} )";
 
         writer.WriteLine( signature );
     }
@@ -145,5 +163,55 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
                 return p.Name;
             }
         } ) );
+    }
+
+    public static string GenerateNativeUploadCode( List<string> includes, List<(string className, Method method)> methods )
+    {
+        var (baseWriter, writer) = Utils.CreateWriter();
+
+        var managedNamespace = ManagedCodeGenerator.GetNamespace();
+
+        writer.WriteLine( GetHeader() );
+        writer.WriteLine();
+        writer.WriteLine( "// !!! NOTE: This should only be included by ManagedHostSystem !!!" );
+        writer.WriteLine();
+        writer.WriteLine( "#pragma once" );
+        writer.WriteLine();
+        writer.WriteLine( "#include \"Tree.Root/sap/Assembly.h\"" );
+        writer.WriteLine();
+
+        foreach ( var header in includes )
+        {
+            writer.WriteLine( $"#include \"{header}\"" );
+        }
+
+        writer.WriteLine();
+
+        writer.WriteLine( $"namespace {GetNamespace()}" );
+        writer.WriteLine( "{" );
+        writer.Indent++;
+
+        {
+            writer.WriteLine( "inline void AddSapCalls( Tree::Sap::ManagedAssembly& assembly )" );
+            writer.WriteLine( "{" );
+            writer.Indent++;
+
+            foreach ( (string className, Method method) in methods )
+            {
+                string managedClassName = $"{managedNamespace}.{className}";
+                string managedDelIdent = ManagedCodeGenerator.BuildDelegateIdent( method.Name );
+                string nativeFuncIdent = BuildFunctionIdent( className, method.Name );
+                writer.WriteLine( $"assembly.AddInternalCall(\"{managedClassName}\", \"{managedDelIdent}\", reinterpret_cast<void*>( &{nativeFuncIdent} ) );" );
+            }
+
+            writer.Indent--;
+            writer.WriteLine( "}" );
+        }
+
+        writer.Indent--;
+        writer.WriteLine( "}" );
+
+        writer.Dispose();
+        return baseWriter.ToString();
     }
 }

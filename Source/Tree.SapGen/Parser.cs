@@ -206,7 +206,6 @@ public static class Parser
 			var cl = c.Item1;
 			var bases = c.Item2;
 
-			Class b;
 			cl.Bases.AddRange( allClasses.Where( c => bases.Contains( c.Name ) ) );
 		}
 

@@ -14,7 +14,7 @@ public static class Program
     private const string c_ManagedOutputRel = "Tree.Engine/SapGen";
 
     private static List<IUnit> s_Units { get; set; } = new();
-    private static List<string> s_Files { get; set; } = new();
+    private static List<string> s_NativeHeaders { get; set; } = new();
 
     public static void Main()
     {
@@ -30,6 +30,7 @@ public static class Program
         var startTime = DateTime.Now;
 
         GenerateSap( sourceDir );
+        GenerateFinalFiles( sourceDir );
 
         var endTime = DateTime.Now;
         var duration = endTime - startTime;
@@ -117,17 +118,33 @@ public static class Program
         var nativeGenerator = new NativeCodeGenerator( units );
         var relativePath = Path.GetRelativePath( sourcePath, path );
         var nativeCode = nativeGenerator.GenerateNativeCode( relativePath );
-        Console.WriteLine( "Native Code:" );
+        Console.WriteLine( $"Native Code at '{nativeOutPath}':" );
         Console.WriteLine( nativeCode );
-        //File.WriteAllText( nativeOutPath, nativeCode );
+        File.WriteAllText( nativeOutPath, nativeCode );
 
         var managedGenerator = new ManagedCodeGenerator( units );
         var managedCode = managedGenerator.GenerateManagedCode();
         Console.WriteLine( "Managed Code:" );
         Console.WriteLine( managedCode );
-        //File.WriteAllText( managedOutPath, managedCode );
+        File.WriteAllText( managedOutPath, managedCode );
 
-        s_Files.Add( fileName );
+        var sapHeaderPath = Path.GetRelativePath( sourcePath, nativeOutPath );
+        s_NativeHeaders.Add( sapHeaderPath );
         s_Units.AddRange( units );
+    }
+
+    private static void GenerateFinalFiles( string sourcePath )
+    {
+        string nativeOutPath = Path.Join( sourcePath, c_NativeOutputRel, "upload.h" );
+
+        var methods = s_Units.OfType<Class>()
+            .SelectMany( unit => unit.Methods, ( unit, method ) => (unit.Name, method) )
+            .ToList();
+
+        var nativeCode = NativeCodeGenerator.GenerateNativeUploadCode( s_NativeHeaders, methods );
+
+        Console.WriteLine( "Upload code: " );
+        Console.WriteLine( nativeCode );
+        File.WriteAllText( nativeOutPath, nativeCode );
     }
 }
