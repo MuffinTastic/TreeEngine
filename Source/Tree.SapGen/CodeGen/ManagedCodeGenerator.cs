@@ -71,19 +71,19 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 			var returnsPointer = Utils.IsPointer( method.ReturnType ) && !method.IsConstructor && !method.IsDestructor;
 
 			if ( returnsPointer )
-				returnType = "IntPtr";
+				returnType = "nint";
 
 			if ( returnType == "string" )
-				returnType = "IntPtr"; // Strings are handled specially - they go from pointer to string using InteropUtils.GetString
+				returnType = "nint"; // Strings are handled specially - they go from pointer to string using InteropUtils.GetString
 
 			if ( method.IsConstructor || method.IsDestructor )
-				returnType = "IntPtr"; // Ctor/dtor handled specially too
+				returnType = "nint"; // Ctor/dtor handled specially too
 
-			var parameterTypes = method.Parameters.Select( x => "IntPtr" ); // Everything gets passed as a pointer
+			var parameterTypes = method.Parameters.Select( x => "nint" ); // Everything gets passed as a pointer
 			var paramAndReturnTypes = parameterTypes.Append( returnType );
 
 			if ( !method.IsStatic )
-				paramAndReturnTypes = paramAndReturnTypes.Prepend( "IntPtr" ); // Pointer to this class's instance
+				paramAndReturnTypes = paramAndReturnTypes.Prepend( "nint" ); // Pointer to this class's instance
 
 			var delegateTypeArguments = string.Join( ", ", paramAndReturnTypes );
 
@@ -149,7 +149,7 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 			var name = method.Name;
 
 			// We return a pointer to the created object if it's a ctor/dtor, but otherwise we'll do auto-conversions to our managed types
-			var returnType = (method.IsConstructor || method.IsDestructor) ? "IntPtr" : Utils.GetManagedTypeSub( method.ReturnType );
+			var returnType = (method.IsConstructor || method.IsDestructor) ? "nint" : Utils.GetManagedTypeSub( method.ReturnType );
 
 			var returnsPointer = Utils.IsPointer( method.ReturnType ) && !method.IsConstructor && !method.IsDestructor;
 
@@ -174,7 +174,7 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 
 			// We need to pass the instance in if this is not a static method
 			if ( !method.IsStatic )
-				paramsAndInstance = paramsAndInstance.Prepend( new Variable( "NativePtr", "IntPtr" ) ).ToList();
+				paramsAndInstance = paramsAndInstance.Prepend( new Variable( "NativePtr", "nint" ) ).ToList();
 
 			// Gather function call arguments. Make sure that we're passing in a pointer for everything
 			var paramNames = paramsAndInstance.Select( x => "ctx.GetPtr( " + x.Name + " )" );
@@ -249,9 +249,9 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 			var returnsPointer = Utils.IsPointer( method.ReturnType ) && !method.IsConstructor && !method.IsDestructor;
 
 			if ( returnType == "string" || returnsPointer )
-				returnType = "IntPtr"; // Strings are handled specially - they go from pointer to string using InteropUtils.GetString
+				returnType = "nint"; // Strings are handled specially - they go from pointer to string using InteropUtils.GetString
 
-			var parameterTypes = method.Parameters.Select( x => "IntPtr" ); // Everything gets passed as a pointer
+			var parameterTypes = method.Parameters.Select( x => "nint" ); // Everything gets passed as a pointer
 			var paramAndReturnTypes = parameterTypes.Append( returnType );
 
 			var delegateTypeArguments = string.Join( ", ", paramAndReturnTypes );
