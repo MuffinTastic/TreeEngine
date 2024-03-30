@@ -13,6 +13,8 @@ workspace "TreeEngine"
     objdir              "Build"
     includedirs         { "%{wks.location}", "ThirdParty/Include" }
 
+    flags { "MultiProcessorCompile" }
+
     filter { "platforms:x64" }
         architecture    "x86_64"
 
