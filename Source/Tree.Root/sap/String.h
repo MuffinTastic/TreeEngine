@@ -1,6 +1,9 @@
 #pragma once
 
 #include "Core.h"
+#include "StringHelper.h"
+#include "Memory.h"
+#include "Verify.h"
 
 namespace Tree
 {
@@ -9,16 +12,72 @@ namespace Tree
 		class String
 		{
 		public:
-			static String New( const char* InString );
-			static String New( std::string_view InString );
-			static void Free( String& InString );
+			inline static String New( const char* InString )
+			{
+				String result;
+				result.Assign( InString );
+				return result;
+			}
 
-			void Assign( std::string_view InString );
+			inline static String New( std::string_view InString )
+			{
+				String result;
+				result.Assign( InString );
+				return result;
+			}
 
-			operator std::string() const;
+			inline static void Free( String& InString )
+			{
+				if ( InString.m_String == nullptr )
+					return;
 
-			bool operator==( const String& InOther ) const;
-			bool operator==( std::string_view InOther ) const;
+				Memory::FreeCoTaskMem( InString.m_String );
+				InString.m_String = nullptr;
+			}
+
+			inline void Assign( std::string_view InString )
+			{
+				if ( m_String != nullptr )
+					Memory::FreeCoTaskMem( m_String );
+
+				m_String = Memory::StringToCoTaskMemAuto( StringHelper::ConvertUtf8ToWide( InString ) );
+			}
+
+			inline operator std::string() const
+			{
+				SapStringView string( m_String );
+
+#if defined(SAP_WIDE_CHARS)
+				return StringHelper::ConvertWideToUtf8( string );
+#else
+				return std::string( string );
+#endif
+			}
+
+			inline bool operator==( const String& InOther ) const
+			{
+				if ( m_String == InOther.m_String )
+					return true;
+
+				if ( m_String == nullptr || InOther.m_String == nullptr )
+					return false;
+
+#if defined(SAP_WIDE_CHARS)
+				return wcscmp( m_String, InOther.m_String ) == 0;
+#else
+				return strcmp( m_String, InOther.m_String ) == 0;
+#endif
+			}
+
+			inline bool operator==( std::string_view InOther ) const
+			{
+#if defined(SAP_WIDE_CHARS)
+				auto str = StringHelper::ConvertUtf8ToWide( InOther );
+				return wcscmp( m_String, str.data() ) == 0;
+#else
+				return strcmp( m_String, InOther.data() ) == 0;
+#endif
+			}
 
 			SapChar* Data() { return m_String; }
 			const SapChar* Data() const { return m_String; }

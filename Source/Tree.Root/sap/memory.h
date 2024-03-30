@@ -2,17 +2,67 @@
 
 #include "Core.h"
 
+#ifdef WINDOWS
+#include <combaseapi.h>
+#endif
+
 namespace Tree
 {
 	namespace Sap
 	{
 		struct Memory
 		{
-			static void* AllocHGlobal( size_t InSize );
-			static void FreeHGlobal( void* InPtr );
+			inline static void* AllocHGlobal( size_t InSize )
+			{
+#ifdef WINDOWS
+				return LocalAlloc( LMEM_FIXED | LMEM_ZEROINIT, InSize );
+#else
+				return malloc( InSize );
+#endif
+			}
+			inline static void FreeHGlobal( void* InPtr )
+			{
+#ifdef WINDOWS
+				LocalFree( InPtr );
+#else
+				free( InPtr );
+#endif
+			}
 
-			static SapChar* StringToCoTaskMemAuto( SapStringView InString );
-			static void FreeCoTaskMem( void* InMemory );
+			inline static SapChar* StringToCoTaskMemAuto( SapStringView InString )
+			{
+				size_t length = InString.length() + 1;
+				size_t size = length * sizeof( SapChar );
+
+#ifdef WINDOWS
+				auto* buffer = static_cast<SapChar*>( CoTaskMemAlloc( size ) );
+
+				if ( buffer != nullptr )
+				{
+					memset( buffer, 0xCE, size );
+					wcscpy( buffer, InString.data() );
+				}
+#else
+				auto* buffer = static_cast<SapChar*>( AllocHGlobal( size ) );
+
+				if ( buffer != nullptr )
+				{
+					memset( buffer, 0, size );
+					strcpy( buffer, InString.data() );
+				}
+#endif
+
+				return buffer;
+			}
+
+			inline static void FreeCoTaskMem( void* InMemory )
+			{
+#ifdef WINDOWS
+				CoTaskMemFree( InMemory );
+#else
+				FreeHGlobal( InMemory );
+#endif
+			}
 		};
 	}
 }
