@@ -11,8 +11,8 @@ namespace Tree
 
 	namespace Sys
 	{
-		ICmdLineSystem* CmdLine();
-		ILogSystem* Log();
+		SAP_GEN ICmdLineSystem* CmdLine();
+		SAP_GEN ILogSystem* Log();
 		IManagedHostSystem* ManagedHost();
 		IEngineSystem* Engine();
 

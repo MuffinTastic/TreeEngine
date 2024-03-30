@@ -12,8 +12,6 @@ public class SapEntry
 {
     public static void Entry()
     {
-        var inst = new EngineTest();
-
-        inst.StringDemo();
+        Log.Info( "test from c# ! ユニコードやーーー" );
     }
 }

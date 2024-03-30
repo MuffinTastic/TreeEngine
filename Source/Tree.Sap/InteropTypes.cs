@@ -6,6 +6,11 @@ using System.Runtime.InteropServices;
 
 namespace Tree.Sap.Interop;
 
+public interface INativeSap
+{
+    public nint NativePtr { get; set; }
+}
+
 public sealed class NativeArrayEnumerator<T> : IEnumerator<T>
 {
     private readonly T[] m_Elements;

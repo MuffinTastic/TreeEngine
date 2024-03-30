@@ -86,10 +86,10 @@ namespace Tree
 		}
 
 	public:
-		virtual void InternalInfo( const char* file, int line, const char* function, const std::string_view text ) = 0;
-		virtual void InternalWarning( const char* file, int line, const char* function, const std::string_view text ) = 0;
-		virtual void InternalError( const char* file, int line, const char* function, const std::string_view text ) = 0;
-		virtual void InternalTrace( const char* file, int line, const char* function, const std::string_view text ) = 0;
+		SAP_GEN virtual void InternalInfo( const char* file, int line, const char* function, const std::string_view text ) = 0;
+		SAP_GEN virtual void InternalWarning( const char* file, int line, const char* function, const std::string_view text ) = 0;
+		SAP_GEN virtual void InternalError( const char* file, int line, const char* function, const std::string_view text ) = 0;
+		SAP_GEN virtual void InternalTrace( const char* file, int line, const char* function, const std::string_view text ) = 0;
 	};
 
 	class ILogSystem : public ISystem, virtual public ILogger
@@ -101,7 +101,7 @@ namespace Tree
 		virtual std::shared_ptr<ILogger> CreateLogger( std::string name ) = 0;
 
 		// This isn't wrapped in a shared pointer because C# will manage it.
-		virtual ILogger* CreateLoggerSap( std::string name ) = 0;
+		SAP_GEN virtual ILogger* CreateLoggerSap( std::string name ) = 0;
 		virtual const ConsoleLogHistorySap GetConsoleLogHistorySap() const = 0;
 	};
 }

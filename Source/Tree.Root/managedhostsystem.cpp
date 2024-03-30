@@ -32,6 +32,8 @@
 #include "sap/StringHelper.h"
 #include "sap/TypeCache.h"
 
+#include "sapgen/upload.h"
+
 #define TREE_SAP_ASSEMBLY_NAME "Tree.Sap"
 #define TREE_ENGINE_ASSEMBLY_NAME "Tree.Engine"
 #define TREE_TRUNK_ASSEMBLY_NAME "Tree.Trunk"
@@ -149,7 +151,8 @@ void Tree::ManagedHostSystem::LoadEngineFunctions()
 	auto assemblyPath = enginePath / TREE_ENGINE_ASSEMBLY_NAME MANAGED_ASSEMBLY_EXT;
 	auto& assembly = m_loadContext.LoadAssembly( Platform::PathToUTF8( assemblyPath ) );
 
-	assembly.AddInternalCall( "Tree.Engine.EngineTest", "TestFunc", &StringDemoClient );
+	Tree::Sap::Generated::AddSapCalls( assembly );
+
 	assembly.UploadInternalCalls();
 
 	m_logger->Info( "Uploaded internal calls" );
@@ -160,6 +163,8 @@ void Tree::ManagedHostSystem::TrunkFunc()
 	std::filesystem::path enginePath = Platform::GetEngineDirectoryPath();
 	auto assemblyPath = enginePath / TREE_TRUNK_ASSEMBLY_NAME MANAGED_ASSEMBLY_EXT;
 	auto& assembly = m_loadContext.LoadAssembly( Platform::PathToUTF8( assemblyPath ) );
+
+	m_logger->Info( "{}", reinterpret_cast<uint64_t>(Sys::Log()) );
 
 	auto type = assembly.GetType( "Tree.Trunk.SapEntry" );
 	type.InvokeStaticMethod( "Entry" );
