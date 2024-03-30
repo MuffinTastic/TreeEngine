@@ -64,14 +64,19 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 		//
 		// Write shit
 		//
-		writer.WriteLine( $"public unsafe class {sel.Name} : INativeGlue" );
+		string baseStr = sel.Bases.Any() ? sel.Bases.First().Name : "INativeGlue";
+
+		writer.WriteLine( $"public unsafe class {sel.Name} : {baseStr}" );
 		writer.WriteLine( "{" );
 		writer.Indent++;
 
-		writer.WriteLine( "public IntPtr NativePtr { get; set; }" );
+		if ( !sel.Bases.Any() )
+		{
+			writer.WriteLine( "public nint NativePtr { get; set; }" );
+            writer.WriteLine();
+        }
 
 		// Decls
-		writer.WriteLine();
 		foreach ( var decl in decls )
 		{
 			writer.WriteLine( decl );

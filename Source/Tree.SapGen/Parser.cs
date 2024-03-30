@@ -43,6 +43,7 @@ public static class Parser
 		Utils.EnsureLibClang();
 
 		List<IUnit> units = new();
+		List<(Class, HashSet<string>)> classBases = new();
 
 		using var index = CXIndex.Create();
 		using var unit = CXTranslationUnit.Parse( index, path, s_launchArgs, ReadOnlySpan<CXUnsavedFile>.Empty, CXTranslationUnit_Flags.CXTranslationUnit_None );
@@ -78,7 +79,16 @@ public static class Parser
 				// Struct / class / namespace
 				//
 				case CXCursorKind.CXCursor_ClassDecl:
-					units.Add( new Class( cursor.Spelling.ToString() ) );
+					Class unit = new Class( cursor.Spelling.ToString() );
+					HashSet<string> bases = new();
+
+                    for ( int i = 0; i < cursor.NumBases; i++ )
+					{
+						bases.Add( cursor.GetBase( (uint) i ).Spelling.ToString() );
+					}
+
+					units.Add( unit );
+					classBases.Add( (unit, bases) );
 					break;
 				case CXCursorKind.CXCursor_StructDecl:
 					units.Add( new Structure( cursor.Spelling.ToString() ) );
@@ -189,6 +199,17 @@ public static class Parser
 		//
 		// Post-processing
 		//
+		var allClasses = units.OfType<Class>();
+
+		foreach ( var c in classBases )
+		{
+			var cl = c.Item1;
+			var bases = c.Item2;
+
+			Class b;
+			cl.Bases.AddRange( allClasses.Where( c => bases.Contains( c.Name ) ) );
+		}
+
 		//foreach ( var o in units )
 		//{
 		//	// Create a default constructor if one wasn't already defined
