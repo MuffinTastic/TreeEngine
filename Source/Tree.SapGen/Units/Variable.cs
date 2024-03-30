@@ -1,8 +1,8 @@
 ﻿namespace Tree.SapGen;
 
-public struct Variable
+public class Variable
 {
-	public Variable( string name, string type ) : this()
+	public Variable( string name, string type )
 	{
 		Name = name;
 		Type = type;

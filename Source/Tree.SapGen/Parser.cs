@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
+using System.Xml.Linq;
 
 namespace Tree.SapGen;
 
@@ -199,7 +201,7 @@ public static class Parser
 		//
 		// Post-processing
 		//
-		var allClasses = units.OfType<Class>();
+		var allClasses = units.OfType<Class>().ToList();
 
 		foreach ( var c in classBases )
 		{
@@ -207,6 +209,11 @@ public static class Parser
 			var bases = c.Item2;
 
 			cl.Bases.AddRange( allClasses.Where( c => bases.Contains( c.Name ) ) );
+
+			foreach ( var to in cl.Bases )
+			{
+				CreateConversionMethod( cl, to );
+			}
 		}
 
 		//foreach ( var o in units )
@@ -223,5 +230,12 @@ public static class Parser
 		//}
 
 		return units;
+	}
+
+	private static void CreateConversionMethod( Class from, Class to )
+	{
+		var method = new Method( $"Helper_ConvTo{to.Name}", $"{to.Name}*" );
+		method.IsConverter = true;
+        from.Methods.Add( method );
 	}
 }

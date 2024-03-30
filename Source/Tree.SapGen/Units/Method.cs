@@ -2,7 +2,7 @@
 
 namespace Tree.SapGen;
 
-public struct Method
+public class Method
 {
 	public Method( string name, string returnType )
 	{
@@ -14,6 +14,7 @@ public struct Method
 	public bool IsConstructor { get; set; } = false;
 	public bool IsDestructor { get; set; } = false;
 	public bool IsStatic { get; set; } = false;
+	public bool IsConverter { get; set; } = false;
 
 	public string Name { get; set; }
 	public string ReturnType { get; set; }

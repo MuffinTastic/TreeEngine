@@ -2,9 +2,9 @@
 
 namespace Tree.SapGen;
 
-public struct Structure : IUnit
+public class Structure : IUnit
 {
-	public Structure( string name ) : this()
+	public Structure( string name )
 	{
 		Name = name;
 

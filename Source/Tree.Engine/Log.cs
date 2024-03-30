@@ -10,6 +10,7 @@ namespace Tree.Engine;
 public static class Log
 {
     private static Sap.Generated.ILogSystem? s_LogSystem = null;
+    private static Sap.Generated.ILogger? s_DefaultLogger = null;
 
     internal static Sap.Generated.ILogSystem LogSystem
     {
@@ -21,11 +22,21 @@ public static class Log
         }
     }
 
+    internal static Sap.Generated.ILogger DefaultLogger
+    {
+        get
+        {
+            if ( s_DefaultLogger is null )
+                s_DefaultLogger = LogSystem.Helper_ConvToILogger();
+            return s_DefaultLogger!;
+        }
+    }
+
     public static void Info( string text,
         [CallerMemberName] string memberName = "",
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0 )
     {
-        LogSystem.InternalInfo( sourceFilePath, sourceLineNumber, memberName, text );
+        DefaultLogger.InternalInfo( sourceFilePath, sourceLineNumber, memberName, text );
     }
 }

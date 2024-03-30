@@ -102,12 +102,10 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 		if ( c.IsNamespace )
 			classAccessLevel += " static";
 
-        string classBase = c.Bases.Any() ? c.Bases.First().Name : "INativeSap";
-
 		string classDefinition = $"{classAccessLevel} unsafe class {c.Name}";
 
 		if ( !c.IsNamespace )
-			classDefinition += $" : {classBase}";
+			classDefinition += $" : INativeSap";
 
         writer.WriteLine( classDefinition );
 		writer.WriteLine( "{" );
@@ -118,8 +116,7 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 			// Native instance pointer
 			//
 
-			// If it's a child class, NativePtr will already exist
-			if ( !c.Bases.Any() && !c.IsNamespace ) 
+			if ( !c.IsNamespace ) 
 			{
 				writer.WriteLine( "public nint NativePtr { get; set; }" );
 				writer.WriteLine();
@@ -202,7 +199,6 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 					writer.WriteLine( $"obj.NativePtr = ptr;" );
 					writer.WriteLine( $"return obj;" );
 				}
-
                 else
 				{
                     if ( returnType == "void" )

@@ -51,7 +51,6 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
         return baseTextWriter.ToString();
 	}
 
-
     private void GenerateFunctionCode( ref IndentedTextWriter writer, Class c )
 	{
 		foreach ( var method in c.Methods )
@@ -82,7 +81,11 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
 
 				var @params = FixCallParams( method.Parameters );
 
-				if ( hasInstance && method.IsConstructor )
+                if ( hasInstance && method.IsConverter )
+                {
+                    writer.WriteLine( $"return dynamic_cast<{method.ReturnType}>( instance );" );
+                }
+				else if ( hasInstance && method.IsConstructor )
 				{
                     writer.WriteLine( $"return new {c.Name}( {@params} );" );
 				}
@@ -130,7 +133,7 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
         var argStr = string.Join( ", ", args.Select( x => $"{Utils.GetNativeTypeSub( x.Type )} {x.Name}" ) );
 
         var identifier = BuildFunctionIdent( c.Name, method.Name );
-        var signature = $"extern \"C\" inline {returnType} {identifier}( {argStr} )";
+        var signature = $"inline {returnType} {identifier}( {argStr} )";
 
         writer.WriteLine( signature );
     }
