@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.CodeDom.Compiler;
 using System.Linq;
+using System;
 
 namespace Tree.SapGen;
 
@@ -29,10 +30,7 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
 		{
 			if ( unit is Class c )
 			{
-				if ( c.IsNamespace )
-					GenerateNamespaceCode( ref writer, c );
-				else
-					GenerateClassCode( ref writer, c );
+				GenerateFunctionCode( ref writer, c );
 			}
 
 			writer.WriteLine();
@@ -41,105 +39,111 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
 		return baseTextWriter.ToString();
 	}
 
-	private void GenerateNamespaceCode( ref IndentedTextWriter writer, Class c )
+	private void GenerateFunctionCode( ref IndentedTextWriter writer, Class c )
 	{
 		foreach ( var method in c.Methods )
-		{
-			var args = method.Parameters;
+        {
+            bool hasInstance = !( method.IsStatic || c.IsNamespace );
 
-			var argStr = string.Join( ", ", args.Select( x =>
+            var args = method.Parameters;
+
+            if ( hasInstance )
+                args = args.Prepend( new Variable( "instance", $"{c.Name}*" ) ).ToList();
+
+            //
+            // Set up signature
+            //
+            BuildSignature( ref writer, c, method, args );
+
+            //
+            // Write function body
+            //
+
+            writer.WriteLine( "{" );
+            writer.Indent++;
+
 			{
-				if ( x.Type == "std::string" )
+				BuildVariables( ref writer, args );
+
+				var @params = FixCallParams( method.Parameters );
+
+				if ( hasInstance && method.IsConstructor )
 				{
-					return $"const char* {x.Name}";
+                    writer.WriteLine( $"return new {c.Name}( {@params} );" );
 				}
-
-				return $"{x.Type} {x.Name}";
-			} ) );
-
-			var signature = $"extern \"C\" inline {method.ReturnType} __{c.Name}_{method.Name}( {argStr} )";
-			var body = "";
-			var @params = string.Join( ", ", method.Parameters.Select( x => x.Name ) );
-
-			var accessor = $"{c.Name}::";
-
-			if ( method.ReturnType == "void" )
-				body += $"{accessor}{method.Name}( {@params} );";
-			else if ( method.ReturnType == "std::string" )
-				body += $"std::string text = {accessor}{method.Name}( {@params} );\r\nconst char* cstr = text.c_str();\r\nchar* dup = _strdup(cstr);\r\nreturn dup;";
-			else
-				body += $"return {accessor}{method.Name}( {@params} );";
-
-			writer.WriteLine( signature );
-			writer.WriteLine( "{" );
-			writer.Indent++;
-
-			writer.WriteLine( body );
-
-			writer.Indent--;
-			writer.WriteLine( "}" );
-		}
-	}
-
-	private void GenerateClassCode( ref IndentedTextWriter writer, Class c )
-	{
-		foreach ( var method in c.Methods )
-		{
-			var args = method.Parameters;
-
-			if ( !method.IsStatic )
-				args = args.Prepend( new Variable( "instance", $"{c.Name}*" ) ).ToList();
-
-			var argStr = string.Join( ", ", args.Select( x =>
-			{
-				string sub = Utils.GetNativeTypeSub( x.Type );
-
-				return $"{sub} {x.Name}";
-			} ) );
-
-			var signature = $"extern \"C\" inline {method.ReturnType} __{c.Name}_{method.Name}( {argStr} )";
-			var body = "";
-			var @params = string.Join( ", ", method.Parameters.Select( x => x.Name ) );
-
-			if ( method.IsConstructor )
-			{
-				body += $"return new {c.Name}( {@params} );";
-			}
-			else if ( method.IsDestructor )
-			{
-				body += $"instance->~{c.Name}( {@params} );";
-			}
-			else
-			{
-				var accessor = method.IsStatic ? $"{c.Name}::" : "instance->";
-
-				if ( method.ReturnType == "void" )
+				else if ( hasInstance && method.IsDestructor )
 				{
-					body += $"{accessor}{method.Name}( {@params} );";
+                    writer.WriteLine( $"instance->~{c.Name}( {@params} );" );
 				}
 				else
 				{
-					body += $"auto val = {accessor}{method.Name}( {@params} );";
+					var accessor = hasInstance ? "instance->" : $"{c.Name}::";
 
-					if ( Utils.NativeTypeIsString( method.ReturnType ) )
+					if ( method.ReturnType == "void" )
 					{
-						body += "return Sap::String::New( val )";
+                        writer.WriteLine( $"{accessor}{method.Name}( {@params} );" );
 					}
 					else
 					{
-						body += "return val;";
+                        writer.WriteLine( $"auto val = {accessor}{method.Name}( {@params} );" );
+
+						if ( Utils.NativeTypeIsString( method.ReturnType ) )
+						{
+                            writer.WriteLine( "return Sap::String::New( val );" );
+						}
+						else
+						{
+                            writer.WriteLine( "return val;" );
+						}
 					}
 				}
-			}
+            }
 
-			writer.WriteLine( signature );
-			writer.WriteLine( "{" );
-			writer.Indent++;
-
-			writer.WriteLine( body );
-
-			writer.Indent--;
-			writer.WriteLine( "}" );
-		}
+            writer.Indent--;
+            writer.WriteLine( "}" );
+        }
 	}
+
+	private void BuildSignature( ref IndentedTextWriter writer, Class c, Method method, List<Variable> args )
+    {
+        var argStr = string.Join( ", ", args.Select( x =>
+        {
+            string sub = Utils.GetNativeTypeSub( x.Type );
+
+            return $"{sub} {x.Name}";
+        } ) );
+
+        var signature = $"extern \"C\" inline {method.ReturnType} __{c.Name}_{method.Name}( {argStr} )";
+        writer.WriteLine( signature );
+    }
+
+    private void BuildVariables( ref IndentedTextWriter writer, List<Variable> args )
+    {
+        foreach ( var arg in args )
+        {
+            if ( Utils.NativeTypeIsString( arg.Type ) )
+            {
+                writer.WriteLine( $"std::string _sap_{arg.Name} = std::string({arg.Name});" );
+            }
+        }
+    }
+
+	private string FixCallParams( List<Variable> @params )
+    {
+        return string.Join( ", ", @params.Select( p =>
+        {
+            if ( Utils.NativeTypeIsCharString( p.Type ) )
+            {
+                return $"_sap_{p.Name}.c_str()";
+            }
+            else if ( Utils.NativeTypeIsStdString( p.Type ) )
+            {
+                return $"std::move(_sap_{p.Name})";
+            }
+            else
+            {
+                return p.Name;
+            }
+        } ) );
+    }
 }
