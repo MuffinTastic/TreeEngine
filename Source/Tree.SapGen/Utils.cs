@@ -42,6 +42,9 @@ static class Utils
             { "void*",              "nint" },
             { "void *",             "nint" },
 
+            // It's up to Tree.Engine to handle how to expose these arrays
+            { "Sap::Array",         "NativeArray" },
+
 			// GLM
 			{ "glm::vec2",          "Vector2" },
             { "glm::vec3",          "Vector3" },
@@ -69,9 +72,12 @@ static class Utils
             { "char *",             "NativeString" },
             { "std::string",        "NativeString" },
             { "std::string_view",   "NativeString" },
+            { "Sap::String",        "NativeString" },
 
             { "void*",              "nint" },
             { "void *",             "nint" },
+
+            { "Sap::Array",         "NativeArray" },
 
 			// GLM
 			{ "glm::vec2",          "Vector2" },
@@ -85,6 +91,7 @@ static class Utils
             { "Handle",             "uint" }
         };
 
+    private static Regex s_TemplateRegex = new Regex( @"(.*)<(.*)>" );
 
     public static bool IsPointer( string nativeType )
 	{
@@ -163,10 +170,18 @@ static class Utils
 		if ( s_ManagedUserTypeSubTable.ContainsKey( nativeType ) )
 		{
 			return s_ManagedUserTypeSubTable[nativeType];
-		}
+        }
 
-		// Check if the native type is a pointer
-		if ( nativeType.EndsWith( "*" ) )
+        if ( nativeType.Contains( "<" ) && nativeType.EndsWith( ">" ) )
+        {
+            Match match = s_TemplateRegex.Match( nativeType );
+            string templateClass = GetManagedUserTypeSub( match.Groups[1].Value );
+            string templateType = GetManagedUserTypeSub( match.Groups[2].Value );
+            return $"{templateClass}<{templateType}>";
+        }
+
+        // Check if the native type is a pointer
+        if ( nativeType.EndsWith( "*" ) )
 			return GetManagedUserTypeSub( nativeType[..^1].Trim() ); // We'll return the basic type, because we handle pointers on the C# side now
 
 		// Return the native type if it is not in the lookup table
@@ -190,6 +205,14 @@ static class Utils
         if ( s_ManagedInternalTypeSubTable.ContainsKey( nativeType ) )
         {
             return s_ManagedInternalTypeSubTable[nativeType];
+        }
+
+        if ( nativeType.Contains( "<" ) && nativeType.EndsWith( ">" ) )
+        {
+            Match match = s_TemplateRegex.Match( nativeType );
+            string templateClass = GetManagedInternalTypeSub( match.Groups[1].Value );
+            string templateType = GetManagedInternalTypeSub( match.Groups[2].Value );
+            return $"{templateClass}<{templateType}>";
         }
 
         // Check if the native type is a pointer
