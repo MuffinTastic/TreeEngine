@@ -23,7 +23,7 @@ static class Utils
     private static HashSet<string> s_NativeStdStringSet = new HashSet<string>
         { "std::string", "std::string_view" };
 
-    private static Dictionary<string, string> s_ManagedTypeSubTable = new Dictionary<string, string>()
+    private static Dictionary<string, string> s_ManagedUserTypeSubTable = new Dictionary<string, string>()
         {
 			// Native type		Substitute type
 			//-------------------------------
@@ -54,10 +54,41 @@ static class Utils
             { "Handle",             "uint" }
         };
 
+    private static Dictionary<string, string> s_ManagedInternalTypeSubTable = new Dictionary<string, string>()
+        {
+			// Native type		Substitute type
+			//-------------------------------
+			{ "void",               "void" },
+            { "uint32_t",           "uint" },
+            { "int32_t",            "int" },
+            { "size_t",             "uint" },
+
+            { "char**",             "NativeString*" },
+            { "char **",            "NativeString*" },
+            { "char*",              "NativeString" },
+            { "char *",             "NativeString" },
+            { "std::string",        "NativeString" },
+            { "std::string_view",   "NativeString" },
+
+            { "void*",              "nint" },
+            { "void *",             "nint" },
+
+			// GLM
+			{ "glm::vec2",          "Vector2" },
+            { "glm::vec3",          "Vector3" },
+            { "glm::mat4",          "Matrix4x4" },
+            { "glm::quat",          "Rotation" },
+
+			// Custom
+			{ "Quaternion",         "Rotation" },
+            { "InteropStruct",      "IInteropArray" },
+            { "Handle",             "uint" }
+        };
+
 
     public static bool IsPointer( string nativeType )
 	{
-		var managedType = GetManagedTypeSub( nativeType );
+		var managedType = GetManagedUserTypeSub( nativeType );
 		return nativeType.Trim().EndsWith( "*" ) && managedType != "string" && managedType != "nint";
     }
 
@@ -78,7 +109,7 @@ static class Utils
         return nativeType;
     }
 
-    public static bool NativeTypeIsCharString( string nativeType )
+    public static bool TypeIsCharString( string nativeType )
     {
         nativeType = nativeType.Trim();
 
@@ -94,7 +125,7 @@ static class Utils
         return false;
     }
 
-    public static bool NativeTypeIsStdString( string nativeType )
+    public static bool TypeIsStdString( string nativeType )
     {
         nativeType = nativeType.Trim();
 
@@ -110,12 +141,12 @@ static class Utils
         return false;
     }
 
-    public static bool NativeTypeIsString( string nativeType )
+    public static bool TypeIsString( string nativeType )
     {
-        return NativeTypeIsCharString( nativeType ) || NativeTypeIsStdString( nativeType );
+        return TypeIsCharString( nativeType ) || TypeIsStdString( nativeType );
     }
 
-    public static string GetManagedTypeSub( string nativeType )
+    public static string GetManagedUserTypeSub( string nativeType )
 	{
 		// Trim whitespace from beginning / end (if it exists)
 		nativeType = nativeType.Trim();
@@ -126,23 +157,50 @@ static class Utils
 
 		// Check if the native type is a reference
 		if ( nativeType.EndsWith( "&" ) )
-			return GetManagedTypeSub( nativeType[0..^1] );
+			return GetManagedUserTypeSub( nativeType[0..^1] );
 
 		// Check if the native type is in the lookup table
-		if ( s_ManagedTypeSubTable.ContainsKey( nativeType ) )
+		if ( s_ManagedUserTypeSubTable.ContainsKey( nativeType ) )
 		{
-			return s_ManagedTypeSubTable[nativeType];
+			return s_ManagedUserTypeSubTable[nativeType];
 		}
 
 		// Check if the native type is a pointer
 		if ( nativeType.EndsWith( "*" ) )
-			return GetManagedTypeSub( nativeType[..^1].Trim() ); // We'll return the basic type, because we handle pointers on the C# side now
+			return GetManagedUserTypeSub( nativeType[..^1].Trim() ); // We'll return the basic type, because we handle pointers on the C# side now
 
 		// Return the native type if it is not in the lookup table
 		return nativeType;
-	}
+    }
 
-	public static (StringWriter StringWriter, IndentedTextWriter TextWriter) CreateWriter()
+    public static string GetManagedInternalTypeSub( string nativeType )
+    {
+        // Trim whitespace from beginning / end (if it exists)
+        nativeType = nativeType.Trim();
+
+        // Remove the "const" keyword
+        if ( nativeType.StartsWith( "const" ) )
+            nativeType = nativeType[5..].Trim();
+
+        // Check if the native type is a reference
+        if ( nativeType.EndsWith( "&" ) )
+            return GetManagedInternalTypeSub( nativeType[0..^1] );
+
+        // Check if the native type is in the lookup table
+        if ( s_ManagedInternalTypeSubTable.ContainsKey( nativeType ) )
+        {
+            return s_ManagedInternalTypeSubTable[nativeType];
+        }
+
+        // Check if the native type is a pointer
+        if ( nativeType.EndsWith( "*" ) )
+            return GetManagedInternalTypeSub( nativeType[..^1].Trim() ); // We'll return the basic type, because we handle pointers on the C# side now
+
+        // Return the native type if it is not in the lookup table
+        return nativeType;
+    }
+
+    public static (StringWriter StringWriter, IndentedTextWriter TextWriter) CreateWriter()
 	{
 		var baseTextWriter = new StringWriter();
 
