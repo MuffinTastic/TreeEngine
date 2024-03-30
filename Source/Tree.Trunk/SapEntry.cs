@@ -12,6 +12,14 @@ public class SapEntry
 {
     public static void Entry()
     {
-        Log.Info( "test from c# ! ユニコードやーーー" );
+        Log.Blubber();
+    }
+}
+
+public static class LoggerExtensions
+{
+    public static void Blubber( this Logger logger )
+    {
+        logger.Info( "Oh yeah!!!! ユニコード" );
     }
 }
