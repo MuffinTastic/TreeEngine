@@ -19,12 +19,13 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
 		writer.WriteLine();
 
 		writer.WriteLine( "#pragma once" );
-		writer.WriteLine( "#include \"Tree.Root/sap/String.h\"" );
+        writer.WriteLine();
+        writer.WriteLine( "#include \"Tree.Root/sap/String.h\"" );
         writer.WriteLine( "#include \"Tree.Root/sap/Array.h\"" );
+        writer.WriteLine();
         writer.WriteLine( $"#include \"{headerPath}\"" );
 		writer.WriteLine();
 		writer.WriteLine( "using namespace Tree;" );
-        writer.WriteLine();
 
         foreach ( var unit in Units )
 		{
@@ -43,12 +44,14 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
 	{
 		foreach ( var method in c.Methods )
         {
-            bool hasInstance = !( method.IsStatic || c.IsNamespace );
+            bool hasInstance = !method.IsStatic && !c.IsNamespace;
 
             var args = method.Parameters;
 
             if ( hasInstance )
                 args = args.Prepend( new Variable( "instance", $"{c.Name}*" ) ).ToList();
+
+            writer.WriteLine();
 
             //
             // Set up signature
@@ -87,7 +90,7 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
 					{
                         writer.WriteLine( $"auto val = {accessor}{method.Name}( {@params} );" );
 
-						if ( Utils.NativeTypeIsString( method.ReturnType ) )
+						if ( Utils.TypeIsString( method.ReturnType ) )
 						{
                             writer.WriteLine( "return Sap::String::New( val );" );
 						}
@@ -106,14 +109,11 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
 
 	private void BuildSignature( ref IndentedTextWriter writer, Class c, Method method, List<Variable> args )
     {
-        var argStr = string.Join( ", ", args.Select( x =>
-        {
-            string sub = Utils.GetNativeTypeSub( x.Type );
+        var returnType = Utils.GetNativeTypeSub( method.ReturnType );
+        var argStr = string.Join( ", ", args.Select( x => $"{Utils.GetNativeTypeSub( x.Type )} {x.Name}" ) );
 
-            return $"{sub} {x.Name}";
-        } ) );
+        var signature = $"extern \"C\" inline {returnType} __{c.Name}_{method.Name}( {argStr} )";
 
-        var signature = $"extern \"C\" inline {method.ReturnType} __{c.Name}_{method.Name}( {argStr} )";
         writer.WriteLine( signature );
     }
 
@@ -121,7 +121,7 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
     {
         foreach ( var arg in args )
         {
-            if ( Utils.NativeTypeIsString( arg.Type ) )
+            if ( Utils.TypeIsString( arg.Type ) )
             {
                 writer.WriteLine( $"std::string _sap_{arg.Name} = std::string({arg.Name});" );
             }
@@ -132,11 +132,11 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
     {
         return string.Join( ", ", @params.Select( p =>
         {
-            if ( Utils.NativeTypeIsCharString( p.Type ) )
+            if ( Utils.TypeIsCharString( p.Type ) )
             {
                 return $"_sap_{p.Name}.c_str()";
             }
-            else if ( Utils.NativeTypeIsStdString( p.Type ) )
+            else if ( Utils.TypeIsStdString( p.Type ) )
             {
                 return $"std::move(_sap_{p.Name})";
             }
