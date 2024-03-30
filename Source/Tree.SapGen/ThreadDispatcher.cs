@@ -1,4 +1,6 @@
-﻿using System;
+﻿//#define SINGLETHREADED
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,10 +17,16 @@ public class ThreadDispatcher<T>
     private int m_ThreadsCompleted = 0;
     public bool IsComplete => m_ThreadsCompleted == m_ThreadCount;
 
+
     public ThreadDispatcher( ThreadCallback threadStart, List<T> queue )
     {
         if ( queue.Count == 0 )
             return;
+
+#if SINGLETHREADED
+        threadStart( queue );
+        m_ThreadsCompleted = m_ThreadCount;
+#else
 
         var batchSize = queue.Count / m_ThreadCount;
         var remainder = queue.Count % m_ThreadCount;
@@ -50,5 +58,6 @@ public class ThreadDispatcher<T>
 
             thread.Start();
         }
+#endif
     }
 }
