@@ -92,7 +92,7 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 			//
 			// This gets set by Sap
 			//
-			nativeDelegates.Add( $"private static delegate*< {delegateTypeArguments} > {BuildDelegateIdent( name )};" );
+			nativeDelegates.Add( $"private static delegate* unmanaged< {delegateTypeArguments} > {BuildDelegateIdent( name )} = default;" );
 		}
 
 		//
