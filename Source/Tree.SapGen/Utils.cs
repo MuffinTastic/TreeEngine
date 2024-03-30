@@ -17,6 +17,12 @@ static class Utils
             { "std::string_view",   "Sap::String" },
         };
 
+    private static HashSet<string> s_NativeCharStringSet = new HashSet<string>
+        { "char*", "char *" };
+
+    private static HashSet<string> s_NativeStdStringSet = new HashSet<string>
+        { "std::string", "std::string_view" };
+
     private static Dictionary<string, string> s_ManagedTypeSubTable = new Dictionary<string, string>()
         {
 			// Native type		Substitute type
@@ -30,8 +36,8 @@ static class Utils
             { "char **",            "ref string" },
             { "char*",              "string" },
             { "char *",             "string" },
-            { "std::string",        "NativeString" },
-            { "std::string_view",   "NativeString" },
+            { "std::string",        "string" },
+            { "std::string_view",   "string" },
 
             { "void*",              "nint" },
             { "void *",             "nint" },
@@ -52,7 +58,7 @@ static class Utils
     public static bool IsPointer( string nativeType )
 	{
 		var managedType = GetManagedTypeSub( nativeType );
-		return nativeType.Trim().EndsWith( "*" ) && managedType != "string" && managedType != "IntPtr";
+		return nativeType.Trim().EndsWith( "*" ) && managedType != "string" && managedType != "nint";
     }
 
     public static string GetNativeTypeSub( string nativeType )
@@ -72,7 +78,7 @@ static class Utils
         return nativeType;
     }
 
-	public static bool NativeTypeIsString( string nativeType )
+    public static bool NativeTypeIsCharString( string nativeType )
     {
         nativeType = nativeType.Trim();
 
@@ -80,12 +86,33 @@ static class Utils
             nativeType = nativeType[5..].Trim();
 
         // Check if the native type is in the lookup table
-        if ( s_NativeTypeSubTable.ContainsKey( nativeType ) )
+        if ( s_NativeCharStringSet.Contains( nativeType ) )
         {
             return true;
         }
 
         return false;
+    }
+
+    public static bool NativeTypeIsStdString( string nativeType )
+    {
+        nativeType = nativeType.Trim();
+
+        if ( nativeType.StartsWith( "const" ) )
+            nativeType = nativeType[5..].Trim();
+
+        // Check if the native type is in the lookup table
+        if ( s_NativeStdStringSet.Contains( nativeType ) )
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public static bool NativeTypeIsString( string nativeType )
+    {
+        return NativeTypeIsCharString( nativeType ) || NativeTypeIsStdString( nativeType );
     }
 
     public static string GetManagedTypeSub( string nativeType )
