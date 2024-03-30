@@ -35,7 +35,7 @@ namespace Tree
 		explicit ConsoleLogSink() {}
 		~ConsoleLogSink() {};
 
-		const ConsoleLogHistorySap GetSap();
+		const std::vector<ConsoleLogEntry> GetHistory();
 
 	protected:
 		using spdlog::sinks::base_sink<Mutex>::formatter_;
@@ -105,7 +105,7 @@ namespace Tree
 		virtual std::shared_ptr<ILogger> CreateLogger( std::string name ) override;
 
 		virtual ILogger* CreateLoggerSap( std::string name ) override;
-		virtual const ConsoleLogHistorySap GetConsoleLogHistorySap() const override;
+		virtual const const Sap::Array<ConsoleLogEntrySap> GetConsoleLogHistorySap() const override;
 
 	private:
 		static constexpr const char* s_logFileName = "log.latest.txt";
@@ -135,39 +135,20 @@ namespace Tree
 #pragma region Sink Implementations
 
 template<class Mutex>
-const Tree::ConsoleLogHistorySap Tree::ConsoleLogSink<Mutex>::GetSap()
+const std::vector<Tree::ConsoleLogEntry> Tree::ConsoleLogSink<Mutex>::GetHistory()
 {
 	std::lock_guard<Mutex> lock( mutex_ );
-
-	size_t count = m_logEntries.size();
-
-	ConsoleLogHistorySap sap;
-	sap.count = static_cast<int>( count );
-	sap.entries = new ConsoleLogEntrySap[count];
-
-	for ( int i = 0; i < count; ++i )
-	{
-		auto& sapEntry = sap.entries[i];
-		auto& logEntry = m_logEntries[i];
-
-		sapEntry.loggerName = CopyToCString( logEntry.loggerName );
-		sapEntry.logLevel = logEntry.logLevel;
-		sapEntry.text = CopyToCString( logEntry.text );
-	}
-
-	return sap;
+	return m_logEntries;
 }
 
 template<class Mutex>
 void Tree::ConsoleLogSink<Mutex>::sink_it_( const spdlog::details::log_msg& msg )
 {
-	spdlog::memory_buf_t formatted;
-	formatter_->format( msg, formatted );
-	
 	ConsoleLogEntry entry;
-	entry.loggerName = fmt::format( "{}", msg.logger_name );
+	entry.loggerName = std::string( msg.logger_name.begin(), msg.logger_name.end() );
 	entry.logLevel = static_cast<int>( msg.level );
-	entry.text = std::string( formatted.begin(), formatted.end() );
+	entry.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>( msg.time.time_since_epoch() ).count();
+	entry.text = std::string( msg.payload.begin(), msg.payload.end() );
 
 	m_logEntries.push_back( entry );
 
@@ -273,9 +254,26 @@ Tree::ILogger* Tree::LogSystem::CreateLoggerSap( std::string name )
 	return smartPtr.get();
 }
 
-const Tree::ConsoleLogHistorySap Tree::LogSystem::GetConsoleLogHistorySap() const
+const Tree::Sap::Array<Tree::ConsoleLogEntrySap> Tree::LogSystem::GetConsoleLogHistorySap() const
 {
-	return m_consoleLogSink->GetSap();
+	auto entries = m_consoleLogSink->GetHistory();
+
+	auto array = Sap::Array<ConsoleLogEntrySap>::New( entries.size() );
+	for ( size_t i = 0; i < entries.size(); ++i )
+	{
+		m_systemLogger->Info( "{}", entries[i].timestamp );
+		ConsoleLogEntrySap sapEntry
+		{
+			.loggerName = Sap::String::New( entries[i].loggerName ),
+			.logLevel = entries[i].logLevel,
+			.timestamp = entries[i].timestamp,
+			.text = Sap::String::New( entries[i].text )
+		};
+
+		array[i] = sapEntry;
+	}
+
+	return array;
 }
 
 void Tree::LogSystem::ManageOldLogFiles()
@@ -428,8 +426,6 @@ void Tree::LogSystem::SetPatterns()
 		pattern = color_pattern;
 
 	spdlog::set_pattern( pattern );
-
-	m_consoleLogSink->set_pattern( "[%H:%M:%S] [%n] [%l] %v" );
 }
 
 std::vector<spdlog::sink_ptr> Tree::LogSystem::GetSinks() const

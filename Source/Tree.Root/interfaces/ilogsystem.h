@@ -8,6 +8,9 @@
 #include "Tree.NativeCommon/system.h"
 #include "Tree.NativeCommon/debug.h"
 
+#include "Tree.Root/sap/Array.h"
+#include "Tree.Root/sap/String.h"
+
 #define LOGSYSTEM_NAME "LogSystem_v01"
 
 namespace Tree
@@ -15,23 +18,17 @@ namespace Tree
 	struct ConsoleLogEntry
 	{
 		std::string loggerName;
-		int logLevel;
+		int logLevel = 0;
+		uint64_t timestamp = 0;
 		std::string text;
 	};
 
-	// It's yucky but these have to be raw pointers
-	// for interop to work
 	struct ConsoleLogEntrySap
 	{
-		char* loggerName;
-		int logLevel;
-		char* text;
-	};
-
-	struct ConsoleLogHistorySap
-	{
-		int count;
-		ConsoleLogEntrySap* entries;
+		SAP_GEN Sap::String loggerName;
+		SAP_GEN int logLevel;
+		SAP_GEN uint64_t timestamp;
+		SAP_GEN Sap::String text;
 	};
 
 	class ILogger
@@ -101,6 +98,8 @@ namespace Tree
 		virtual std::shared_ptr<ILogger> CreateLogger( std::string name ) = 0;
 
 		SAP_GEN virtual ILogger* CreateLoggerSap( std::string name ) = 0;
-		virtual const ConsoleLogHistorySap GetConsoleLogHistorySap() const = 0;
+
+		// C# must free this memory
+		SAP_GEN virtual const Sap::Array<ConsoleLogEntrySap> GetConsoleLogHistorySap() const = 0;
 	};
 }
