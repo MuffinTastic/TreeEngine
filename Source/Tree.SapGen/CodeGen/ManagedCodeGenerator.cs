@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.CodeDom.Compiler;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Tree.SapGen;
 
@@ -8,9 +9,44 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 {
 	public ManagedCodeGenerator( List<IUnit> units ) : base( units )
 	{
-	}
+    }
 
-	private List<string> GetUsings()
+    public string GenerateManagedCode()
+    {
+        var (baseTextWriter, writer) = Utils.CreateWriter();
+
+        writer.WriteLine( GetHeader() );
+        writer.WriteLine();
+
+        foreach ( var usingStatement in GetUsings() )
+            writer.WriteLine( $"using {usingStatement};" );
+
+        writer.WriteLine();
+        writer.WriteLine( $"namespace {GetNamespace()};" );
+        writer.WriteLine();
+
+        foreach ( var unit in Units )
+        {
+            if ( unit is Class c )
+            {
+                if ( c.IsNamespace )
+                    GenerateNamespaceCode( ref writer, c );
+                else
+                    GenerateClassCode( ref writer, c );
+            }
+
+            if ( unit is Structure s )
+            {
+                GenerateStructCode( ref writer, s );
+            }
+
+            writer.WriteLine();
+        }
+
+        return baseTextWriter.ToString();
+    }
+
+    private List<string> GetUsings()
 	{
 		return new() { "System.Runtime.InteropServices", "System.Runtime.Serialization", "Mocha.Common" };
 	}
@@ -299,40 +335,5 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 
 		writer.Indent--;
 		writer.WriteLine( "}" );
-	}
-
-	public string GenerateManagedCode()
-	{
-		var (baseTextWriter, writer) = Utils.CreateWriter();
-
-		writer.WriteLine( GetHeader() );
-		writer.WriteLine();
-
-		foreach ( var usingStatement in GetUsings() )
-			writer.WriteLine( $"using {usingStatement};" );
-
-		writer.WriteLine();
-		writer.WriteLine( $"namespace {GetNamespace()};" );
-		writer.WriteLine();
-
-		foreach ( var unit in Units )
-		{
-			if ( unit is Class c )
-			{
-				if ( c.IsNamespace )
-					GenerateNamespaceCode( ref writer, c );
-				else
-					GenerateClassCode( ref writer, c );
-			}
-
-			if ( unit is Structure s )
-			{
-				GenerateStructCode( ref writer, s );
-			}
-
-			writer.WriteLine();
-		}
-
-		return baseTextWriter.ToString();
 	}
 }
