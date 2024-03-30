@@ -12,7 +12,7 @@ internal class BaseCodeGenerator
 		Units = units;
 	}
 
-	protected string GetHeader()
+	protected static string GetHeader()
 	{
 		return $"""
 		//------------------------------------------------------------------------------ 

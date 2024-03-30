@@ -2,6 +2,7 @@
 using System.CodeDom.Compiler;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Xml.Linq;
 
 namespace Tree.SapGen;
 
@@ -29,10 +30,7 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
         {
             if ( unit is Class c )
             {
-                if ( c.IsNamespace )
-                    GenerateNamespaceCode( ref writer, c );
-                else
-                    GenerateClassCode( ref writer, c );
+                GenerateMethodCode( ref writer, c );
             }
 
             if ( unit is Structure s )
@@ -48,24 +46,29 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 
     private List<string> GetUsings()
 	{
-		return new() { "System.Runtime.InteropServices", "System.Runtime.Serialization", "Mocha.Common" };
+		return new() {
+            "System.Runtime.CompilerServices",
+			"Tree.Sap.Interop"
+		};
 	}
 
-	private string GetNamespace()
+	public static string GetNamespace()
 	{
-		return "Mocha.Glue";
+		return "Tree.Sap.Generated";
 	}
 
-	private void GenerateClassCode( ref IndentedTextWriter writer, Class sel )
+	private void GenerateMethodCode( ref IndentedTextWriter writer, Class c )
 	{
 		//
 		// Gather everything we need into nice lists
 		//
-		List<string> decls = new();
+		List<string> nativeDelegates = new();
 
-		foreach ( var method in sel.Methods )
-		{
-			var returnType = Utils.GetManagedTypeSub( method.ReturnType );
+		foreach ( var method in c.Methods )
+        {
+            bool hasInstance = !method.IsStatic && !c.IsNamespace;
+
+            var returnType = Utils.GetManagedInternalTypeSub( method.ReturnType );
 			var name = method.Name;
 
 			var returnsPointer = Utils.IsPointer( method.ReturnType ) && !method.IsConstructor && !method.IsDestructor;
@@ -73,267 +76,197 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 			if ( returnsPointer )
 				returnType = "nint";
 
-			if ( returnType == "string" )
-				returnType = "nint"; // Strings are handled specially - they go from pointer to string using InteropUtils.GetString
-
-			if ( method.IsConstructor || method.IsDestructor )
+            if ( method.IsConstructor || method.IsDestructor )
 				returnType = "nint"; // Ctor/dtor handled specially too
 
-			var parameterTypes = method.Parameters.Select( x => "nint" ); // Everything gets passed as a pointer
+			var parameterTypes = method.Parameters
+				.Select( p => Utils.GetManagedInternalTypeSub( p.Type ) )
+				.ToList(); 
 			var paramAndReturnTypes = parameterTypes.Append( returnType );
 
-			if ( !method.IsStatic )
+			if ( hasInstance )
 				paramAndReturnTypes = paramAndReturnTypes.Prepend( "nint" ); // Pointer to this class's instance
 
 			var delegateTypeArguments = string.Join( ", ", paramAndReturnTypes );
 
-			var delegateSignature = $"delegate* unmanaged< {delegateTypeArguments} >";
-
 			//
-			// With each method, we pass in a pointer to the instance, along with
-			// any parameters. The return type is the last type argument passed to
-			// the delegate.
+			// This gets set by Sap
 			//
-			decls.Add( $"private static {delegateSignature} _{name} = ({delegateSignature})Mocha.Common.Global.UnmanagedArgs.__{sel.Name}_{name}MethodPtr;" );
+			nativeDelegates.Add( $"private static delegate*< {delegateTypeArguments} > {BuildDelegateIdent( name )};" );
 		}
 
 		//
-		// Write shit
+		// Write class definition
 		//
-		string baseStr = sel.Bases.Any() ? sel.Bases.First().Name : "INativeGlue";
+		string classAccessLevel = "public";
+		if ( c.IsNamespace )
+			classAccessLevel += " static";
 
-		writer.WriteLine( $"public unsafe class {sel.Name} : {baseStr}" );
+        string classBase = c.Bases.Any() ? c.Bases.First().Name : "INativeSap";
+
+		string classDefinition = $"{classAccessLevel} unsafe class {c.Name}";
+
+		if ( !c.IsNamespace )
+			classDefinition += $" : {classBase}";
+
+        writer.WriteLine( classDefinition );
 		writer.WriteLine( "{" );
 		writer.Indent++;
 
-		if ( !sel.Bases.Any() )
 		{
-			writer.WriteLine( "public nint NativePtr { get; set; }" );
-            writer.WriteLine();
+			//
+			// Native instance pointer
+			//
+
+			// If it's a child class, NativePtr will already exist
+			if ( !c.Bases.Any() && !c.IsNamespace ) 
+			{
+				writer.WriteLine( "public nint NativePtr { get; set; }" );
+				writer.WriteLine();
+			}
+
+			// Delegates/native function pointers
+			foreach ( var @delegate in nativeDelegates )
+			{
+				writer.WriteLine( @delegate );
+			}
+
+			// Ctor
+			if ( c.Methods.Any( x => x.IsConstructor ) && !c.IsNamespace )
+			{
+				var ctor = c.Methods.First( x => x.IsConstructor );
+				var managedCtorArgs = string.Join( ", ", ctor.Parameters.Select( x => $"{Utils.GetManagedUserTypeSub( x.Type )} {x.Name}" ) );
+
+                writer.WriteLine();
+
+                writer.WriteLine( $"public {c.Name}( {managedCtorArgs} )" );
+				writer.WriteLine( "{" );
+				writer.Indent++;
+
+				var ctorCallArgs = string.Join( ", ", ctor.Parameters.Select( x => x.Name ) );
+				writer.WriteLine( $"this.NativePtr = this.Ctor( {ctorCallArgs} );" );
+
+				writer.Indent--;
+				writer.WriteLine( "}" );
+			}
+
+			// Methods
+			foreach ( var method in c.Methods )
+            {
+                bool hasInstance = !method.IsStatic && !c.IsNamespace;
+
+                writer.WriteLine();
+
+				//
+				// Gather function signature
+				//
+				// Call parameters as comma-separated string
+				var managedCallParams = string.Join( ", ", method.Parameters.Select( x => $"{Utils.GetManagedUserTypeSub( x.Type )} {x.Name}" ) );
+
+				// We return a pointer to the created object if it's a ctor/dtor, but otherwise we'll do auto-conversions to our managed types
+				var returnType = ( method.IsConstructor || method.IsDestructor ) ? "nint" : Utils.GetManagedUserTypeSub( method.ReturnType );
+
+				var returnsPointer = Utils.IsPointer( method.ReturnType ) && !method.IsConstructor && !method.IsDestructor;
+
+				// If this is a ctor or dtor, we don't want to be able to call the method manually
+				var methodAccessLevel = ( method.IsConstructor || method.IsDestructor ) ? "private" : "public";
+
+				if ( !hasInstance )
+					methodAccessLevel += " static";
+
+				// Write function signature
+				writer.WriteLine( $"{methodAccessLevel} {returnType} {method.Name}( {managedCallParams} ) " );
+				writer.WriteLine( "{" );
+				writer.Indent++;
+
+				//
+				// Gather function body
+				//
+				var args = method.Parameters;
+
+				// We need to pass the instance in if this is not a static method
+				if ( hasInstance )
+					args = args.Prepend( new Variable( "NativePtr", "nint" ) ).ToList();
+
+				BuildVariables( ref writer, args );
+				var @params = FixCallParams( args );
+
+                // Function call arguments as comma-separated string
+                var functionCall = $"{BuildDelegateIdent( method.Name )}( {@params} )";
+
+                if ( returnsPointer )
+				{
+					// If we want to return a pointer:
+					writer.WriteLine( $"nint ptr = {functionCall};" );
+					writer.WriteLine( $"var obj = RuntimeHelpers.GetUninitializedObject( typeof( {returnType} ) ) as {returnType};" );
+					writer.WriteLine( $"obj.NativePtr = ptr;" );
+					writer.WriteLine( $"return obj;" );
+				}
+
+                else
+				{
+                    if ( returnType == "void" )
+                    {
+                        writer.WriteLine( $"{functionCall};" );
+                    }
+					else
+                    {
+                        writer.WriteLine( $"return {functionCall};" );
+                    }
+				}
+
+				writer.Indent--;
+				writer.WriteLine( "}" );
+			}
+		}
+
+		writer.Indent--;
+		writer.WriteLine( "}" );
+	}
+
+	public static string BuildDelegateIdent( string name )
+	{
+		return $"_del_{name}";
+	}
+
+	private void BuildVariables( ref IndentedTextWriter writer, List<Variable> args )
+    {
+        foreach ( var arg in args )
+        {
+            if ( Utils.TypeIsString( arg.Type ) )
+            {
+                writer.WriteLine( $"using NativeString _sap_{arg.Name} = {arg.Name};" );
+            }
+        }
+    }
+    private string FixCallParams( List<Variable> @params )
+    {
+        return string.Join( ", ", @params.Select( p =>
+        {
+            if ( Utils.TypeIsString( p.Type ) )
+            {
+                return $"_sap_{p.Name}";
+            }
+            else
+            {
+                return p.Name;
+            }
+        } ) );
+    }
+
+    private void GenerateStructCode( ref IndentedTextWriter writer, Structure sel )
+    {
+        writer.WriteLine( $"[StructLayout( LayoutKind.Sequential )]" );
+        writer.WriteLine( $"public struct {sel.Name}" );
+        writer.WriteLine( "{" );
+        writer.Indent++;
+
+        foreach ( var field in sel.Fields )
+        {
+            writer.WriteLine( $"public {Utils.GetManagedUserTypeSub( field.Type )} {field.Name};" );
         }
 
-		// Decls
-		foreach ( var decl in decls )
-		{
-			writer.WriteLine( decl );
-		}
-		writer.WriteLine();
-
-		// Ctor
-		if ( sel.Methods.Any( x => x.IsConstructor ) )
-		{
-			var ctor = sel.Methods.First( x => x.IsConstructor );
-			var managedCtorArgs = string.Join( ", ", ctor.Parameters.Select( x => $"{Utils.GetManagedTypeSub( x.Type )} {x.Name}" ) );
-
-			writer.WriteLine( $"public {sel.Name}( {managedCtorArgs} )" );
-			writer.WriteLine( "{" );
-			writer.Indent++;
-
-			var ctorCallArgs = string.Join( ", ", ctor.Parameters.Select( x => x.Name ) );
-			writer.WriteLine( $"this.NativePtr = this.Ctor( {ctorCallArgs} );" );
-
-			writer.Indent--;
-			writer.WriteLine( "}" );
-		}
-
-		// Methods
-		foreach ( var method in sel.Methods )
-		{
-			writer.WriteLine();
-
-			//
-			// Gather function signature
-			//
-			// Call parameters as comma-separated string
-			var managedCallParams = string.Join( ", ", method.Parameters.Select( x => $"{Utils.GetManagedTypeSub( x.Type )} {x.Name}" ) );
-			var name = method.Name;
-
-			// We return a pointer to the created object if it's a ctor/dtor, but otherwise we'll do auto-conversions to our managed types
-			var returnType = (method.IsConstructor || method.IsDestructor) ? "nint" : Utils.GetManagedTypeSub( method.ReturnType );
-
-			var returnsPointer = Utils.IsPointer( method.ReturnType ) && !method.IsConstructor && !method.IsDestructor;
-
-			// If this is a ctor or dtor, we don't want to be able to call the method manually
-			var accessLevel = (method.IsConstructor || method.IsDestructor) ? "private" : "public";
-
-			if ( method.IsStatic )
-				accessLevel += " static";
-
-			// Write function signature
-			writer.WriteLine( $"{accessLevel} {returnType} {name}( {managedCallParams} ) " );
-			writer.WriteLine( "{" );
-			writer.Indent++;
-
-			// Spin up a MemoryContext instance
-			writer.WriteLine( $"using var ctx = new MemoryContext( \"{sel.Name}.{name}\" );" );
-
-			//
-			// Gather function body
-			//
-			var paramsAndInstance = method.Parameters;
-
-			// We need to pass the instance in if this is not a static method
-			if ( !method.IsStatic )
-				paramsAndInstance = paramsAndInstance.Prepend( new Variable( "NativePtr", "nint" ) ).ToList();
-
-			// Gather function call arguments. Make sure that we're passing in a pointer for everything
-			var paramNames = paramsAndInstance.Select( x => "ctx.GetPtr( " + x.Name + " )" );
-
-			// Function call arguments as comma-separated string
-			var functionCallArgs = string.Join( ", ", paramNames );
-
-			if ( returnsPointer )
-			{
-				// If we want to return a pointer:
-				writer.WriteLine( $"var ptr = _{name}( {functionCallArgs} );" );
-				writer.WriteLine( $"var obj = FormatterServices.GetUninitializedObject( typeof( {returnType} ) ) as {returnType};" );
-				writer.WriteLine( $"obj.NativePtr = ptr;" );
-				writer.WriteLine( $"return obj;" );
-			}
-			else
-			{
-				// If we want to return a value:
-				if ( returnType != "void" )
-					writer.Write( "return " );
-
-				// This is a pretty dumb and HACKy way of handling strings
-				if ( returnType == "string" )
-					writer.Write( "ctx.GetString( " );
-
-				// Call the function..
-				writer.Write( $"_{name}( {functionCallArgs} )" );
-
-				// Finish string
-				if ( returnType == "string" )
-					writer.Write( ")" );
-
-				writer.WriteLine( ";" );
-			}
-
-			writer.Indent--;
-			writer.WriteLine( "}" );
-		}
-
-		writer.Indent--;
-		writer.WriteLine( "}" );
-	}
-
-	private void GenerateStructCode( ref IndentedTextWriter writer, Structure sel )
-	{
-		writer.WriteLine( $"[StructLayout( LayoutKind.Sequential )]" );
-		writer.WriteLine( $"public struct {sel.Name}" );
-		writer.WriteLine( "{" );
-		writer.Indent++;
-
-		foreach ( var field in sel.Fields )
-		{
-			writer.WriteLine( $"public {Utils.GetManagedTypeSub( field.Type )} {field.Name};" );
-		}
-
-		writer.Indent--;
-		writer.WriteLine( "}" );
-	}
-
-	private void GenerateNamespaceCode( ref IndentedTextWriter writer, Class sel )
-	{
-		//
-		// Gather everything we need into nice lists
-		//
-		List<string> decls = new();
-
-		foreach ( var method in sel.Methods )
-		{
-			var returnType = Utils.GetManagedTypeSub( method.ReturnType );
-			var name = method.Name;
-
-			var returnsPointer = Utils.IsPointer( method.ReturnType ) && !method.IsConstructor && !method.IsDestructor;
-
-			if ( returnType == "string" || returnsPointer )
-				returnType = "nint"; // Strings are handled specially - they go from pointer to string using InteropUtils.GetString
-
-			var parameterTypes = method.Parameters.Select( x => "nint" ); // Everything gets passed as a pointer
-			var paramAndReturnTypes = parameterTypes.Append( returnType );
-
-			var delegateTypeArguments = string.Join( ", ", paramAndReturnTypes );
-
-			var delegateSignature = $"delegate* unmanaged< {delegateTypeArguments} >";
-
-			//
-			// With each method, we pass in a pointer to the instance, along with
-			// any parameters. The return type is the last type argument passed to
-			// the delegate.
-			//
-			decls.Add( $"private static {delegateSignature} _{name} = ({delegateSignature})Mocha.Common.Global.UnmanagedArgs.__{sel.Name}_{name}MethodPtr;" );
-		}
-
-		//
-		// Write shit
-		//
-		writer.WriteLine( $"public static unsafe class {sel.Name}" );
-		writer.WriteLine( "{" );
-		writer.Indent++;
-
-		writer.WriteLine();
-		foreach ( var decl in decls )
-		{
-			writer.WriteLine( decl );
-		}
-
-		// Methods
-		foreach ( var method in sel.Methods )
-		{
-			writer.WriteLine();
-
-			var managedCallParams = string.Join( ", ", method.Parameters.Select( x => $"{Utils.GetManagedTypeSub( x.Type )} {x.Name}" ) );
-			var name = method.Name;
-			var returnType = Utils.GetManagedTypeSub( method.ReturnType );
-			var accessLevel = (method.IsConstructor || method.IsDestructor) ? "private" : "public";
-			var returnsPointer = Utils.IsPointer( method.ReturnType ) && !method.IsConstructor && !method.IsDestructor;
-
-			writer.WriteLine( $"{accessLevel} static {returnType} {name}( {managedCallParams} ) " );
-			writer.WriteLine( "{" );
-			writer.Indent++;
-
-			// Spin up a MemoryContext instance
-			writer.WriteLine( $"using var ctx = new MemoryContext( \"{sel.Name}.{name}\" );" );
-
-			var @params = method.Parameters;
-			var paramNames = @params.Select( x => "ctx.GetPtr( " + x.Name + " )" );
-			var functionCallArgs = string.Join( ", ", paramNames );
-
-			if ( returnsPointer )
-			{
-				// If we want to return a pointer:
-				writer.WriteLine( $"var ptr = _{name}( {functionCallArgs} );" );
-				writer.WriteLine( $"var obj = FormatterServices.GetUninitializedObject( typeof( {returnType} ) ) as {returnType};" );
-				writer.WriteLine( $"obj.instance = ptr;" );
-				writer.WriteLine( $"return obj;" );
-			}
-			else
-			{
-				// If we want to return a value:
-				if ( returnType != "void" )
-					writer.Write( "return " );
-
-				// This is a pretty dumb and HACKy way of handling strings
-				if ( returnType == "string" )
-					writer.Write( "ctx.GetString( " );
-
-				// Call the function..
-				writer.Write( $"_{name}( {functionCallArgs} )" );
-
-				// Finish string
-				if ( returnType == "string" )
-					writer.Write( ")" );
-
-				writer.WriteLine( ";" );
-			}
-
-			writer.Indent--;
-			writer.WriteLine( "}" );
-		}
-
-		writer.Indent--;
-		writer.WriteLine( "}" );
-	}
+        writer.Indent--;
+        writer.WriteLine( "}" );
+    }
 }
