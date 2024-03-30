@@ -58,8 +58,6 @@ void Tree::EngineSystem::Shutdown()
 void Tree::EngineSystem::Run()
 {
 	m_logger->Info( "Hello {}", 42 );
-
-	Sys::Log()->Warning( "it worked on the first try.. i dont like it..." );
 	// 
 	Sys::Log()->Info( Sys::CmdLine()->GetStringOption("bob", "yop") );
 }

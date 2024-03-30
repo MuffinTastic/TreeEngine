@@ -140,11 +140,6 @@ void Tree::ManagedHostSystem::Shutdown()
 	s_CoreCLRFunctions.CloseHostFXR( m_HostFXRContext );
 }
 
-void StringDemoClient( Tree::Sap::String str )
-{
-	Tree::Sys::Log()->Info( "test {}", std::string( str ) );
-}
-
 void Tree::ManagedHostSystem::LoadEngineFunctions()
 {
 	std::filesystem::path enginePath = Platform::GetEngineDirectoryPath();
@@ -163,8 +158,6 @@ void Tree::ManagedHostSystem::TrunkFunc()
 	std::filesystem::path enginePath = Platform::GetEngineDirectoryPath();
 	auto assemblyPath = enginePath / TREE_TRUNK_ASSEMBLY_NAME MANAGED_ASSEMBLY_EXT;
 	auto& assembly = m_loadContext.LoadAssembly( Platform::PathToUTF8( assemblyPath ) );
-
-	m_logger->Info( "{}", reinterpret_cast<uint64_t>(Sys::Log()) );
 
 	auto type = assembly.GetType( "Tree.Trunk.SapEntry" );
 	type.InvokeStaticMethod( "Entry" );

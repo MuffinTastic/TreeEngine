@@ -118,14 +118,14 @@ public static class Program
         var nativeGenerator = new NativeCodeGenerator( units );
         var relativePath = Path.GetRelativePath( sourcePath, path );
         var nativeCode = nativeGenerator.GenerateNativeCode( relativePath );
-        Console.WriteLine( $"Native Code at '{nativeOutPath}':" );
-        Console.WriteLine( nativeCode );
+        //Console.WriteLine( $"Native Code at '{nativeOutPath}':" );
+        //Console.WriteLine( nativeCode );
         File.WriteAllText( nativeOutPath, nativeCode );
 
         var managedGenerator = new ManagedCodeGenerator( units );
         var managedCode = managedGenerator.GenerateManagedCode();
-        Console.WriteLine( "Managed Code:" );
-        Console.WriteLine( managedCode );
+        //Console.WriteLine( "Managed Code:" );
+        //Console.WriteLine( managedCode );
         File.WriteAllText( managedOutPath, managedCode );
 
         var sapHeaderPath = Path.GetRelativePath( sourcePath, nativeOutPath );
@@ -143,8 +143,8 @@ public static class Program
 
         var nativeCode = NativeCodeGenerator.GenerateNativeUploadCode( s_NativeHeaders, methods );
 
-        Console.WriteLine( "Upload code: " );
-        Console.WriteLine( nativeCode );
+        //Console.WriteLine( "Upload code: " );
+        //Console.WriteLine( nativeCode );
         File.WriteAllText( nativeOutPath, nativeCode );
     }
 }
