@@ -424,3 +424,5 @@ ThirdParty/Include/*
 !ThirdParty/README.md
 
 !Tree.Sap
+
+Source/**/[Ss]ap[Gg]en/*
