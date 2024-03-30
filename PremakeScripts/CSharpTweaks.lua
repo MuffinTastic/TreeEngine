@@ -49,6 +49,7 @@ premake.override(premake.vstudio.dotnetbase, "projectProperties", function(base,
     end
 
     _p(2, '<Nullable>enable</Nullable>')
+    _p(2, '<ImplicitUsings>enable</ImplicitUsings>')
 
     if cfg.alwaysrunpostbuild then
         _p(2, '<RunPostBuildEvent>Always</RunPostBuildEvent>')
