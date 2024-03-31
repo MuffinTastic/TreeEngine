@@ -93,7 +93,10 @@ public static class Parser
 					classBases.Add( (unit, bases) );
 					break;
 				case CXCursorKind.CXCursor_StructDecl:
-					units.Add( new Structure( cursor.Spelling.ToString() ) );
+                    if ( !HasGenerateBindingsAttribute() )
+                        return CXChildVisitResult.CXChildVisit_Continue;
+
+                    units.Add( new Structure( cursor.Spelling.ToString() ) );
 					break;
 				case CXCursorKind.CXCursor_Namespace:
 					units.Add( new Class( cursor.Spelling.ToString() )
@@ -161,9 +164,6 @@ public static class Parser
 				//
 				case CXCursorKind.CXCursor_FieldDecl:
 					{
-						if ( !HasGenerateBindingsAttribute() )
-							return CXChildVisitResult.CXChildVisit_Continue;
-
 						var oName = cursor.LexicalParent.Spelling.ToString();
 						var s = units.FirstOrDefault( x => x.Name == oName );
 

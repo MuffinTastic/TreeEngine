@@ -23,12 +23,12 @@ namespace Tree
 		std::string text;
 	};
 
-	struct ConsoleLogEntrySap
+	struct SAP_GEN ConsoleLogEntrySap
 	{
-		SAP_GEN Sap::String loggerName;
-		SAP_GEN int logLevel;
-		SAP_GEN uint64_t timestamp;
-		SAP_GEN Sap::String text;
+		Sap::String loggerName;
+		int logLevel;
+		uint64_t timestamp;
+		Sap::String text;
 	};
 
 	class ILogger
