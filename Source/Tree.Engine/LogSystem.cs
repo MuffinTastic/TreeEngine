@@ -53,11 +53,10 @@ public static class LogSystem
     {
         List<ConsoleLogEntry> entries = new();
 
-        using var sapEntries = ILogSystem.GetConsoleLogHistorySap();
+        using NativeArray<ConsoleLogEntrySap> sapEntries = ILogSystem.GetConsoleLogHistorySap();
 
         foreach ( var sapEntry in sapEntries )
         {
-            Log.Info( sapEntry.timestamp );
             ConsoleLogEntry entry = new ConsoleLogEntry()
             {
                 loggerName = sapEntry.loggerName!,
@@ -67,9 +66,6 @@ public static class LogSystem
             };
 
             entries.Add( entry );
-
-            sapEntry.loggerName.Dispose();
-            sapEntry.text.Dispose();
         }
 
         return entries;

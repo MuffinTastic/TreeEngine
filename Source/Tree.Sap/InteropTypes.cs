@@ -99,8 +99,22 @@ public struct NativeArray<T> : IDisposable, IEnumerable<T>
 
     public void Dispose()
     {
+        Dispose( disposeContents: true );
+    }
+
+    public void Dispose( bool disposeContents )
+    {
         if ( !m_IsDisposed )
         {
+            if ( disposeContents && typeof( T ).IsAssignableTo( typeof( IDisposable ) ) )
+            {
+                foreach ( var elem in ToSpan() )
+                {
+                    var disposable = (IDisposable) elem!;
+                    disposable.Dispose();
+                }
+            }
+
             Marshal.FreeHGlobal( m_NativeArray );
             m_IsDisposed = true;
         }

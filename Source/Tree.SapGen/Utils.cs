@@ -158,6 +158,18 @@ static class Utils
         return TypeIsCharString( nativeType ) || TypeIsStdString( nativeType );
     }
 
+    public static bool TypeIsArray( string nativeType )
+    {
+        if ( nativeType.Contains( "<" ) && nativeType.EndsWith( ">" ) )
+        {
+            Match match = s_TemplateRegex.Match( nativeType );
+            string templateClass = GetManagedInternalTypeSub( match.Groups[1].Value );
+            return templateClass == "NativeArray";
+        }
+
+        return false;
+    }
+
     public static string GetManagedUserTypeSub( string nativeType )
 	{
 		// Trim whitespace from beginning / end (if it exists)

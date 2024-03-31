@@ -16,6 +16,8 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
     {
         var (baseTextWriter, writer) = Utils.CreateWriter();
 
+		var allStructs = Units.OfType<Structure>().Select( s => s.Name ).ToHashSet();
+
         writer.WriteLine( GetHeader() );
         writer.WriteLine();
 
@@ -35,7 +37,7 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 
             if ( unit is Structure s )
             {
-                GenerateStructCode( ref writer, s );
+                GenerateStructCode( ref writer, allStructs, s );
             }
 
             writer.WriteLine();
@@ -251,17 +253,41 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
         } ) );
     }
 
-    private void GenerateStructCode( ref IndentedTextWriter writer, Structure sel )
+    private void GenerateStructCode( ref IndentedTextWriter writer, HashSet<string> allStructs, Structure s )
     {
-        writer.WriteLine( $"[StructLayout( LayoutKind.Sequential )]" );
-        writer.WriteLine( $"public struct {sel.Name}" );
+		writer.WriteLine( $"[StructLayout( LayoutKind.Sequential )]" );
+        writer.WriteLine( $"public struct {s.Name} : IDisposable" );
         writer.WriteLine( "{" );
         writer.Indent++;
 
-        foreach ( var field in sel.Fields )
-        {
-            writer.WriteLine( $"public {Utils.GetManagedInternalTypeSub( field.Type )} {field.Name};" );
-        }
+		{
+			foreach ( var field in s.Fields )
+			{
+				writer.WriteLine( $"public {Utils.GetManagedInternalTypeSub( field.Type )} {field.Name};" );
+			}
+
+			var disposables = s.Fields.Where( f =>
+			{
+				var sub = Utils.GetManagedInternalTypeSub( f.Type );
+				return sub == "NativeString" || Utils.TypeIsArray( sub ) || allStructs.Contains( sub );
+			} ).ToList();
+
+            writer.WriteLine();
+            writer.WriteLine( "public void Dispose()" );
+			writer.WriteLine( "{" );
+			writer.Indent++;
+
+			foreach ( var field in disposables )
+			{
+				writer.WriteLine( $"{field.Name}.Dispose();" );
+			}
+
+			{
+				writer.WriteLine( "GC.SuppressFinalize( this );" );
+			}
+			writer.Indent--;
+            writer.WriteLine( "}" );
+		}
 
         writer.Indent--;
         writer.WriteLine( "}" );
