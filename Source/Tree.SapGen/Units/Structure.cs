@@ -9,12 +9,11 @@ public class Structure : IUnit
 		Name = name;
 
 		Fields = new();
-		Methods = new();
 	}
 
 	public string Name { get; set; }
-	public List<Method> Methods { get; set; }
 	public List<Variable> Fields { get; set; }
+	public int Count { get => Fields.Count; }
 
 	public override string ToString()
 	{

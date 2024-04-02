@@ -98,6 +98,12 @@ public static class Parser
 
                     units.Add( new Structure( cursor.Spelling.ToString() ) );
 					break;
+				case CXCursorKind.CXCursor_EnumDecl:
+                    if ( !HasGenerateBindingsAttribute() )
+                        return CXChildVisitResult.CXChildVisit_Continue;
+
+                    units.Add( new Enum( cursor.Spelling.ToString() ) );
+                    break;
 				case CXCursorKind.CXCursor_Namespace:
 					units.Add( new Class( cursor.Spelling.ToString() )
 					{
@@ -116,19 +122,20 @@ public static class Parser
 							return CXChildVisitResult.CXChildVisit_Continue;
 
 						var oName = cursor.LexicalParent.Spelling.ToString();
-						var o = units.FirstOrDefault( x => x.Name == oName );
-						var m = new Method( cursor.Spelling.ToString(), cursor.ReturnType.Spelling.ToString() )
-						{
-							IsStatic = cursor.IsStatic
-						};
+						var o = units.FirstOrDefault( x => x.Name == oName ) as Class;
 
 						if ( o == null )
 						{
 							Console.WriteLine( "No unit" );
 							break;
-						}
+                        }
 
-						CXCursorVisitor methodChildVisitor = ( CXCursor cursor, CXCursor parent, void* data ) =>
+                        var m = new Method( cursor.Spelling.ToString(), cursor.ReturnType.Spelling.ToString() )
+                        {
+                            IsStatic = cursor.IsStatic
+                        };
+
+                        CXCursorVisitor methodChildVisitor = ( CXCursor cursor, CXCursor parent, void* data ) =>
 						{
 							if ( cursor.Kind == CXCursorKind.CXCursor_ParmDecl )
 							{
@@ -165,13 +172,25 @@ public static class Parser
 				case CXCursorKind.CXCursor_FieldDecl:
 					{
 						var oName = cursor.LexicalParent.Spelling.ToString();
-						var s = units.FirstOrDefault( x => x.Name == oName );
+						var s = units.FirstOrDefault( x => x.Name == oName ) as Structure;
 
 						if ( s == null )
 							break;
 
 						s.Fields.Add( new Variable( cursor.Spelling.ToString(), cursor.Type.ToString() ) );
 						break;
+					}
+
+				case CXCursorKind.CXCursor_EnumConstantDecl:
+                    {
+                        var oName = cursor.LexicalParent.Spelling.ToString();
+                        var e = units.FirstOrDefault( x => x.Name == oName ) as Enum;
+
+						if ( e == null )
+							break;
+
+						e.Constants.Add( new EnumConstant( cursor.Spelling.ToString(), cursor.EnumConstantDeclValue.ToString() ) );
+                        break;
 					}
 
 				default:
@@ -188,15 +207,16 @@ public static class Parser
 		//
 		for ( int i = 0; i < units.Count; i++ )
 		{
-			var o = units[i];
-			o.Methods = o.Methods.GroupBy( x => x.Name ).Select( x => x.First() ).ToList();
-			o.Fields = o.Fields.GroupBy( x => x.Name ).Select( x => x.First() ).ToList();
+			if ( units[i] is Class c )
+				c.Methods = c.Methods.GroupBy( x => x.Name ).Select( x => x.First() ).ToList();
+			if ( units[i] is Structure s )
+				s.Fields = s.Fields.GroupBy( x => x.Name ).Select( x => x.First() ).ToList();
 		}
 
 		//
 		// Remove any units that have no methods or fields
 		//
-		units = units.Where( x => x.Methods.Count > 0 || x.Fields.Count > 0 ).ToList();
+		units = units.Where( x => x.Count > 0 ).ToList();
 
 		//
 		// Post-processing

@@ -40,6 +40,11 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
                 GenerateStructCode( ref writer, allStructs, s );
             }
 
+			if ( unit is Enum e )
+			{
+				GenerateEnumCode( ref writer, e );
+			}
+
             writer.WriteLine();
         }
 
@@ -288,6 +293,21 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 			writer.Indent--;
             writer.WriteLine( "}" );
 		}
+
+        writer.Indent--;
+        writer.WriteLine( "}" );
+    }
+
+    private void GenerateEnumCode( ref IndentedTextWriter writer, Enum e )
+    {
+        writer.WriteLine( $"public enum {e.Name} : int" );
+        writer.WriteLine( "{" );
+        writer.Indent++;
+
+        foreach ( var constant in e.Constants)
+        {
+			writer.WriteLine( $"{constant.Name} = {constant.Value}," );
+        }
 
         writer.Indent--;
         writer.WriteLine( "}" );
