@@ -96,7 +96,7 @@ static class Utils
             { "Handle",             "uint" }
         };
 
-    private static Regex s_TemplateRegex = new Regex( @"(.*)<(.*)>" );
+    private static Regex s_TemplateRegex = new Regex( @"^(.*?)<(.*)>$" );
 
     public static bool IsPointer( string nativeType )
 	{
