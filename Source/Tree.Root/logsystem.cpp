@@ -105,7 +105,7 @@ namespace Tree
 		virtual std::shared_ptr<ILogger> CreateLogger( std::string name ) override;
 
 		virtual ILogger* CreateLoggerSap( std::string name ) override;
-		virtual const const Sap::Array<ConsoleLogEntrySap> GetConsoleLogHistorySap() const override;
+		virtual const Sap::Array<ConsoleLogEntrySap> GetConsoleLogHistorySap() const override;
 
 	private:
 		static constexpr const char* s_logFileName = "log.latest.txt";
