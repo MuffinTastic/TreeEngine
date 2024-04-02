@@ -39,4 +39,12 @@ public class Logger
     {
         _logger.InternalError( sourceFilePath, sourceLineNumber, memberName, obj.ToString() );
     }
+
+    public void Trace( object obj,
+        [CallerMemberName] string memberName = "",
+        [CallerFilePath] string sourceFilePath = "",
+        [CallerLineNumber] int sourceLineNumber = 0 )
+    {
+        _logger.InternalTrace( sourceFilePath, sourceLineNumber, memberName, obj.ToString() );
+    }
 }
