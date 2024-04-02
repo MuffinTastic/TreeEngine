@@ -261,7 +261,6 @@ const Tree::Sap::Array<Tree::ConsoleLogEntrySap> Tree::LogSystem::GetConsoleLogH
 	auto array = Sap::Array<ConsoleLogEntrySap>::New( entries.size() );
 	for ( size_t i = 0; i < entries.size(); ++i )
 	{
-		m_systemLogger->Info( "{}", entries[i].timestamp );
 		ConsoleLogEntrySap sapEntry
 		{
 			.loggerName = Sap::String::New( entries[i].loggerName ),
