@@ -4,6 +4,7 @@
 
 #ifdef WINDOWS
 #include <combaseapi.h>
+#include <string.h>
 #endif
 
 namespace Tree
@@ -40,7 +41,7 @@ namespace Tree
 				if ( buffer != nullptr )
 				{
 					memset( buffer, 0xCE, size );
-					wcscpy( buffer, InString.data() );
+					wcscpy_s( buffer, length, InString.data() );
 				}
 #else
 				auto* buffer = static_cast<SapChar*>( AllocHGlobal( size ) );
@@ -48,7 +49,7 @@ namespace Tree
 				if ( buffer != nullptr )
 				{
 					memset( buffer, 0, size );
-					strcpy( buffer, InString.data() );
+					strcpy_s( buffer, length, InString.data() );
 				}
 #endif
 
