@@ -14,7 +14,7 @@ namespace Tree
 		SAP_GEN ICmdLineSystem* CmdLine();
 		SAP_GEN ILogSystem* Log();
 		IManagedHostSystem* ManagedHost();
-		IEngineSystem* Engine();
+		SAP_GEN IEngineSystem* Engine();
 
 		void UpdateFromModule( Module* module );
 		void Reset();

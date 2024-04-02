@@ -23,6 +23,7 @@ namespace Tree
 
 		void Run();
 
+		virtual inline EDomain GetDomain() const override;
 		virtual inline bool IsClient() const override;
 		virtual inline bool IsClientOnly() const override;
 		virtual inline bool IsEditorOnly() const override;
@@ -60,6 +61,11 @@ void Tree::EngineSystem::Run()
 	m_logger->Info( "Hello {}", 42 );
 	// 
 	Sys::Log()->Info( Sys::CmdLine()->GetStringOption("bob", "yop") );
+}
+
+inline Tree::EDomain Tree::EngineSystem::GetDomain() const
+{
+	return m_domain;
 }
 
 inline bool Tree::EngineSystem::IsClient() const
