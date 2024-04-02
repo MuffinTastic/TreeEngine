@@ -29,7 +29,7 @@ public struct ConsoleLogEntry
 
 public static class LogSystem
 {
-    internal static ILogSystem ILogSystem { get; } = Sys.Log();
+    internal static ILogSystem s_LogSystem { get; } = Sys.Log();
 
     private static Dictionary<string, Logger> s_LoggerCache = new();
 
@@ -43,7 +43,7 @@ public static class LogSystem
         }
         else
         {
-            logger = new Logger( ILogSystem.CreateLoggerSap( name ) );
+            logger = new Logger( s_LogSystem.CreateLoggerSap( name ) );
             s_LoggerCache.Add( name, logger );
             return logger;
         }
@@ -53,7 +53,7 @@ public static class LogSystem
     {
         List<ConsoleLogEntry> entries = new();
 
-        using NativeArray<ConsoleLogEntrySap> sapEntries = ILogSystem.GetConsoleLogHistorySap();
+        using NativeArray<ConsoleLogEntrySap> sapEntries = s_LogSystem.GetConsoleLogHistorySap();
 
         foreach ( var sapEntry in sapEntries )
         {
