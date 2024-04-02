@@ -98,8 +98,6 @@ namespace Tree
 		virtual std::shared_ptr<ILogger> CreateLogger( std::string name ) = 0;
 
 		SAP_GEN virtual ILogger* CreateLoggerSap( std::string name ) = 0;
-
-		// C# must free this memory
 		SAP_GEN virtual const Sap::Array<ConsoleLogEntrySap> GetConsoleLogHistorySap() const = 0;
 	};
 }

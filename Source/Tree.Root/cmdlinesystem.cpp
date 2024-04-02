@@ -23,9 +23,11 @@ namespace Tree
 		virtual void ProcessArguments( std::vector<std::string> arguments ) override;
 
 		virtual std::vector<std::string> GetArguments() const override;
+
 		virtual bool GetFlag( std::string name ) const override;
 		virtual std::string GetStringOption( std::string name, std::string def ) const override;
 		virtual int GetIntOption( std::string name, int def ) const override;
+
 		virtual std::vector<std::string> GetCommands() const override;
 
 	private:
