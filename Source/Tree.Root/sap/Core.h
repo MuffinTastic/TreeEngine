@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string_view>
+#include "Tree.NativeCommon/defs.h"
 
 #ifdef WINDOWS
 	#define SAP_CALLTYPE __cdecl
