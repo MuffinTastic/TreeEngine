@@ -48,11 +48,15 @@ Tree::ESystemInitCode Tree::EngineSystem::Startup()
 {
 	m_logger = Sys::Log()->CreateLogger( "Engine" );
 
+	Sys::ManagedHost()->TrunkRunEvent( EMHEVENT_STARTUP );
+
     return ESYSTEMINIT_SUCCESS;
 }
 
 void Tree::EngineSystem::Shutdown()
 {
+	Sys::ManagedHost()->TrunkRunEvent( EMHEVENT_SHUTDOWN );
+
 	m_logger->Info( "Engine shutdown" );
 }
 

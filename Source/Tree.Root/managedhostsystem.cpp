@@ -52,15 +52,16 @@ namespace Tree
 		virtual ESystemInitCode Startup() override;
 		virtual void Shutdown() override;
 
+		virtual void TrunkRunEvent( EManagedHostEvent event ) override;
+
 	public:
 		std::shared_ptr<ILogger> m_logger;
 
 	private:
 		Sap::AssemblyLoadContext m_loadContext;
+		Sap::Type m_trunkEntry;
 
 		void LoadEngineFunctions();
-
-		void TrunkFunc();
 
 	private:
 		struct CoreCLRFunctions
@@ -129,8 +130,6 @@ Tree::ESystemInitCode Tree::ManagedHostSystem::Startup()
 
 	LoadEngineFunctions();
 
-	TrunkFunc();
-
     return ESYSTEMINIT_SUCCESS;
 }
 
@@ -143,24 +142,24 @@ void Tree::ManagedHostSystem::Shutdown()
 void Tree::ManagedHostSystem::LoadEngineFunctions()
 {
 	std::filesystem::path enginePath = Platform::GetEngineDirectoryPath();
+
 	auto assemblyPath = enginePath / TREE_ENGINE_ASSEMBLY_NAME MANAGED_ASSEMBLY_EXT;
-	auto& assembly = m_loadContext.LoadAssembly( Platform::PathToUTF8( assemblyPath ) );
+	auto& engineAssembly = m_loadContext.LoadAssembly( Platform::PathToUTF8( assemblyPath ) );
 
-	Tree::Sap::Generated::AddSapCalls( assembly );
+	assemblyPath = enginePath / TREE_TRUNK_ASSEMBLY_NAME MANAGED_ASSEMBLY_EXT;
+	auto& trunkAssembly = m_loadContext.LoadAssembly( Platform::PathToUTF8( assemblyPath ) );
 
-	assembly.UploadInternalCalls();
-
+	Tree::Sap::Generated::AddSapCalls( engineAssembly );
+	engineAssembly.UploadInternalCalls();
 	m_logger->Info( "Uploaded internal calls" );
+
+	m_trunkEntry = trunkAssembly.GetType( "Tree.Trunk.SapEntry" );
+
 }
 
-void Tree::ManagedHostSystem::TrunkFunc()
+void Tree::ManagedHostSystem::TrunkRunEvent( EManagedHostEvent event )
 {
-	std::filesystem::path enginePath = Platform::GetEngineDirectoryPath();
-	auto assemblyPath = enginePath / TREE_TRUNK_ASSEMBLY_NAME MANAGED_ASSEMBLY_EXT;
-	auto& assembly = m_loadContext.LoadAssembly( Platform::PathToUTF8( assemblyPath ) );
-
-	auto type = assembly.GetType( "Tree.Trunk.SapEntry" );
-	type.InvokeStaticMethod( "Entry" );
+	m_trunkEntry.InvokeStaticMethod( "RunEvent", static_cast<int>( event ) );
 }
 
 Tree::Sap::AssemblyLoadContext Tree::ManagedHostSystem::CreateAssemblyLoadContext( std::string_view InName )
