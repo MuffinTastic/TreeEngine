@@ -1,8 +1,10 @@
 #pragma once
 
+#include "defs.h"
+
 namespace Tree
 {
-	enum EDomain
+	enum SAP_GEN EDomain
 	{
 		EDOMAIN_UNINITIALIZED		= 0,
 
