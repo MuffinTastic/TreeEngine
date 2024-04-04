@@ -61,7 +61,12 @@ group "Managed"
         target = "Engine",
         allowunsafeblocks = true,
         links = { "Tree.Sap" },
-        dependson = { "Tree.SapGen" }
+        dependson = { "Tree.SapGen" },
+        nuget = {
+            "Microsoft.Build:17.9.5",
+            "Microsoft.CodeAnalysis.CSharp:4.9.2",
+            "NuGet.Protocol:6.9.1"
+        },
     }
 
     treeproject {
