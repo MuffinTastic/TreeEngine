@@ -1,3 +1,4 @@
+include "PremakeScripts/CPPTweaks.lua"
 include "PremakeScripts/CSharpTweaks.lua"
 include "PremakeScripts/CleanVS.lua"
 include "PremakeScripts/TreeProject.lua"
@@ -14,6 +15,7 @@ workspace "TreeEngine"
     includedirs         { "%{wks.location}", "ThirdParty/Include" }
 
     flags { "MultiProcessorCompile" }
+    vectorextensions "AVX512"
 
     filter { "platforms:x64" }
         architecture    "x86_64"
