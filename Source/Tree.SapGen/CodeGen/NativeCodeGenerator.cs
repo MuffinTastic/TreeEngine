@@ -17,6 +17,33 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
         return "Tree::Sap::Generated";
     }
 
+    public static string GenerateNativeHashCode( long hash )
+    {
+        var (baseTextWriter, writer) = Utils.CreateWriter();
+
+        writer.WriteLine( GetHeader() );
+        writer.WriteLine();
+        writer.WriteLine( "#include <cstdint>" );
+        writer.WriteLine();
+        writer.WriteLine( $"namespace {GetNamespace()}" );
+        writer.WriteLine( "{" );
+        writer.Indent++;
+        {
+            writer.WriteLine( $"inline int64_t GetNativeSapHash()" );
+            writer.WriteLine( "{" );
+            writer.Indent++;
+            {
+                writer.WriteLine( $"return {hash};" );
+            }
+            writer.Indent--;
+            writer.WriteLine( "}" );
+        }
+        writer.Indent--;
+        writer.WriteLine( "}" );
+
+        return baseTextWriter.ToString();
+    }
+
 	public string GenerateNativeCode( string headerPath )
 	{
 		var (baseTextWriter, writer) = Utils.CreateWriter();
@@ -183,6 +210,8 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
         writer.WriteLine( "#include \"Tree.Root/sap/Assembly.h\"" );
         writer.WriteLine();
 
+        writer.WriteLine( "#include \"saphash.h\"" );
+
         foreach ( var header in includes )
         {
             writer.WriteLine( $"#include \"{header}\"" );
@@ -198,6 +227,11 @@ sealed class NativeCodeGenerator : BaseCodeGenerator
             writer.WriteLine( "inline void AddSapCalls( Tree::Sap::ManagedAssembly& assembly )" );
             writer.WriteLine( "{" );
             writer.Indent++;
+
+            {
+                string managedDelIdent = ManagedCodeGenerator.BuildDelegateIdent( "GetNativeSapHash" );
+                writer.WriteLine( $"assembly.AddInternalCall(\"Tree.Sap.Generated.SapHash\", \"{managedDelIdent}\", reinterpret_cast<void*>( &GetNativeSapHash ) );" );
+            }
 
             foreach ( (string className, Method method) in methods )
             {

@@ -52,7 +52,7 @@ namespace Tree
 		virtual ESystemInitCode Startup() override;
 		virtual void Shutdown() override;
 
-		virtual void TrunkStartup() override;
+		virtual Sap::Bool32 TrunkStartup() override;
 		virtual void TrunkShutdown() override;
 
 		virtual void TrunkUpdateHook() override;
@@ -163,9 +163,9 @@ void Tree::ManagedHostSystem::LoadEngineFunctions()
 
 }
 
-void Tree::ManagedHostSystem::TrunkStartup()
+Tree::Sap::Bool32 Tree::ManagedHostSystem::TrunkStartup()
 {
-	m_trunkEntry.InvokeStaticMethod( "Startup" );
+	return m_trunkEntry.InvokeStaticMethod<Sap::Bool32>( "Startup" );
 }
 
 void Tree::ManagedHostSystem::TrunkShutdown()
@@ -344,6 +344,7 @@ bool Tree::ManagedHostSystem::InitializeSapManaged()
 
 	status = s_CoreCLRFunctions.SetRuntimePropertyValue( m_HostFXRContext, SAP_STR( "APP_CONTEXT_BASE_DIRECTORY" ), enginePath.c_str() );
 	SAP_VERIFY( status == Sap::StatusCode::Success );
+
 
 	status = s_CoreCLRFunctions.SetRuntimePropertyValue( m_HostFXRContext, SAP_STR( "APP_PATHS" ), enginePath.c_str() );
 	SAP_VERIFY( status == Sap::StatusCode::Success );

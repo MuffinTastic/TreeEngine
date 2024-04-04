@@ -48,9 +48,12 @@ Tree::ESystemInitCode Tree::EngineSystem::Startup()
 {
 	m_logger = Sys::Log()->CreateLogger( "Engine" );
 
-	Sys::ManagedHost()->TrunkStartup();
+	if ( !Sys::ManagedHost()->TrunkStartup() )
+	{
+		return ESYSTEMINIT_FAILURE;
+	}
 
-    return ESYSTEMINIT_SUCCESS;
+	return ESYSTEMINIT_SUCCESS;
 }
 
 void Tree::EngineSystem::Shutdown()

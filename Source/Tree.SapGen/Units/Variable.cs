@@ -15,4 +15,9 @@ public class Variable
 	{
 		return $"{Type} {Name}";
 	}
+
+    public long GetCompileHash()
+    {
+		return (long) Name.GetHashCode() + Type.GetHashCode();
+    }
 }

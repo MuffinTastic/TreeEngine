@@ -135,16 +135,22 @@ public static class Program
 
     private static void GenerateFinalFiles( string sourcePath )
     {
-        string nativeOutPath = Path.Join( sourcePath, c_NativeOutputRel, "upload.h" );
+        string nativeUploadPath = Path.Join( sourcePath, c_NativeOutputRel, "upload.h" );
+        string nativeHashPath = Path.Join( sourcePath, c_NativeOutputRel, "saphash.h" );
+        string managedHashPath = Path.Join( sourcePath, c_ManagedOutputRel, "saphash.cs" );
 
         var methods = s_Units.OfType<Class>()
             .SelectMany( unit => unit.Methods, ( unit, method ) => (unit.Name, method) )
             .ToList();
 
-        var nativeCode = NativeCodeGenerator.GenerateNativeUploadCode( s_NativeHeaders, methods );
+        var hash = s_Units.Select( u => u.GetCompileHash() ).Sum() & DateTime.Now.ToFileTimeUtc();
 
-        //Console.WriteLine( "Upload code: " );
-        //Console.WriteLine( nativeCode );
-        File.WriteAllText( nativeOutPath, nativeCode );
+        var nativeUploadCode = NativeCodeGenerator.GenerateNativeUploadCode( s_NativeHeaders, methods );
+        var nativeHashCode = NativeCodeGenerator.GenerateNativeHashCode( hash );
+        var managedHashCode = ManagedCodeGenerator.GenerateManagedHashCode( hash );
+
+        File.WriteAllText( nativeUploadPath, nativeUploadCode );
+        File.WriteAllText( nativeHashPath, nativeHashCode );
+        File.WriteAllText( managedHashPath, managedHashCode );
     }
 }

@@ -19,4 +19,10 @@ public class Structure : IUnit
 	{
 		return Name;
 	}
+
+    public long GetCompileHash()
+    {
+		return (long) Name.GetHashCode()
+			+ Fields.Select( f => (long) f.GetHashCode() ).Sum();
+    }
 }

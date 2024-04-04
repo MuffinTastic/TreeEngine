@@ -22,4 +22,11 @@ public class Class : IUnit
 	{
 		return Name;
 	}
+
+    public long GetCompileHash()
+    {
+        return (long) Name.GetHashCode() + IsNamespace.GetHashCode()
+            + Methods.Select( m => (long) m.GetHashCode() ).Sum()
+            + Bases.Select( b => (long) b.GetHashCode() ).Sum();
+    }
 }

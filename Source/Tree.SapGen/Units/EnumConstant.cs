@@ -16,4 +16,9 @@ public class EnumConstant
 
     public string Name { get; set; }
     public string Value { get; set; }
+
+    public long GetCompileHash()
+    {
+        return (long) Name.GetHashCode() + Value.GetHashCode();
+    }
 }

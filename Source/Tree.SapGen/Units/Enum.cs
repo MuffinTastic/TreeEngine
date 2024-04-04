@@ -18,4 +18,10 @@ public class Enum : IUnit
     public string Name { get; set; }
     public List<EnumConstant> Constants { get; set; }
     public int Count { get => Constants.Count; }
+
+    public long GetCompileHash()
+    {
+        return Name.GetHashCode()
+            + Constants.Select( c => (long) c.GetHashCode() ).Sum();
+    }
 }

@@ -12,6 +12,37 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 	{
     }
 
+	public static string GenerateManagedHashCode( long hash )
+    {
+        var (baseTextWriter, writer) = Utils.CreateWriter();
+
+		writer.WriteLine( GetHeader() );
+		writer.WriteLine();
+		writer.WriteLine( $"namespace {GetNamespace()};" );
+        writer.WriteLine();
+        writer.WriteLine( "internal static unsafe class SapHash" );
+		writer.WriteLine( "{" );
+		writer.Indent++;
+        {
+            writer.WriteLine( $"private static delegate* unmanaged< long > {BuildDelegateIdent( "GetNativeSapHash" )} = default;" );
+            writer.WriteLine();
+            writer.WriteLine( $"private const long ManagedHash = {hash};" );
+            writer.WriteLine();
+            writer.WriteLine( $"internal static bool Verify()" );
+            writer.WriteLine( "{" );
+            writer.Indent++;
+			{
+				writer.WriteLine( $"return ( {BuildDelegateIdent( "GetNativeSapHash" )}(  ) == ManagedHash );" );
+			}
+			writer.Indent--;
+            writer.WriteLine( "}" );
+        }
+		writer.Indent--;
+		writer.WriteLine( "}" );
+
+        return baseTextWriter.ToString();
+    }
+
     public string GenerateManagedCode()
     {
         var (baseTextWriter, writer) = Utils.CreateWriter();

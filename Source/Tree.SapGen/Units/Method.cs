@@ -25,4 +25,11 @@ public class Method
 		var p = string.Join( ", ", Parameters );
 		return $"{ReturnType} {Name}( {p} )";
 	}
+
+    public long GetCompileHash()
+    {
+		return (long) IsConstructor.GetHashCode() + IsDestructor.GetHashCode() + IsStatic.GetHashCode()
+			+ IsConverter.GetHashCode() + Name.GetHashCode() + ReturnType.GetHashCode()
+			+ Parameters.Select( p => (long) p.GetHashCode() ).Sum();
+    }
 }
