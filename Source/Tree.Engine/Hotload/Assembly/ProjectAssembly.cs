@@ -11,7 +11,7 @@ namespace Tree.Engine.Hotload;
 /// A wrapper for an external assembly to be loaded.
 /// </summary>
 /// <typeparam name="TEntryPoint">The type to retrieve from the assembly as its entry point.</typeparam>
-internal sealed class ProjectAssembly<TEntryPoint> where TEntryPoint : IGame
+public sealed class ProjectAssembly<TEntryPoint> where TEntryPoint : IBranch
 {
 	/// <summary>
 	/// The loaded assembly.
@@ -32,7 +32,7 @@ internal sealed class ProjectAssembly<TEntryPoint> where TEntryPoint : IGame
 	private Task _buildTask;
 	private bool _buildRequested;
 
-	internal ProjectAssembly( in ProjectAssemblyInfo assemblyInfo )
+    public ProjectAssembly( in ProjectAssemblyInfo assemblyInfo )
 	{
 		_projectAssemblyInfo = assemblyInfo;
 		_loadContext = new AssemblyLoadContext( null, isCollectible: true );

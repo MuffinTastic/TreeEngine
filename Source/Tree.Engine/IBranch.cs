@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Tree.Engine;
 
-internal interface IGame
+public interface IBranch
 {
 
 }
