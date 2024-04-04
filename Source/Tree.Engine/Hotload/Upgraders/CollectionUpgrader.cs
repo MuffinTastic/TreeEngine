@@ -33,7 +33,7 @@ internal sealed class CollectionUpgrader : IMemberUpgrader
 			// We should really just be able to copy the collection across directly.
 			var newItem = FormatterServices.GetUninitializedObject( item.GetType() );
 
-			Upgrader.UpgradeInstance( item!, newItem! );
+			HotloadUpgrader.UpgradeInstance( item!, newItem! );
 
 			// If this is a dictionary then we need to unwrap the key value pairs
 			// because C# uses Add( Key, Value ) rather than Add( Pair ).

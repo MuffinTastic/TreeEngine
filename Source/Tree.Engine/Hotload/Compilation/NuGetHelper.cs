@@ -6,7 +6,7 @@ using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 
-namespace Tree.Engine.Hotload;
+namespace Tree.Engine.Hotload.Compilation;
 
 /// <summary>
 /// A collection of helper methods for the NuGet.Protocol package.
@@ -45,8 +45,13 @@ internal static class NuGetHelper
 		var nuspecReader = await packageReader.GetNuspecReaderAsync( cancellationToken );
 
 		// Find the framework target we want.
-		var currentFramework = NuGetFramework.ParseFrameworkName( Compiler.GetTargetFrameworkName(), DefaultFrameworkNameProvider.Instance );
+		var currentFramework = NuGetFramework.ParseFrameworkName( HotloadCompiler.GetTargetFrameworkName(), DefaultFrameworkNameProvider.Instance );
 		var targetFrameworkGroup = NuGetFrameworkExtensions.GetNearest( packageReader.GetLibItems(), currentFramework );
+		if ( targetFrameworkGroup is null )
+		{
+			return;
+		}
+
 		var dependencies = nuspecReader.GetDependencyGroups().First( group => group.TargetFramework == targetFrameworkGroup.TargetFramework ).Packages.ToArray();
 
 		// Add dependencies.
@@ -65,7 +70,7 @@ internal static class NuGetHelper
 
 		// Extract the correct DLL and add it to references.
 		packageReader.ExtractFile( dllFile, Path.Combine( Directory.GetCurrentDirectory(), $"build\\{id}.dll" ), logger );
-		references.Add( Compiler.CreateMetadataReferenceFromPath( $"build\\{id}.dll" ) );
+		references.Add( HotloadCompiler.CreateMetadataReferenceFromPath( $"build\\{id}.dll" ) );
 	}
 
 	/// <summary>

@@ -7,13 +7,14 @@ using Microsoft.CodeAnalysis.Text;
 using NuGet.Versioning;
 using System.Reflection;
 using System.Runtime.Versioning;
+using Tree.Engine.Utils;
 
-namespace Tree.Engine.Hotload;
+namespace Tree.Engine.Hotload.Compilation;
 
 /// <summary>
 /// Contains the core functionality for compilation of C# assemblies.
 /// </summary>
-internal static class Compiler
+internal static class HotloadCompiler
 {
 	/// <summary>
 	/// The .NET references to include in every build.

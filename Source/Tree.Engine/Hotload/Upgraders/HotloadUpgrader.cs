@@ -7,7 +7,7 @@ namespace Tree.Engine.Hotload;
 /// <summary>
 /// The core class for upgrading members when swapping assemblies.
 /// </summary>
-internal static class Upgrader
+internal static class HotloadUpgrader
 {
 	/// <summary>
 	/// Dictionary of old hash codes and upgraded objects used
@@ -43,9 +43,6 @@ internal static class Upgrader
 		// Bail
 		if ( oldInstance is null || newInstance is null )
 			return;
-
-		// Unregister events for old object
-		Event.Unregister( oldInstance );
 
 		var oldType = oldInstance.GetType();
 		var newType = newInstance.GetType();
@@ -112,8 +109,5 @@ internal static class Upgrader
 			if ( !wasUpgraded )
 				Log.Warning( $"Don't know how to upgrade {oldMember.MemberType.ToString().ToLower()} '{oldMember.Name}' in '{oldType.Name}'" );
 		}
-
-		// Register events for new object
-		Event.Register( newInstance );
 	}
 }

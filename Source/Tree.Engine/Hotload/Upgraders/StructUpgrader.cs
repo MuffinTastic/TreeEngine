@@ -27,7 +27,7 @@ internal sealed class StructUpgrader : IMemberUpgrader
 		// Create a new instance of the struct WITHOUT calling the constructor
 		var newValue = FormatterServices.GetUninitializedObject( newMember.Type );
 
-		Upgrader.UpgradeInstance( oldValue!, newValue! );
+		HotloadUpgrader.UpgradeInstance( oldValue!, newValue! );
 
 		newMember.SetValue( newInstance, newValue );
 	}

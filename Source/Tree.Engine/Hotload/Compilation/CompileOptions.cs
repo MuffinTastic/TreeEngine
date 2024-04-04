@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace Tree.Engine.Hotload;
+namespace Tree.Engine.Hotload.Compilation;
 
 /// <summary>
 /// A container for all options to give to the compiler.

@@ -37,7 +37,7 @@ internal sealed class ClassUpgrader : IMemberUpgrader
 
 		// Have we already upgraded this? If so, use a reference so that we're not 
 		// duplicating the object.
-		if ( Upgrader.UpgradedReferences.TryGetValue( oldValue.GetHashCode(), out var upgradedValue ) )
+		if ( HotloadUpgrader.UpgradedReferences.TryGetValue( oldValue.GetHashCode(), out var upgradedValue ) )
 		{
 			newMember.SetValue( newInstance, upgradedValue );
 			return;
@@ -47,8 +47,8 @@ internal sealed class ClassUpgrader : IMemberUpgrader
 		var newValue = FormatterServices.GetUninitializedObject( type );
 
 		// Save the reference for later
-		Upgrader.UpgradedReferences[oldValue.GetHashCode()] = newValue;
-		Upgrader.UpgradeInstance( oldValue!, newValue! );
+		HotloadUpgrader.UpgradedReferences[oldValue.GetHashCode()] = newValue;
+		HotloadUpgrader.UpgradeInstance( oldValue!, newValue! );
 
 		newMember.SetValue( newInstance, newValue );
 	}

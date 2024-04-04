@@ -2,6 +2,8 @@
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Runtime.Serialization;
+using Tree.Engine.Hotload.Compilation;
+using Tree.Engine.Utils;
 
 namespace Tree.Engine.Hotload;
 
@@ -65,8 +67,8 @@ internal sealed class ProjectAssembly<TEntryPoint> where TEntryPoint : IGame
 		var realmString = _projectAssemblyInfo.IsServer ? "Server" : "Client";
 		var assemblyName = $"'{_projectAssemblyInfo.AssemblyName}' ({realmString})";
 
-		Notify.AddNotification( $"Building...", $"Compiling {assemblyName}", FontAwesome.Spinner );
-		var compileResult = await Compiler.Compile( _projectAssemblyInfo );
+		Log.Info( $"Compiling {assemblyName}..." );
+		var compileResult = await HotloadCompiler.Compile( _projectAssemblyInfo );
 
 		if ( !compileResult.WasSuccessful )
 		{
@@ -75,7 +77,7 @@ internal sealed class ProjectAssembly<TEntryPoint> where TEntryPoint : IGame
 			foreach ( var error in compileResult.Errors! )
 				Log.Error( error );
 
-			Notify.AddError( $"Build failed", $"Failed to compile {assemblyName}\n{errorStr}", FontAwesome.FaceSadTear );
+			Log.Error( $"Build failed: Failed to compile {assemblyName}: {errorStr}" );
 			return;
 		}
 
@@ -93,24 +95,18 @@ internal sealed class ProjectAssembly<TEntryPoint> where TEntryPoint : IGame
 		// Invoke upgrader to move values from oldAssembly into assembly
 		if ( oldAssembly != null && oldGameInterface != null )
 		{
-			Upgrader.UpgradedReferences.Clear();
+			HotloadUpgrader.UpgradedReferences.Clear();
 
-			UpgradeEntities( oldAssembly, newAssembly );
+			//UpgradeEntities( oldAssembly, newAssembly );
 
-			Upgrader.UpgradeInstance( oldGameInterface, newInterface );
-
-			ConsoleSystem.Internal.ClearGameCVars();
+			HotloadUpgrader.UpgradeInstance( oldGameInterface, newInterface );
 		}
 
 		// Now that everything's been upgraded, swap the new interface
 		// and assembly in
 		Swap( newAssembly, newInterface );
 
-		Notify.AddNotification( $"Build successful!", $"Compiled {assemblyName}!", FontAwesome.FaceGrinStars );
-
-		ConsoleSystem.Internal.RegisterAssembly( newAssembly, extraFlags: CVarFlags.Game );
-
-		Event.Run( Event.Game.HotloadAttribute.Name );
+		Log.Info( $"Compiled {assemblyName}." );
 
 		if ( !_buildRequested )
 			return;
@@ -124,6 +120,7 @@ internal sealed class ProjectAssembly<TEntryPoint> where TEntryPoint : IGame
 	/// </summary>
 	/// <param name="oldAssembly">The old assembly being unloaded.</param>
 	/// <param name="newAssembly">The new assembly being loaded.</param>
+	/*
 	private static void UpgradeEntities( Assembly oldAssembly, Assembly newAssembly )
 	{
 		var entityRegistryCopy = EntityRegistry.Instance.ToList();
@@ -145,14 +142,14 @@ internal sealed class ProjectAssembly<TEntryPoint> where TEntryPoint : IGame
 			var newEntity = (IEntity)FormatterServices.GetUninitializedObject( newType )!;
 
 			// Have we already upgraded this?
-			if ( Upgrader.UpgradedReferences.TryGetValue( entity.GetHashCode(), out var upgradedValue ) )
+			if ( HotloadUpgrader.UpgradedReferences.TryGetValue( entity.GetHashCode(), out var upgradedValue ) )
 			{
 				newEntity = (IEntity)upgradedValue;
 			}
 			else
 			{
-				Upgrader.UpgradedReferences[entity.GetHashCode()] = newEntity;
-				Upgrader.UpgradeInstance( entity, newEntity );
+				HotloadUpgrader.UpgradedReferences[entity.GetHashCode()] = newEntity;
+				HotloadUpgrader.UpgradeInstance( entity, newEntity );
 			}
 
 			// If we created a new entity successfully, register it
@@ -160,6 +157,7 @@ internal sealed class ProjectAssembly<TEntryPoint> where TEntryPoint : IGame
 				EntityRegistry.Instance.RegisterEntity( newEntity );
 		}
 	}
+	*/
 
 	/// <summary>
 	/// Finds and creates an entry point from the project assembly.

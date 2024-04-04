@@ -1,4 +1,4 @@
-﻿namespace Tree.Engine.Hotload;
+﻿namespace Tree.Engine.Hotload.Compilation;
 
 /// <summary>
 /// Represents a final compilation result.
