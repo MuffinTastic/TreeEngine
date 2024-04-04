@@ -146,7 +146,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## Mocha Interopgen
+## Mocha Interopgen & Mocha Hotload
 
 Modified and integrated into Tree's codebase
 
