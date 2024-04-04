@@ -12,7 +12,7 @@ public struct TimeUntil : IEquatable<TimeUntil>
     private float _time;
 
     public float Absolute => _time;
-    public float Until => _time - 0.0f; // TODO
+    public float Until => _time; // TODO
 
     public static implicit operator float( TimeUntil timeUntil )
     {

@@ -15,7 +15,7 @@ public struct TimeSince : IEquatable<TimeSince>
 
     public static implicit operator float( TimeSince timeSince )
     {
-        return timeSince.Since; // TODO
+        return timeSince.Since;
     }
 
     public static implicit operator TimeSince( float timeSince )
