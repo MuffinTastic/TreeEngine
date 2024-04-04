@@ -52,7 +52,13 @@ namespace Tree
 		virtual ESystemInitCode Startup() override;
 		virtual void Shutdown() override;
 
-		virtual void TrunkRunEvent( EManagedHostEvent event ) override;
+		virtual void TrunkStartup() override;
+		virtual void TrunkShutdown() override;
+
+		virtual void TrunkUpdateHook() override;
+		virtual void TrunkPreSceneRenderHook() override;
+		virtual void TrunkPostScenePreUIRenderHook() override;
+		virtual void TrunkPostUIRenderHook() override;
 
 	public:
 		std::shared_ptr<ILogger> m_logger;
@@ -157,9 +163,34 @@ void Tree::ManagedHostSystem::LoadEngineFunctions()
 
 }
 
-void Tree::ManagedHostSystem::TrunkRunEvent( EManagedHostEvent event )
+void Tree::ManagedHostSystem::TrunkStartup()
 {
-	m_trunkEntry.InvokeStaticMethod( "RunEvent", static_cast<int>( event ) );
+	m_trunkEntry.InvokeStaticMethod( "Startup" );
+}
+
+void Tree::ManagedHostSystem::TrunkShutdown()
+{
+	m_trunkEntry.InvokeStaticMethod( "Shutdown" );
+}
+
+void Tree::ManagedHostSystem::TrunkUpdateHook()
+{
+	m_trunkEntry.InvokeStaticMethod( "UpdateHook" );
+}
+
+void Tree::ManagedHostSystem::TrunkPreSceneRenderHook()
+{
+	m_trunkEntry.InvokeStaticMethod( "PreSceneRenderHook" );
+}
+
+void Tree::ManagedHostSystem::TrunkPostScenePreUIRenderHook()
+{
+	m_trunkEntry.InvokeStaticMethod( "PostScenePreUIRenderHook" );
+}
+
+void Tree::ManagedHostSystem::TrunkPostUIRenderHook()
+{
+	m_trunkEntry.InvokeStaticMethod( "PostUIRenderHook" );
 }
 
 Tree::Sap::AssemblyLoadContext Tree::ManagedHostSystem::CreateAssemblyLoadContext( std::string_view InName )

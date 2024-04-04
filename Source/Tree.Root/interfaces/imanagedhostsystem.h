@@ -21,6 +21,12 @@ namespace Tree
 		virtual ESystemInitCode Startup() = 0;
 		virtual void Shutdown() = 0;
 
-		virtual void TrunkRunEvent( EManagedHostEvent event ) = 0;
+		virtual void TrunkStartup() = 0;
+		virtual void TrunkShutdown() = 0;
+
+		virtual void TrunkUpdateHook() = 0;
+		virtual void TrunkPreSceneRenderHook() = 0;
+		virtual void TrunkPostScenePreUIRenderHook() = 0;
+		virtual void TrunkPostUIRenderHook() = 0;
 	};
 }
