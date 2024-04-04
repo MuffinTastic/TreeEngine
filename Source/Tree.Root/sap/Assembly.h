@@ -59,7 +59,7 @@ namespace Tree
 			const StableVector<ManagedAssembly>& GetLoadedAssemblies() const { return m_LoadedAssemblies; }
 
 		private:
-			int32_t m_ContextId;
+			int32_t m_ContextId = -1;
 			StableVector<ManagedAssembly> m_LoadedAssemblies;
 
 			friend class Tree::ManagedHostSystem;
