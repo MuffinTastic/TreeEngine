@@ -118,14 +118,10 @@ public static class Program
         var nativeGenerator = new NativeCodeGenerator( units );
         var relativePath = Path.GetRelativePath( sourcePath, path );
         var nativeCode = nativeGenerator.GenerateNativeCode( relativePath );
-        //Console.WriteLine( $"Native Code at '{nativeOutPath}':" );
-        //Console.WriteLine( nativeCode );
         File.WriteAllText( nativeOutPath, nativeCode );
 
         var managedGenerator = new ManagedCodeGenerator( units );
         var managedCode = managedGenerator.GenerateManagedCode();
-        //Console.WriteLine( "Managed Code:" );
-        //Console.WriteLine( managedCode );
         File.WriteAllText( managedOutPath, managedCode );
 
         var sapHeaderPath = Path.GetRelativePath( sourcePath, nativeOutPath );
@@ -135,6 +131,7 @@ public static class Program
 
     private static void GenerateFinalFiles( string sourcePath )
     {
+        Console.WriteLine( "Writing upload and hash code" );
         string nativeUploadPath = Path.Join( sourcePath, c_NativeOutputRel, "upload.h" );
         string nativeHashPath = Path.Join( sourcePath, c_NativeOutputRel, "saphash.h" );
         string managedHashPath = Path.Join( sourcePath, c_ManagedOutputRel, "saphash.cs" );
