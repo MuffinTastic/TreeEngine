@@ -13,6 +13,7 @@ workspace "TreeEngine"
 
     objdir              "Build"
     includedirs         { "%{wks.location}", "ThirdParty/Include" }
+    libdirs             { "ThirdParty/Lib" }
 
     flags { "MultiProcessorCompile" }
     vectorextensions "AVX512"
@@ -40,9 +41,9 @@ workspace "TreeEngine"
 function thirdpartylib( names )
     -- my precious little hack...
     if type(names) == "table" then
-        return "ThirdParty/Lib/%{cfg.buildcfg:gsub('Debug', '" .. names.debug .. "'):gsub('Release', '" .. names.release .. "')}"
+        return "%{cfg.buildcfg:gsub('Debug', '" .. names.debug .. "'):gsub('Release', '" .. names.release .. "')}"
     else
-        return "ThirdParty/Lib/" .. names
+        return names
     end
 end
 
@@ -90,6 +91,19 @@ group "Native"
             links = {
                 "%{cfg.buildtarget.directory}/Tree.NativeCommon",
                 thirdpartylib{ debug="fmtd", release="fmt" }
+            },
+            dependson = { "Tree.NativeCommon", "Tree.SapGen" }
+        }
+        
+    treeproject {
+            name = "Tree.Root",
+            language = "C++",
+            kind = "SharedLib",
+            target = "Engine",
+            links = {
+                "%{cfg.buildtarget.directory}/Tree.NativeCommon",
+                thirdpartylib{ debug="fmtd", release="fmt" },
+                thirdpartylib( "SDL3" )
             },
             dependson = { "Tree.NativeCommon", "Tree.SapGen" }
         }
