@@ -43,6 +43,8 @@ public class SapEntry
         }
 
         Log.Info( "" );
+
+        Log.Info( $"test: {CmdLine.GetOption( "yeppo", "schronmkl" )}" );
     }
 
     private static void Shutdown()
