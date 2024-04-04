@@ -6,7 +6,8 @@
 
 #include <fmt/format.h>
 
-#include "Tree.NativeCommon/debug.h"
+#include "defs.h"
+#include "debug.h"
 
 namespace Tree::Platform
 {
@@ -16,10 +17,10 @@ namespace Tree::Platform
 	std::filesystem::path GetEngineDirectoryPath();
 	std::filesystem::path GetLogDirectoryPath();
 
-	std::string GetExecutableFileUTF8();
-	std::string GetExecutableDirectoryUTF8();
-	std::string GetEngineDirectoryUTF8();
-	std::string GetLogDirectoryUTF8();
+	SAP_GEN std::string GetExecutableFileUTF8();
+	SAP_GEN std::string GetExecutableDirectoryUTF8();
+	SAP_GEN std::string GetEngineDirectoryUTF8();
+	SAP_GEN std::string GetLogDirectoryUTF8();
 
 
 	std::string PathToUTF8( std::filesystem::path path );

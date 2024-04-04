@@ -17,4 +17,11 @@ public static class TreeEngine
     public static bool IsClientOnly => s_Domain == EDomain.EDOMAIN_CLIENT;
     public static bool IsEditorOnly => ( s_Domain & EDomain.EDOMAIN_EDITOR_ONLY ) == EDomain.EDOMAIN_EDITOR_ONLY;
     public static bool IsDedicatedServer => s_Domain == EDomain.EDOMAIN_DEDICATED_SERVER;
+
+    public static bool IsDevMode { get; } = CmdLine.GetFlag( "dev" );
+
+    public static string ExecutableFile { get; } = Platform.GetExecutableFileUTF8();
+    public static string ExecutableDirectory { get; } = Platform.GetExecutableDirectoryUTF8();
+    public static string EngineDirectory { get; } = Platform.GetEngineDirectoryUTF8();
+    public static string LogDirectory { get; } = Platform.GetLogDirectoryUTF8();
 }
