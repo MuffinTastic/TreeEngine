@@ -65,6 +65,11 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 		return "Tree.Sap.Generated";
 	}
 
+	private static string GetDefaultAccessLevel()
+	{
+		return "internal";
+	}
+
 	private void GenerateMethodCode( ref IndentedTextWriter writer, Class c )
 	{
 		//
@@ -106,7 +111,7 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 		//
 		// Write class definition
 		//
-		string classAccessLevel = "public";
+		string classAccessLevel = GetDefaultAccessLevel();
 		if ( c.IsNamespace )
 			classAccessLevel += " static";
 
@@ -126,7 +131,7 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 
 			if ( !c.IsNamespace ) 
 			{
-				writer.WriteLine( "public nint NativePtr { get; set; }" );
+				writer.WriteLine( $"public nint NativePtr {{ get; set; }}" );
 				writer.WriteLine();
 			}
 
@@ -144,7 +149,7 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 
                 writer.WriteLine();
 
-                writer.WriteLine( $"public {c.Name}( {managedCtorArgs} )" );
+                writer.WriteLine( $"{GetDefaultAccessLevel()} {c.Name}( {managedCtorArgs} )" );
 				writer.WriteLine( "{" );
 				writer.Indent++;
 
@@ -174,7 +179,7 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 				var returnsPointer = Utils.IsPointer( method.ReturnType ) && !method.IsConstructor && !method.IsDestructor;
 
 				// If this is a ctor or dtor, we don't want to be able to call the method manually
-				var methodAccessLevel = ( method.IsConstructor || method.IsDestructor ) ? "private" : "public";
+				var methodAccessLevel = ( method.IsConstructor || method.IsDestructor ) ? "private" : GetDefaultAccessLevel();
 
 				if ( !hasInstance )
 					methodAccessLevel += " static";
@@ -261,17 +266,18 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
     private void GenerateStructCode( ref IndentedTextWriter writer, HashSet<string> allStructs, Structure s )
     {
 		writer.WriteLine( $"[StructLayout( LayoutKind.Sequential )]" );
-        writer.WriteLine( $"public struct {s.Name} : IDisposable" );
+        writer.WriteLine( $"{GetDefaultAccessLevel()} struct {s.Name} : IDisposable" );
         writer.WriteLine( "{" );
         writer.Indent++;
 
 		{
 			foreach ( var field in s.Fields )
 			{
-				writer.WriteLine( $"public {Utils.GetManagedInternalTypeSub( field.Type )} {field.Name};" );
+				writer.WriteLine( $"{GetDefaultAccessLevel()} {Utils.GetManagedInternalTypeSub( field.Type )} {field.Name};" );
 			}
 
-			var disposables = s.Fields.Where( f =>
+
+            var disposables = s.Fields.Where( f =>
 			{
 				var sub = Utils.GetManagedInternalTypeSub( f.Type );
 				return sub == "NativeString" || Utils.TypeIsArray( sub ) || allStructs.Contains( sub );
@@ -300,7 +306,7 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
 
     private void GenerateEnumCode( ref IndentedTextWriter writer, Enum e )
     {
-        writer.WriteLine( $"public enum {e.Name} : int" );
+        writer.WriteLine( $"{GetDefaultAccessLevel()} enum {e.Name} : int" );
         writer.WriteLine( "{" );
         writer.Indent++;
 
