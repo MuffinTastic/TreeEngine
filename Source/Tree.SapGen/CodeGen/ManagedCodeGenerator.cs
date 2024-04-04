@@ -26,13 +26,13 @@ sealed class ManagedCodeGenerator : BaseCodeGenerator
         {
             writer.WriteLine( $"private static delegate* unmanaged< long > {BuildDelegateIdent( "GetNativeSapHash" )} = default;" );
             writer.WriteLine();
-            writer.WriteLine( $"private const long ManagedHash = {hash};" );
+            writer.WriteLine( $"private const long ManagedSapHash = {hash};" );
             writer.WriteLine();
             writer.WriteLine( $"internal static bool Verify()" );
             writer.WriteLine( "{" );
             writer.Indent++;
 			{
-				writer.WriteLine( $"return ( {BuildDelegateIdent( "GetNativeSapHash" )}(  ) == ManagedHash );" );
+				writer.WriteLine( $"return ( {BuildDelegateIdent( "GetNativeSapHash" )}(  ) == ManagedSapHash );" );
 			}
 			writer.Indent--;
             writer.WriteLine( "}" );
