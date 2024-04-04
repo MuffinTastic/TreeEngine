@@ -19,6 +19,7 @@ premake.api.register {
     scope = "config",
     kind = "boolean"
 }
+
 premake.api.register {
     name = "alwaysrunpostbuild",
     scope = "config",

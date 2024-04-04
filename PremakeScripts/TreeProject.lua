@@ -53,6 +53,10 @@ function treeproject(properties)
             if properties.alwaysrunpostbuild then
                 alwaysrunpostbuild "On"
             end
+
+            if properties.nocopylocal then
+                flags { "NoCopyLocal" }
+            end
     end
 
 

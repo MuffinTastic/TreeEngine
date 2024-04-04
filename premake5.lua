@@ -69,8 +69,9 @@ group "Managed"
         language = "C#",
         kind = "SharedLib",
         target = "Engine",
-        links = { "Tree.Sap", "Tree.Engine" },
-        allowunsafeblocks = true
+        allowunsafeblocks = true,
+        nocopylocal = true,
+        links = { "Tree.Sap", "Tree.Engine" }
     }
 
 group "Native"
