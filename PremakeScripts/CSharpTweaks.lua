@@ -21,6 +21,12 @@ premake.api.register {
 }
 
 premake.api.register {
+    name = "copynugetdeps",
+    scope = "config",
+    kind = "boolean"
+}
+
+premake.api.register {
     name = "alwaysrunpostbuild",
     scope = "config",
     kind = "boolean"
@@ -51,6 +57,10 @@ premake.override(premake.vstudio.dotnetbase, "projectProperties", function(base,
 
     _p(2, '<Nullable>enable</Nullable>')
     _p(2, '<ImplicitUsings>enable</ImplicitUsings>')
+    
+    if cfg.copynugetdeps then
+        _p(2, '<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>')
+    end
 
     if cfg.alwaysrunpostbuild then
         _p(2, '<RunPostBuildEvent>Always</RunPostBuildEvent>')

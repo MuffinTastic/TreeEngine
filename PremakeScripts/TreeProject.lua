@@ -57,6 +57,10 @@ function treeproject(properties)
             if properties.nocopylocal then
                 flags { "NoCopyLocal" }
             end
+
+            if properties.copynugetdeps then
+                copynugetdeps "On"
+            end
     end
 
 
