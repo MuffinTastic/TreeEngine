@@ -65,8 +65,8 @@ int Tree::TreeMain( std::vector<std::string> arguments )
 	setvbuf( stdout, nullptr, _IOFBF, 1000 );
 #endif
 
-#ifdef CLIENT
-	std::cout << "Client" << std::endl;
+#ifdef GAME
+	std::cout << "Game" << std::endl;
 #elif DEDICATED_SERVER
 	std::cout << "Server" << std::endl;
 #endif
@@ -152,8 +152,8 @@ int Tree::TreeMain( std::vector<std::string> arguments )
 
 #if EDITOR
 		config.domain = EDOMAIN_EDITOR;
-#elif CLIENT
-		config.domain = EDOMAIN_CLIENT;
+#elif GAME
+		config.domain = EDOMAIN_GAME;
 #elif DEDICATED_SERVER
 		config.domain = EDOMAIN_DEDICATED_SERVER;
 #endif

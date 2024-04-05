@@ -22,8 +22,8 @@ namespace Tree
 		virtual void Run() = 0;
 
 		SAP_GEN virtual inline EDomain GetDomain() const = 0;
-		virtual inline bool IsClient() const = 0;
-		virtual inline bool IsClientOnly() const = 0;
+		virtual inline bool IsGame() const = 0;
+		virtual inline bool IsGameOnly() const = 0;
 		virtual inline bool IsEditorOnly() const = 0;
 		virtual inline bool IsDedicatedServer() const = 0;
 	};

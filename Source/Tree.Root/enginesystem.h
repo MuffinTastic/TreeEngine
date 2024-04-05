@@ -17,8 +17,8 @@ namespace Tree
 		void Run();
 
 		virtual inline EDomain GetDomain() const override;
-		virtual inline bool IsClient() const override;
-		virtual inline bool IsClientOnly() const override;
+		virtual inline bool IsGame() const override;
+		virtual inline bool IsGameOnly() const override;
 		virtual inline bool IsEditorOnly() const override;
 		virtual inline bool IsDedicatedServer() const override;
 

@@ -122,7 +122,7 @@ group "Native/Launchers"
         splitdomain = true,
         kind = {
             editor = "WindowedApp",
-            client = "WindowedApp",
+            game   = "WindowedApp",
             server = "ConsoleApp"
         },
         links = {

@@ -71,14 +71,14 @@ function treeproject(properties)
 
         if type(properties.kind) == "table" then
             domainkind.editor = properties.kind.editor
-            domainkind.client = properties.kind.client
+            domainkind.game = properties.kind.game
             domainkind.server = properties.kind.server
         end
 
         if properties.links then
             if properties.links.editor then
                 domainkind.editor = properties.links.editor
-                domainkind.client = properties.links.client
+                domainkind.game = properties.links.game
                 domainkind.server = properties.links.server
             end
         end
@@ -88,16 +88,16 @@ function treeproject(properties)
         properties.linksoverride = domainlinks.editor or nil
         treeprojectinner()
             targetname(properties.name .. ".Editor")
-            defines { "CLIENT", "EDITOR" }
+            defines { "GAME", "EDITOR" }
             filter { "files:**_serveronly.*"}
                 flags { "ExcludeFromBuild"}
 
-        properties.nameoverride = properties.name .. " (Client)"
-        properties.kindoverride = domainkind.client or nil
-        properties.linksoverride = domainlinks.client or nil
+        properties.nameoverride = properties.name .. " (Game)"
+        properties.kindoverride = domainkind.game or nil
+        properties.linksoverride = domainlinks.game or nil
         treeprojectinner()
-            targetname(properties.name .. ".Client")
-            defines { "CLIENT" }
+            targetname(properties.name .. ".Game")
+            defines { "GAME" }
             filter { "files:**_editoronly.*" }
                 flags { "ExcludeFromBuild" }
             filter { "files:**_serveronly.*"}
@@ -111,7 +111,7 @@ function treeproject(properties)
             defines { "DEDICATED_SERVER" }
             filter { "files:**_editoronly.*" }
                 flags { "ExcludeFromBuild" }
-            filter { "files:**_clientonly.*"}
+            filter { "files:**_gameonly.*"}
                 flags { "ExcludeFromBuild"}
     else
         treeprojectinner()

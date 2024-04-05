@@ -47,14 +47,14 @@ inline Tree::EDomain Tree::EngineSystem::GetDomain() const
 	return m_domain;
 }
 
-inline bool Tree::EngineSystem::IsClient() const
+inline bool Tree::EngineSystem::IsGame() const
 {
-	return ( m_domain & EDOMAIN_CLIENT ) == EDOMAIN_CLIENT;
+	return ( m_domain & EDOMAIN_GAME ) == EDOMAIN_GAME;
 }
 
-inline bool Tree::EngineSystem::IsClientOnly() const
+inline bool Tree::EngineSystem::IsGameOnly() const
 {
-	return m_domain == EDOMAIN_CLIENT;
+	return m_domain == EDOMAIN_GAME;
 }
 
 inline bool Tree::EngineSystem::IsEditorOnly() const
