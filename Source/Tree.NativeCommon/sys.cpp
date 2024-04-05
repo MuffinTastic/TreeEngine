@@ -6,11 +6,13 @@ namespace Tree::Sys
 {
 	static ICmdLineSystem* s_cmdLine = nullptr;
 	static ILogSystem* s_log = nullptr;
+	static IWindowSystem* s_window = nullptr;
 	static IManagedHostSystem* s_managedHost = nullptr;
 	static IEngineSystem* s_engine = nullptr;
 
 	ICmdLineSystem* CmdLine() { return s_cmdLine; }
 	ILogSystem* Log() { return s_log; }
+	IWindowSystem* Window() { return s_window; }
 	IManagedHostSystem* ManagedHost() { return s_managedHost; }
 	IEngineSystem* Engine() { return s_engine; }
 
@@ -20,6 +22,8 @@ namespace Tree::Sys
 			s_cmdLine = dynamic_cast<ICmdLineSystem*>( module->GetSystem( CMDLINESYSTEM_NAME ) );
 		if ( !s_log )
 			s_log = dynamic_cast<ILogSystem*>( module->GetSystem( LOGSYSTEM_NAME ) );
+		if ( !s_window )
+			s_window = dynamic_cast<IWindowSystem*>( module->GetSystem( WINDOWSYSTEM_NAME ) );
 		if ( !s_managedHost )
 			s_managedHost = dynamic_cast<IManagedHostSystem*>( module->GetSystem( MANAGEDHOSTSYSTEM_NAME ) );
 		if ( !s_engine )
@@ -29,8 +33,9 @@ namespace Tree::Sys
 	void Reset()
 	{
 		s_engine = nullptr;
-		s_log = nullptr;
 		s_managedHost = nullptr;
+		s_window = nullptr;
+		s_log = nullptr;
 		s_cmdLine = nullptr;
 	}
 }

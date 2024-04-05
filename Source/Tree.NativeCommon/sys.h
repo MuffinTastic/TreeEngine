@@ -4,6 +4,7 @@
 #include "Tree.Root/interfaces/ilogsystem.h"
 #include "Tree.Root/interfaces/imanagedhostsystem.h"
 #include "Tree.Root/interfaces/ienginesystem.h"
+#include "Tree.Window/interfaces/iwindowsystem.h"
 
 namespace Tree
 {
@@ -13,6 +14,7 @@ namespace Tree
 	{
 		SAP_GEN ICmdLineSystem* CmdLine();
 		SAP_GEN ILogSystem* Log();
+		IWindowSystem* Window();
 		IManagedHostSystem* ManagedHost();
 		SAP_GEN IEngineSystem* Engine();
 

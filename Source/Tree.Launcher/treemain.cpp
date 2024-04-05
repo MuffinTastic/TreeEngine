@@ -51,7 +51,7 @@ int Tree::TreeMain( std::vector<std::string> arguments )
 	// we'll grab it ourselves through other means...
 	arguments.erase( arguments.begin() );
 
-#if !DEDICATED_SERVER
+#ifdef GUI_ENABLED
 #if DEBUG
 #if WINDOWS
 	OpenWindowsConsole();
@@ -78,7 +78,10 @@ int Tree::TreeMain( std::vector<std::string> arguments )
 		// Load all the necessary modules for the current domain
 		//
 		std::vector<std::string> modulesToLoad = {
-			"Tree.Root"
+			"Tree.Root",
+#ifdef GUI_ENABLED
+			"Tree.Window",
+#endif
 		};
 
 		if ( ModuleManager::Instance().LoadModules( modulesToLoad ) != EMODULELOAD_SUCCESS )
@@ -116,6 +119,20 @@ int Tree::TreeMain( std::vector<std::string> arguments )
 			{
 				Sys::Log()->Shutdown();
 			} );
+
+#ifdef GUI_ENABLED
+		// -- Window --
+
+		if ( Sys::Window()->Startup() != ESYSTEMINIT_SUCCESS )
+		{
+			return TREEMAIN_FAILURE_SYSTEM;
+		}
+
+		auto windowGuard = sg::make_scope_guard( []
+			{
+				Sys::Window()->Shutdown();
+			} );
+#endif
 
 		// -- ManagedHost --
 

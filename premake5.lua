@@ -129,9 +129,14 @@ group "Native/Launchers"
             "%{cfg.buildtarget.directory}/Engine/Tree.NativeCommon",
             thirdpartylib{ debug="fmtd", release="fmt" },
         },
-        dependson = { "Tree.NativeCommon", "Tree.Root", "Tree.Trunk" },
         defines = { "LAUNCHER" },
-        postbuildcommands = { "{COPYDIR} %[ThirdParty/Bin] %[%{cfg.buildtarget.directory}/Engine]" }
+        postbuildcommands = { "{COPYDIR} %[ThirdParty/Bin] %[%{cfg.buildtarget.directory}/Engine]" },
+        dependson = {
+            "Tree.NativeCommon",
+            "Tree.Window",
+            "Tree.Root",
+            "Tree.Trunk"
+        }
     }
 
 group "Tools"
