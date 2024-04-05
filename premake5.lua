@@ -69,8 +69,8 @@ group "Managed"
             "Microsoft.CodeAnalysis.CSharp:4.9.2",
             "NuGet.Protocol:6.9.1"
         },
-        copynugetdeps = true
-        dependson = { "Tree.SapGen" },
+        copynugetdeps = true,
+        dependson = { "Tree.SapGen" }
     }
 
     treeproject {
