@@ -23,7 +23,7 @@ namespace Tree
 		virtual inline bool IsDedicatedServer() const override;
 
 	private:
-		std::shared_ptr<ILogger> m_logger;
+		ILogger* m_logger;
 		EDomain m_domain = EDOMAIN_UNINITIALIZED;
 	};
 }

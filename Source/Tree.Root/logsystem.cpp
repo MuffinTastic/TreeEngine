@@ -130,16 +130,10 @@ void Tree::LogSystem::Shutdown()
 
 }
 
-std::shared_ptr<Tree::ILogger> Tree::LogSystem::CreateLogger( std::string name )
+Tree::ILogger* Tree::LogSystem::CreateLogger( std::string name )
 {
-	return std::make_shared<Logger>( name, GetSinks() );
-}
-
-Tree::ILogger* Tree::LogSystem::CreateLoggerSap( std::string name )
-{
-	auto smartPtr = CreateLogger( name );
-	m_managedLoggers.push_back( smartPtr );
-	return smartPtr.get();
+	auto& ref = m_loggers.emplace_back( std::make_shared<Logger>( name, GetSinks() ) );
+	return ref.get();
 }
 
 const Tree::Sap::Array<Tree::ConsoleLogEntrySap> Tree::LogSystem::GetConsoleLogHistorySap() const

@@ -36,7 +36,7 @@ namespace Tree
 		virtual void TrunkPostUIRenderHook() override;
 
 	public:
-		std::shared_ptr<ILogger> m_logger;
+		ILogger* m_logger;
 
 	private:
 		Sap::AssemblyLoadContext m_loadContext;

@@ -87,9 +87,8 @@ namespace Tree
 		using Logger::InternalError;
 		using Logger::InternalTrace;
 
-		virtual std::shared_ptr<ILogger> CreateLogger( std::string name ) override;
 
-		virtual ILogger* CreateLoggerSap( std::string name ) override;
+		virtual ILogger* CreateLogger( std::string name ) override;
 		virtual const Sap::Array<ConsoleLogEntrySap> GetConsoleLogHistorySap() const override;
 
 	private:
@@ -106,8 +105,8 @@ namespace Tree
 		spdlog::sink_ptr m_fileLogSink;
 		std::string m_logFilePathStr;
 
-		std::shared_ptr<ILogger> m_systemLogger;
-		std::vector<std::shared_ptr<ILogger>> m_managedLoggers;
+		ILogger* m_systemLogger;
+		std::vector<std::shared_ptr<ILogger>> m_loggers;
 
 		void ManageOldLogFiles();
 		void CreateSinks();

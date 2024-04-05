@@ -13,6 +13,6 @@ namespace Tree
 		virtual void Shutdown() override;
 
 	private:
-		std::shared_ptr<ILogger> m_logger;
+		ILogger* m_logger;
 	};
 }

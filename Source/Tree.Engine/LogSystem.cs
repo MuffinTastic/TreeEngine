@@ -43,7 +43,7 @@ public static class LogSystem
         }
         else
         {
-            logger = new Logger( s_LogSystem.CreateLoggerSap( name ) );
+            logger = new Logger( s_LogSystem.CreateLogger( name ) );
             s_LoggerCache.Add( name, logger );
             return logger;
         }

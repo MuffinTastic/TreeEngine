@@ -95,9 +95,7 @@ namespace Tree
 		virtual ESystemInitCode Startup() = 0;
 		virtual void Shutdown() = 0;
 
-		virtual std::shared_ptr<ILogger> CreateLogger( std::string name ) = 0;
-
-		SAP_GEN virtual ILogger* CreateLoggerSap( std::string name ) = 0;
+		SAP_GEN virtual ILogger* CreateLogger( std::string name ) = 0;
 		SAP_GEN virtual const Sap::Array<ConsoleLogEntrySap> GetConsoleLogHistorySap() const = 0;
 	};
 }
