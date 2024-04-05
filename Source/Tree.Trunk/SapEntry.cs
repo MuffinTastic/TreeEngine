@@ -12,8 +12,6 @@ namespace Tree.Trunk;
 
 public class SapEntry
 {
-
-
     private static Bool32 Startup()
     {
         if ( !SapHash.Verify() )
