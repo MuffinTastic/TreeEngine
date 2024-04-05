@@ -64,12 +64,13 @@ group "Managed"
         target = "Engine",
         allowunsafeblocks = true,
         links = { "Tree.Sap" },
-        dependson = { "Tree.SapGen" },
         nuget = {
             "Microsoft.Build:17.9.5",
             "Microsoft.CodeAnalysis.CSharp:4.9.2",
             "NuGet.Protocol:6.9.1"
         },
+        copynugetdeps = true
+        dependson = { "Tree.SapGen" },
     }
 
     treeproject {
@@ -78,42 +79,41 @@ group "Managed"
         kind = "SharedLib",
         target = "Engine",
         allowunsafeblocks = true,
-        nocopylocal = true,
         links = { "Tree.Sap", "Tree.Engine" }
     }
 
 group "Native"
     treeproject {
-            name = "Tree.Root",
-            language = "C++",
-            kind = "SharedLib",
-            target = "Engine",
-            links = {
-                "%{cfg.buildtarget.directory}/Tree.NativeCommon",
-                thirdpartylib{ debug="fmtd", release="fmt" }
-            },
-            dependson = { "Tree.NativeCommon", "Tree.SapGen" }
-        }
+        name = "Tree.Root",
+        language = "C++",
+        kind = "SharedLib",
+        target = "Engine",
+        links = {
+            "%{cfg.buildtarget.directory}/Tree.NativeCommon",
+            thirdpartylib{ debug="fmtd", release="fmt" }
+        },
+        dependson = { "Tree.NativeCommon", "Tree.SapGen" }
+    }
         
     treeproject {
-            name = "Tree.Root",
-            language = "C++",
-            kind = "SharedLib",
-            target = "Engine",
-            links = {
-                "%{cfg.buildtarget.directory}/Tree.NativeCommon",
-                thirdpartylib{ debug="fmtd", release="fmt" },
-                thirdpartylib( "SDL3" )
-            },
-            dependson = { "Tree.NativeCommon", "Tree.SapGen" }
-        }
+        name = "Tree.Window",
+        language = "C++",
+        kind = "SharedLib",
+        target = "Engine",
+        links = {
+            "%{cfg.buildtarget.directory}/Tree.NativeCommon",
+            thirdpartylib{ debug="fmtd", release="fmt" },
+            thirdpartylib( "SDL3" )
+        },
+        dependson = { "Tree.NativeCommon", "Tree.SapGen" }
+    }
 
     treeproject {
-            name = "Tree.NativeCommon",
-            language = "C++",
-            kind = "StaticLib",
-            target = "Engine"
-        }
+        name = "Tree.NativeCommon",
+        language = "C++",
+        kind = "StaticLib",
+        target = "Engine"
+    }
 
 group "Native/Launchers"
     treeproject {
