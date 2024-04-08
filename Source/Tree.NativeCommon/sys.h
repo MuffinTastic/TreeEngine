@@ -14,7 +14,7 @@ namespace Tree
 	{
 		SAP_GEN ICmdLineSystem* CmdLine();
 		SAP_GEN ILogSystem* Log();
-		IWindowSystem* Window();
+		SAP_GEN IWindowSystem* Window();
 		IManagedHostSystem* ManagedHost();
 		SAP_GEN IEngineSystem* Engine();
 
