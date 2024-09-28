@@ -20,6 +20,8 @@ Tree::ESystemInitCode Tree::EngineSystem::Startup()
 {
 	m_logger = Sys::Log()->CreateLogger( "Engine" );
 
+
+
 	if ( !Sys::ManagedHost()->TrunkStartup() )
 	{
 		return ESYSTEMINIT_FAILURE;

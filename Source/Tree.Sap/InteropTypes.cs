@@ -11,6 +11,14 @@ public interface INativeSap
     public nint NativePtr { get; set; }
 }
 
+public static class INativeSapExtensions
+{
+    public static bool IsNullPtr( this INativeSap self )
+    {
+        return self.NativePtr == nint.Zero;
+    }
+}
+
 public sealed class NativeArrayEnumerator<T> : IEnumerator<T>
 {
     private readonly T[] m_Elements;

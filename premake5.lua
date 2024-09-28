@@ -96,6 +96,18 @@ group "Native"
     }
         
     treeproject {
+        name = "Tree.Render.DX12",
+        language = "C++",
+        kind = "SharedLib",
+        target = "Engine",
+        links = {
+            "%{cfg.buildtarget.directory}/Tree.NativeCommon",
+            thirdpartylib{ debug="fmtd", release="fmt" }
+        },
+        dependson = { "Tree.NativeCommon" }
+    }
+        
+    treeproject {
         name = "Tree.Window",
         language = "C++",
         kind = "SharedLib",
@@ -105,7 +117,7 @@ group "Native"
             thirdpartylib{ debug="fmtd", release="fmt" },
             thirdpartylib( "SDL3" )
         },
-        dependson = { "Tree.NativeCommon", "Tree.SapGen" }
+        dependson = { "Tree.NativeCommon" }
     }
 
     treeproject {
