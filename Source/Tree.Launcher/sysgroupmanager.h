@@ -25,7 +25,7 @@ namespace Tree
 
 	private:
 
-		std::vector<Platform::SharedLibrary*> m_sharedLibraries;
-		std::vector<std::unique_ptr<SysGroup>> m_modules;
+		std::vector<Platform::PlatformModule*> m_modules;
+		std::vector<std::unique_ptr<SysGroup>> m_sysGroups;
 	};
 }

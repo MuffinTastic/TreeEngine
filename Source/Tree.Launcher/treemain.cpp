@@ -74,6 +74,8 @@ int Tree::TreeMain( std::vector<std::string> arguments )
 	Platform::ChangeCurrentDirectoryPath( Platform::GetExecutableDirectoryPath() );
 
 	{
+		SysGroupManager::Bootstrap();
+
 		//
 		// Load all the necessary systems for the current domain
 		//
@@ -84,7 +86,7 @@ int Tree::TreeMain( std::vector<std::string> arguments )
 #endif
 		};
 
-		if ( SysGroupManager::Instance().LoadGroupsFrom( modulesToLoad ) != ESYSGROUPLOAD_SUCCESS )
+		if ( Sys::SysGroups()->LoadGroupsFrom(modulesToLoad) != ESYSGROUPLOAD_SUCCESS )
 		{
 			Platform::DebugLog( "Couldn't load engine systems - quitting." );
 #ifdef GUI_ENABLED
@@ -95,7 +97,7 @@ int Tree::TreeMain( std::vector<std::string> arguments )
 
 		auto sysGroupGuard = sg::make_scope_guard( []
 			{
-				SysGroupManager::Instance().UnloadSysGroups();
+				Sys::SysGroups()->UnloadGroups();
 			} );
 
 

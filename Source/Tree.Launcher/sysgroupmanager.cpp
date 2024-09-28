@@ -11,6 +11,13 @@ REGISTER_TREE_SYSTEM( SysGroupManager, SYSGROUPMANAGER_NAME )
 
 void Tree::SysGroupManager::Bootstrap()
 {
+	Platform::PlatformModule* module = Platform::GetExecutableModule();
+	
+	auto launcherGroup = std::make_unique<SysGroup>( module );
+	Sys::UpdateFromGroup( launcherGroup.get() );
+	
+	auto manager = dynamic_cast<SysGroupManager*>( Sys::SysGroups() );
+	manager->m_sysGroups.push_back( std::move( launcherGroup ) );
 }
 
 Tree::ESystemInitCode Tree::SysGroupManager::Startup()
@@ -79,7 +86,8 @@ void Tree::SysGroupManager::UnloadGroups()
 
 	for ( auto it = m_modules.begin(); it != m_modules.end(); ++it )
 	{
-		Platform::UnloadModule( *it );
+		Platform::PlatformModule* module = *it;
+		Platform::UnloadModule( module );
 	}
 
 	m_modules.clear();

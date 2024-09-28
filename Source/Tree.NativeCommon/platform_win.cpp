@@ -62,6 +62,12 @@ std::filesystem::path Tree::Platform::UTF8ToPath( std::string_view str )
 	return std::filesystem::path( utf8::utf8to16( str ) );
 }
 
+Tree::Platform::PlatformModule* Tree::Platform::GetExecutableModule()
+{
+	HMODULE handle = GetModuleHandleW( NULL );
+	return reinterpret_cast<PlatformModule*>( handle );
+}
+
 Tree::Platform::PlatformModule* Tree::Platform::LoadModule( std::filesystem::path path )
 {
 	std::wstring wpath = path.wstring();

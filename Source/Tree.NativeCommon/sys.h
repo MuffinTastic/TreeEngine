@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Tree.Launcher/interfaces/isysgroupmanager.h"
 #include "Tree.Root/interfaces/icmdlinesystem.h"
 #include "Tree.Root/interfaces/ilogsystem.h"
 #include "Tree.Root/interfaces/imanagedhostsystem.h"
@@ -14,13 +15,14 @@ namespace Tree
 
 	namespace Sys
 	{
+		ISysGroupManager* SysGroups();
 		SAP_GEN ICmdLineSystem* CmdLine();
 		SAP_GEN ILogSystem* Log();
 		SAP_GEN IWindowSystem* Window();
 		IManagedHostSystem* ManagedHost();
 		SAP_GEN IEngineSystem* Engine();
 
-		void UpdateFromGroup( SysGroup* module );
+		void UpdateFromGroup( SysGroup* sysGroup );
 		void Reset();
 	}
 }

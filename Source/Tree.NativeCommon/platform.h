@@ -27,6 +27,7 @@ namespace Tree::Platform
 	std::filesystem::path UTF8ToPath( std::string_view str );
 
 	struct PlatformModule;
+	PlatformModule* GetExecutableModule();
 	PlatformModule* LoadModule( std::filesystem::path path );
 	void UnloadModule( PlatformModule* module );
 
@@ -70,7 +71,7 @@ namespace Tree::Platform
 #define EXPORT extern "C" __declspec( dllexport )
 
 #ifdef WINDOWS
-#define SHAREDLIB_EXT ".dll"
+#define MODULE_EXT ".dll"
 #elif LINUX
 #define SHAREDLIB_EXT ".so"
 #endif
