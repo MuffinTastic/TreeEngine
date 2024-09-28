@@ -40,7 +40,7 @@ Ultimately, modules access all globally accessible systems through the static [`
 To load those systems, we have [`SysGroupManager`](/Source/Tree.Launcher/sysgroupmanager.h). The manager is itself a system, to make it accessible from all modules. If system modules have their own dependencies and wish to load them (for example, if `Tree.Render` wishes to load a DX12 backend from `Tree.Render.DX12`) they may do so through this system.
 
 `SysGroupManager` loads systems on program entry as follows:
-1. The manager is first bootstrapped. This is makes its global instance accessible through `Sys` in the `Tree.Launcher` module. We need to do this because the manager is a system, but nothing else exists to set `Sys`'s getters, and the system registry is too cumbersome to interface with directly. 
+1. The manager is first bootstrapped. This makes its global instance accessible through `Sys` in the `Tree.Launcher` module. We need to do this because the manager is a system, but nothing else exists to set `Sys`'s getters, and the system registry is too cumbersome to interface with directly. 
 2. `SysGroupManager::LoadGroupsFrom` is called from the entrypoint, with a list of modules appropriate for the current domain (Game/Editor/DedicatedServer).
 3. The manager loads all of the modules into memory and creates `SysGroup`s for them, storing them all in a list. The `SysGroup` containing the manager is already present from the previous bootstrapping.
 4. The manager loops through all of the stored `SysGroup`s, and informs every `SysGroup` of every other `SysGroup`.
