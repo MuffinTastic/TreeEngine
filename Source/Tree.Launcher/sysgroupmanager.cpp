@@ -72,9 +72,6 @@ Tree::ESysGroupLoadCode Tree::SysGroupManager::LoadGroupsFrom( std::vector<std::
 		{
 			sysGroup->UpdateSystems( it2->get() );
 		}
-
-		// Update the launcher module with the systems as well
-		Sys::UpdateFromGroup( sysGroup );
 	}
 
 	return ESYSGROUPLOAD_SUCCESS;
