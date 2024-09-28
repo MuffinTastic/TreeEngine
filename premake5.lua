@@ -176,3 +176,4 @@ workspace "*"
         flags { "ExcludeFromBuild" }
     filter { "system:windows", "files:**_linux.*"}
         flags { "ExcludeFromBuild"}
+    filter {}
