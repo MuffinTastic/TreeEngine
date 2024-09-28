@@ -46,3 +46,9 @@ To load those systems, we have [`SysGroupManager`](/Source/Tree.Launcher/sysgrou
 4. The manager loops through all of the stored `SysGroup`s, and informs every `SysGroup` of every other `SysGroup`.
 
 Every relevant system is now available in every loaded module, including `Tree.Launcher`. The engine is then initialized.
+
+### Limitations
+
+This approach is necessary due to the separation of object memory between modules. The `Sys` struct's pointers must be assigned in every module or you risk accessing a null pointer.
+
+The separation of memory also has an unfortunate side effect: Memory allocated in one module cannot be deallocated in another module, which may happen when using standard library shared pointers. This necessitates the use of a central memory de/allocation facility in Tree Engine, which has not been written as of the writing of this document.
