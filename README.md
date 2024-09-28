@@ -1,6 +1,6 @@
 # Tree Engine
 
-A C++ / C# game engine.
+A modular game engine written in C++ and C#. It's only a skeleton at the moment.
 
 ## Documentation
 
