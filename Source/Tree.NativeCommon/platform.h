@@ -26,24 +26,24 @@ namespace Tree::Platform
 	std::string PathToUTF8( std::filesystem::path path );
 	std::filesystem::path UTF8ToPath( std::string_view str );
 
-	struct SharedLibrary;
-	SharedLibrary* LoadSharedLibrary( std::filesystem::path path );
-	void UnloadSharedLibrary( SharedLibrary* sharedLibrary );
+	struct PlatformModule;
+	PlatformModule* LoadModule( std::filesystem::path path );
+	void UnloadModule( PlatformModule* module );
 
-	void* GetSharedLibraryFunc( SharedLibrary* sharedLibrary, std::string name );
+	void* GetModuleFunc( PlatformModule* module, std::string name );
 
 	template <typename T>
-	std::function<T> GetSharedLibraryFunc( SharedLibrary* sharedLibrary, std::string name )
+	std::function<T> GetModuleFunc( PlatformModule* module, std::string name )
 	{
-		void* ptr = Platform::GetSharedLibraryFunc( sharedLibrary, name );
+		void* ptr = Platform::GetModuleFunc( module, name );
 		std::function<T> func( reinterpret_cast<T*>( ptr ) );
 		return func;
 	}
 
 	template <typename T>
-	T GetSharedLibraryFuncPtr( SharedLibrary* sharedLibrary, std::string name )
+	T GetModuleFuncPtr( PlatformModule* module, std::string name )
 	{
-		void* ptr = Platform::GetSharedLibraryFunc( sharedLibrary, name );
+		void* ptr = Platform::GetModuleFunc( module, name );
 		return reinterpret_cast<T>( ptr );
 	}
 

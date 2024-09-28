@@ -183,16 +183,16 @@ void Tree::ManagedHostSystem::LoadHostFXR() const
 	auto hostfxrPath = GetHostFXRPath();
 
 	// Load the CoreCLR library
-	Platform::SharedLibrary* sharedLibrary = Platform::LoadSharedLibrary( hostfxrPath );
+	Platform::PlatformModule* module = Platform::LoadModule( hostfxrPath );
 
-	SAP_VERIFY( sharedLibrary != nullptr );
+	SAP_VERIFY( module != nullptr );
 
 	// Load CoreCLR functions
-	s_CoreCLRFunctions.SetHostFXRErrorWriter = Platform::GetSharedLibraryFuncPtr<hostfxr_set_error_writer_fn>( sharedLibrary, "hostfxr_set_error_writer" );
-	s_CoreCLRFunctions.InitHostFXRForRuntimeConfig = Platform::GetSharedLibraryFuncPtr<hostfxr_initialize_for_runtime_config_fn>( sharedLibrary, "hostfxr_initialize_for_runtime_config" );
-	s_CoreCLRFunctions.GetRuntimeDelegate = Platform::GetSharedLibraryFuncPtr<hostfxr_get_runtime_delegate_fn>( sharedLibrary, "hostfxr_get_runtime_delegate" );
-	s_CoreCLRFunctions.SetRuntimePropertyValue = Platform::GetSharedLibraryFuncPtr<hostfxr_set_runtime_property_value_fn>( sharedLibrary, "hostfxr_set_runtime_property_value" );
-	s_CoreCLRFunctions.CloseHostFXR = Platform::GetSharedLibraryFuncPtr<hostfxr_close_fn>( sharedLibrary, "hostfxr_close" );
+	s_CoreCLRFunctions.SetHostFXRErrorWriter = Platform::GetModuleFuncPtr<hostfxr_set_error_writer_fn>( module, "hostfxr_set_error_writer" );
+	s_CoreCLRFunctions.InitHostFXRForRuntimeConfig = Platform::GetModuleFuncPtr<hostfxr_initialize_for_runtime_config_fn>( module, "hostfxr_initialize_for_runtime_config" );
+	s_CoreCLRFunctions.GetRuntimeDelegate = Platform::GetModuleFuncPtr<hostfxr_get_runtime_delegate_fn>( module, "hostfxr_get_runtime_delegate" );
+	s_CoreCLRFunctions.SetRuntimePropertyValue = Platform::GetModuleFuncPtr<hostfxr_set_runtime_property_value_fn>( module, "hostfxr_set_runtime_property_value" );
+	s_CoreCLRFunctions.CloseHostFXR = Platform::GetModuleFuncPtr<hostfxr_close_fn>( module, "hostfxr_close" );
 }
 
 void Tree::ManagedHostSystem::HostFXRErrorCallback( const SapChar* InMessage )

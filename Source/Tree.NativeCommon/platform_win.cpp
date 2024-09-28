@@ -62,22 +62,22 @@ std::filesystem::path Tree::Platform::UTF8ToPath( std::string_view str )
 	return std::filesystem::path( utf8::utf8to16( str ) );
 }
 
-Tree::Platform::SharedLibrary* Tree::Platform::LoadSharedLibrary( std::filesystem::path path )
+Tree::Platform::PlatformModule* Tree::Platform::LoadModule( std::filesystem::path path )
 {
 	std::wstring wpath = path.wstring();
-	HMODULE library = LoadLibraryExW( wpath.c_str(), NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
-	return reinterpret_cast<SharedLibrary*>( library );
+	HMODULE handle = LoadLibraryExW( wpath.c_str(), NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+	return reinterpret_cast<PlatformModule*>( handle );
 }
 
-void Tree::Platform::UnloadSharedLibrary( SharedLibrary* sharedLibrary )
+void Tree::Platform::UnloadModule( PlatformModule* module )
 {
-	HMODULE library = reinterpret_cast<HMODULE>( sharedLibrary );
-	FreeLibrary( library );
+	HMODULE handle = reinterpret_cast<HMODULE>( module );
+	FreeLibrary( handle );
 }
 
-void* Tree::Platform::GetSharedLibraryFunc( SharedLibrary* sharedLibrary, std::string name )
+void* Tree::Platform::GetModuleFunc( PlatformModule* module, std::string name )
 {
-	HMODULE handle = reinterpret_cast<HMODULE>( sharedLibrary );
+	HMODULE handle = reinterpret_cast<HMODULE>( module );
 	const char* cname = name.c_str();
 	FARPROC address = GetProcAddress( handle, cname );
 	return reinterpret_cast<void*>( address );

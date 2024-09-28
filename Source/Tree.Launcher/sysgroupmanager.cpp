@@ -33,21 +33,21 @@ Tree::ESysGroupLoadCode Tree::SysGroupManager::LoadGroupsFrom( std::vector<std::
 
 	for ( auto it = names.begin(); it != names.end(); ++it )
 	{
-		std::filesystem::path modulePath = enginePath / Platform::UTF8ToPath( *it + SHAREDLIB_EXT );
+		std::filesystem::path modulePath = enginePath / Platform::UTF8ToPath( *it + MODULE_EXT );
 
-		auto library = Platform::LoadSharedLibrary( modulePath );
-		if ( library == nullptr )
+		auto module = Platform::LoadModule( modulePath );
+		if ( module == nullptr )
 		{
 			// We don't have LogSystem yet, so let's just do a platform log.
-			Platform::DebugLog( "Couldn't load shared library '{}'.", Platform::PathToUTF8( modulePath ) );
+			Platform::DebugLog( "Couldn't load module '{}'.", Platform::PathToUTF8( modulePath ) );
 			return ESYSGROUPLOAD_FAILURE;
 		}
 
-		auto sysGroup = std::make_unique<SysGroup>( library );
+		auto sysGroup = std::make_unique<SysGroup>( module );
 
 		// SysGroups don't take ownership of shared libraries, so
 		// we keep them around ourselves to free them later.
-		m_sharedLibraries.push_back( library );
+		m_modules.push_back( module );
 		m_sysGroups.push_back( std::move( sysGroup ) );
 	}
 
@@ -58,7 +58,7 @@ Tree::ESysGroupLoadCode Tree::SysGroupManager::LoadGroupsFrom( std::vector<std::
 	for ( auto it = m_sysGroups.begin(); it != m_sysGroups.end(); ++it )
 	{
 		SysGroup* sysGroup = it->get();
-
+		
 		// We don't skip over the current module in the second loop.
 		// SysGroups don't set their own system variables, we need to set them here.
 		for ( auto it2 = m_sysGroups.begin(); it2 != m_sysGroups.end(); ++it2 )
@@ -77,10 +77,10 @@ void Tree::SysGroupManager::UnloadGroups()
 {
 	m_sysGroups.clear();
 
-	for ( auto it = m_sharedLibraries.begin(); it != m_sharedLibraries.end(); ++it )
+	for ( auto it = m_modules.begin(); it != m_modules.end(); ++it )
 	{
-		Platform::UnloadSharedLibrary( *it );
+		Platform::UnloadModule( *it );
 	}
 
-	m_sharedLibraries.clear();
+	m_modules.clear();
 }

@@ -17,7 +17,7 @@ namespace Tree
 	{
 	public:
 		SysGroup() = delete;
-		SysGroup( Platform::SharedLibrary* sharedLibrary );
+		SysGroup( Platform::PlatformModule* module );
 
 	public:
 		ISystem* GetSystem( std::string name );
@@ -25,7 +25,7 @@ namespace Tree
 		void ResetSystems();
 
 	private:
-		Platform::SharedLibrary* m_sharedLibrary;
+		Platform::PlatformModule* m_module;
 		std::function<__SysGroup_GetSystemFn> m_getSystem;
 		std::function<__SysGroup_UpdateSystemsFn> m_updateSystems;
 		std::function<__SysGroup_ResetSystemsFn> m_resetSystems;
