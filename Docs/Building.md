@@ -4,7 +4,7 @@ Please download [premake](https://premake.github.io) and put it in your path.
 
 ## Dependencies
 
-Dependencies are listed in the (`ThirdParty`)[/ThirdParty] directory's README.
+Dependencies are listed in the (`ThirdParty`)[/ThirdParty/] directory's README.
 
 ## Windows
 
