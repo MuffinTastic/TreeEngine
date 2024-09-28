@@ -24,6 +24,7 @@ function treeproject(properties)
                 files { sourcedir .. "**.cs" }
             elseif properties.language == "C++" then
                 files { sourcedir .. "**.h", sourcedir .. "**.cpp" }
+
             end
 
             if properties.defines then
@@ -91,6 +92,7 @@ function treeproject(properties)
             defines { "GAME", "EDITOR" }
             filter { "files:**_serveronly.*"}
                 flags { "ExcludeFromBuild"}
+            filter {}
 
         properties.nameoverride = properties.name .. " (Game)"
         properties.kindoverride = domainkind.game or nil
@@ -102,6 +104,7 @@ function treeproject(properties)
                 flags { "ExcludeFromBuild" }
             filter { "files:**_serveronly.*"}
                 flags { "ExcludeFromBuild"}
+            filter {}
 
         properties.nameoverride = properties.name .. " (DedicatedServer)"
         properties.kindoverride = domainkind.server or nil
@@ -113,6 +116,7 @@ function treeproject(properties)
                 flags { "ExcludeFromBuild" }
             filter { "files:**_gameonly.*"}
                 flags { "ExcludeFromBuild"}
+            filter {}
     else
         treeprojectinner()
     end

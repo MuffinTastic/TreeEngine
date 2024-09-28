@@ -8,6 +8,7 @@ workspace "TreeEngine"
     configurations      { "Debug", "Release" }
     platforms           { "x64" }
     cppdialect          "C++20"
+    staticruntime       "Off"
     dotnetframework     "net8.0"
     location            "Source"
 
