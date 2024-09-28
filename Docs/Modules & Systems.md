@@ -37,7 +37,7 @@ Tree Engine has a number of modules and systems:
 
 Ultimately, modules access all globally accessible systems through the static [`Sys` struct](/Source/Tree.NativeCommon/sys.h).
 
-To load those systems, we have [`SysGroupManager`](/Source/Tree.Launcher/sysgroupmanager.h). The manager is itself a system, to make it accessible from all modules. If system modules have their own dependencies (for example, if `Tree.Render` wishes to load a DX12 backend from `Tree.Render.DX12`) they may do so through this system.
+To load those systems, we have [`SysGroupManager`](/Source/Tree.Launcher/sysgroupmanager.h). The manager is itself a system, to make it accessible from all modules. If system modules have their own dependencies and wish to load them (for example, if `Tree.Render` wishes to load a DX12 backend from `Tree.Render.DX12`) they may do so through this system.
 
 `SysGroupManager` loads systems on program entry as follows:
 1. The manager is first bootstrapped. This is makes its global instance accessible through `Sys` in the `Tree.Launcher` module. We need to do this because the manager is a system, but nothing else exists to set `Sys`'s getters, and the system registry is too cumbersome to interface with directly. 
