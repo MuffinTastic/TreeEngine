@@ -35,7 +35,7 @@ Tree Engine has a number of modules and systems:
 
 ### Behavior
 
-Ultimately, modules access all globally accessible systems through the static [`Sys` struct](/Source/Tree.NativeCommon/sys.h).
+Ultimately, modules access all globally accessible systems through the static [`Sys` struct](/Source/Tree.NativeCommon/sys.h). This contains getters that return pointers to those systems, implemented as virtual classes. Virtual method tables are leveraged to circumvent the need for linking modules at compile-time.
 
 To load those systems, we have [`SysGroupManager`](/Source/Tree.Launcher/sysgroupmanager.h). The manager is itself a system, to make it accessible from all modules. If system modules have their own dependencies and wish to load them (for example, if `Tree.Render` wishes to load a DX12 backend from `Tree.Render.DX12`) they may do so through this system.
 
