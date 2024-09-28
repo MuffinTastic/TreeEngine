@@ -77,9 +77,9 @@ void Tree::Platform::UnloadSharedLibrary( SharedLibrary* sharedLibrary )
 
 void* Tree::Platform::GetSharedLibraryFunc( SharedLibrary* sharedLibrary, std::string name )
 {
-	HMODULE hModule = reinterpret_cast<HMODULE>( sharedLibrary );
+	HMODULE handle = reinterpret_cast<HMODULE>( sharedLibrary );
 	const char* cname = name.c_str();
-	FARPROC address = GetProcAddress( hModule, cname );
+	FARPROC address = GetProcAddress( handle, cname );
 	return reinterpret_cast<void*>( address );
 }
 

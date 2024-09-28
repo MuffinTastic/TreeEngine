@@ -6,9 +6,11 @@
 #include "Tree.Root/interfaces/ienginesystem.h"
 #include "Tree.Window/interfaces/iwindowsystem.h"
 
+// Sys is a convenient way to access all of the Systems available to the engine.
+
 namespace Tree
 {
-	class Module;
+	class SysGroup;
 
 	namespace Sys
 	{
@@ -18,7 +20,7 @@ namespace Tree
 		IManagedHostSystem* ManagedHost();
 		SAP_GEN IEngineSystem* Engine();
 
-		void UpdateFromModule( Module* module );
+		void UpdateFromGroup( SysGroup* module );
 		void Reset();
 	}
 }

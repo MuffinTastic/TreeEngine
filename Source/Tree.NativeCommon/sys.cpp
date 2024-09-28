@@ -1,6 +1,6 @@
 #include "sys.h"
 
-#include "module.h"
+#include "sysgroup.h"
 
 namespace Tree::Sys
 {
@@ -16,18 +16,18 @@ namespace Tree::Sys
 	IManagedHostSystem* ManagedHost() { return s_managedHost; }
 	IEngineSystem* Engine() { return s_engine; }
 
-	void UpdateFromModule( Module* module )
+	void UpdateFromGroup( SysGroup* sysGroup )
 	{
 		if ( !s_cmdLine )
-			s_cmdLine = dynamic_cast<ICmdLineSystem*>( module->GetSystem( CMDLINESYSTEM_NAME ) );
+			s_cmdLine = dynamic_cast<ICmdLineSystem*>( sysGroup->GetSystem( CMDLINESYSTEM_NAME ) );
 		if ( !s_log )
-			s_log = dynamic_cast<ILogSystem*>( module->GetSystem( LOGSYSTEM_NAME ) );
+			s_log = dynamic_cast<ILogSystem*>( sysGroup->GetSystem( LOGSYSTEM_NAME ) );
 		if ( !s_window )
-			s_window = dynamic_cast<IWindowSystem*>( module->GetSystem( WINDOWSYSTEM_NAME ) );
+			s_window = dynamic_cast<IWindowSystem*>( sysGroup->GetSystem( WINDOWSYSTEM_NAME ) );
 		if ( !s_managedHost )
-			s_managedHost = dynamic_cast<IManagedHostSystem*>( module->GetSystem( MANAGEDHOSTSYSTEM_NAME ) );
+			s_managedHost = dynamic_cast<IManagedHostSystem*>( sysGroup->GetSystem( MANAGEDHOSTSYSTEM_NAME ) );
 		if ( !s_engine )
-			s_engine = dynamic_cast<IEngineSystem*>( module->GetSystem( ENGINESYSTEM_NAME ) );
+			s_engine = dynamic_cast<IEngineSystem*>( sysGroup->GetSystem( ENGINESYSTEM_NAME ) );
 	}
 
 	void Reset()

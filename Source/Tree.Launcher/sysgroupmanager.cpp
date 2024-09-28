@@ -1,17 +1,29 @@
-#include "modulemanager.h"
+#include "sysgroupmanager.h"
 
 #include <filesystem>
 
 #include "Tree.NativeCommon/platform.h"
 #include "Tree.NativeCommon/sys.h"
 
-Tree::ModuleManager& Tree::ModuleManager::Instance()
+
+REGISTER_TREE_SYSTEM( SysGroupManager, SYSGROUPMANAGER_NAME )
+
+
+void Tree::SysGroupManager::Bootstrap()
 {
-	static ModuleManager s_manager;
-	return s_manager;
 }
 
-Tree::EModuleLoadCode Tree::ModuleManager::LoadModules( std::vector<std::string> names )
+Tree::ESystemInitCode Tree::SysGroupManager::Startup()
+{
+	return ESYSTEMINIT_SUCCESS;
+}
+
+void Tree::SysGroupManager::Shutdown()
+{
+
+}
+
+Tree::ESysGroupLoadCode Tree::SysGroupManager::LoadGroupsFrom( std::vector<std::string> names )
 {
 	std::filesystem::path enginePath = Platform::GetEngineDirectoryPath();
 
@@ -28,12 +40,12 @@ Tree::EModuleLoadCode Tree::ModuleManager::LoadModules( std::vector<std::string>
 		{
 			// We don't have LogSystem yet, so let's just do a platform log.
 			Platform::DebugLog( "Couldn't load shared library '{}'.", Platform::PathToUTF8( modulePath ) );
-			return EMODULELOAD_FAILURE;
+			return ESYSGROUPLOAD_FAILURE;
 		}
 
-		auto module = std::make_unique<Module>( library );
+		auto module = std::make_unique<SysGroup>( library );
 
-		// Modules don't take ownership of shared libraries, so
+		// SysGroups don't take ownership of shared libraries, so
 		// we keep them around ourselves to free them later.
 		m_sharedLibraries.push_back( library );
 		m_modules.push_back( std::move( module ) );
@@ -45,23 +57,23 @@ Tree::EModuleLoadCode Tree::ModuleManager::LoadModules( std::vector<std::string>
 
 	for ( auto it = m_modules.begin(); it != m_modules.end(); ++it )
 	{
-		Module* module = it->get();
+		SysGroup* module = it->get();
 
 		// We don't skip over the current module in the second loop.
-		// Modules don't set their own system variables, we need to set them here.
+		// SysGroups don't set their own system variables, we need to set them here.
 		for ( auto it2 = m_modules.begin(); it2 != m_modules.end(); ++it2 )
 		{
 			module->UpdateSystems( it2->get() );
 		}
 
 		// Update the launcher module with the systems as well
-		Sys::UpdateFromModule( module );
+		Sys::UpdateFromGroup( module );
 	}
 
-	return EMODULELOAD_SUCCESS;
+	return ESYSGROUPLOAD_SUCCESS;
 }
 
-void Tree::ModuleManager::UnloadModules()
+void Tree::SysGroupManager::UnloadGroups()
 {
 	m_modules.clear();
 

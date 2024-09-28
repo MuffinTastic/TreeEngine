@@ -1,6 +1,6 @@
 #include "system.h"
 
-#include "module.h"
+#include "sysgroup.h"
 
 
 Tree::SystemRegistry::SystemRegistry( ISystem* system, std::string_view name )

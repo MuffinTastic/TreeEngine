@@ -12,14 +12,14 @@
 
 #include "Tree.NativeCommon/unicode.h"
 #include "Tree.NativeCommon/platform.h"
-#include "Tree.NativeCommon/module.h"
+#include "Tree.NativeCommon/sysgroup.h"
 #include "Tree.NativeCommon/sys.h"
 #include "Tree.NativeCommon/domain.h"
 
 #include "Tree.Root/interfaces/ienginesystem.h"
 #include "Tree.Root/interfaces/itestsystem.h"
 
-#include "modulemanager.h"
+#include "sysgroupmanager.h"
 
 #if !DEDICATED_SERVER
 #if WINDOWS
@@ -84,7 +84,7 @@ int Tree::TreeMain( std::vector<std::string> arguments )
 #endif
 		};
 
-		if ( ModuleManager::Instance().LoadModules( modulesToLoad ) != EMODULELOAD_SUCCESS )
+		if ( SysGroupManager::Instance().LoadSysGroups( modulesToLoad ) != ESYSGROUPLOAD_SUCCESS )
 		{
 			Platform::DebugLog( "Couldn't load engine modules - quitting." );
 #ifdef GUI_ENABLED
@@ -95,13 +95,13 @@ int Tree::TreeMain( std::vector<std::string> arguments )
 
 		auto moduleGuard = sg::make_scope_guard( []
 			{
-				ModuleManager::Instance().UnloadModules();
+				SysGroupManager::Instance().UnloadSysGroups();
 			} );
 
 
 
 		//
-		// Modules have been loaded. Start engine dependencies.
+		// SysGroups have been loaded. Start engine dependencies.
 		//
 
 		// -- CmdLine --
