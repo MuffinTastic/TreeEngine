@@ -37,7 +37,7 @@ namespace Tree
 	};
 }
 
-// Register the system with the local SysGroup (see module.h/cpp)
+// Register the system with the local SysGroup (see sysgroup.h/cpp)
 #define REGISTER_TREE_SYSTEM( classname, registryname ) \
 	static Tree::classname __gts_##classname;	/* ISystem instance! */ \
 	static Tree::SystemRegistry __gtsr_##classname( &__gts_##classname, registryname );

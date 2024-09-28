@@ -10,7 +10,7 @@ namespace Tree
 	class SysGroup;
 
 	typedef Tree::ISystem* (__SysGroup_GetSystemFn)( std::string name );
-	typedef void ( __SysGroup_UpdateSystemsFn )( Tree::SysGroup* module );
+	typedef void ( __SysGroup_UpdateSystemsFn )( Tree::SysGroup* sysGroup );
 	typedef void ( __SysGroup_ResetSystemsFn )( );
 
 	class SysGroup
@@ -21,7 +21,7 @@ namespace Tree
 
 	public:
 		ISystem* GetSystem( std::string name );
-		void UpdateSystems( SysGroup* module );
+		void UpdateSystems( SysGroup* sysGroup );
 		void ResetSystems();
 
 	private:
@@ -37,6 +37,6 @@ namespace Tree
 #define SYSGROUP_RESETSYSTEMS_FUNCNAME "__SysGroup_ResetSystems"
 
 EXPORT  Tree::ISystem* __SysGroup_GetSystem( std::string name );
-EXPORT  void __SysGroup_UpdateSystems( Tree::SysGroup* module );
-EXPORT  void __SysGroup_ResetSystems( Tree::SysGroup* module );
+EXPORT  void __SysGroup_UpdateSystems( Tree::SysGroup* sysGroup );
+EXPORT  void __SysGroup_ResetSystems( Tree::SysGroup* sysGroup );
 

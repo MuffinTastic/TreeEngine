@@ -43,31 +43,31 @@ Tree::ESysGroupLoadCode Tree::SysGroupManager::LoadGroupsFrom( std::vector<std::
 			return ESYSGROUPLOAD_FAILURE;
 		}
 
-		auto module = std::make_unique<SysGroup>( library );
+		auto sysGroup = std::make_unique<SysGroup>( library );
 
 		// SysGroups don't take ownership of shared libraries, so
 		// we keep them around ourselves to free them later.
 		m_sharedLibraries.push_back( library );
-		m_modules.push_back( std::move( module ) );
+		m_sysGroups.push_back( std::move( sysGroup ) );
 	}
 
 	//
 	// Let all the modules know about each other's systems.
 	//
 
-	for ( auto it = m_modules.begin(); it != m_modules.end(); ++it )
+	for ( auto it = m_sysGroups.begin(); it != m_sysGroups.end(); ++it )
 	{
-		SysGroup* module = it->get();
+		SysGroup* sysGroup = it->get();
 
 		// We don't skip over the current module in the second loop.
 		// SysGroups don't set their own system variables, we need to set them here.
-		for ( auto it2 = m_modules.begin(); it2 != m_modules.end(); ++it2 )
+		for ( auto it2 = m_sysGroups.begin(); it2 != m_sysGroups.end(); ++it2 )
 		{
-			module->UpdateSystems( it2->get() );
+			sysGroup->UpdateSystems( it2->get() );
 		}
 
 		// Update the launcher module with the systems as well
-		Sys::UpdateFromGroup( module );
+		Sys::UpdateFromGroup( sysGroup );
 	}
 
 	return ESYSGROUPLOAD_SUCCESS;
@@ -75,7 +75,7 @@ Tree::ESysGroupLoadCode Tree::SysGroupManager::LoadGroupsFrom( std::vector<std::
 
 void Tree::SysGroupManager::UnloadGroups()
 {
-	m_modules.clear();
+	m_sysGroups.clear();
 
 	for ( auto it = m_sharedLibraries.begin(); it != m_sharedLibraries.end(); ++it )
 	{
