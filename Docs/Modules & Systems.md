@@ -35,7 +35,7 @@ Tree Engine has a number of modules and systems:
 
 ### Behavior
 
-Ultimately, modules access all globally accessible systems through the static [`Sys` struct](/Source/Tree.NativeCommon/sys.h). This contains getters that return pointers to those systems, implemented as virtual classes. Virtual method tables are leveraged to circumvent the need for linking modules at compile-time.
+Ultimately, modules access all globally accessible systems through the static [`Sys` namespace](/Source/Tree.NativeCommon/sys.h). This contains getters that return pointers to those systems, implemented as virtual classes. Virtual method tables are leveraged to circumvent the need for linking modules at compile-time.
 
 To load those systems, we have [`SysGroupManager`](/Source/Tree.Launcher/sysgroupmanager.h). The manager is itself a system, to make it accessible from all modules. If system modules have their own dependencies and wish to load them (for example, if `Tree.Render` wishes to load a DX12 backend from `Tree.Render.DX12`) they may do so through this system.
 
@@ -49,6 +49,6 @@ Every relevant system is now available in every loaded module, including `Tree.L
 
 ### Limitations
 
-This approach is necessary due to the separation of object memory between modules. The `Sys` struct's pointers must be assigned in every module or you risk accessing a null pointer.
+This approach is necessary due to the separation of object memory between modules. The `Sys` namespace's pointers must be assigned in every module or you risk accessing a null pointer.
 
 The separation of memory also has an unfortunate side effect: Memory allocated in one module cannot be deallocated in another module, which may happen when using standard library shared pointers. This necessitates the use of a central memory de/allocation facility in Tree Engine, which has not been written as of the writing of this document.

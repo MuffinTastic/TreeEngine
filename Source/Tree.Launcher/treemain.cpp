@@ -79,14 +79,14 @@ int Tree::TreeMain( std::vector<std::string> arguments )
 		//
 		// Load all the necessary systems for the current domain
 		//
-		std::vector<std::string> modulesToLoad = {
-			"Tree.Root",
+		std::vector<std::tuple<std::string, ESysGroupTag>> modulesToLoad = {
+			{"Tree.Root", ESYSGROUPTAG_CORE},
 #ifdef GUI_ENABLED
-			"Tree.Window",
+			{"Tree.Window", ESYSGROUPTAG_CORE},
 #endif
 		};
 
-		if ( Sys::SysGroups()->LoadGroupsFrom(modulesToLoad) != ESYSGROUPLOAD_SUCCESS )
+		if ( Sys::SysGroups()->LoadGroupsFrom( modulesToLoad ) != ESYSGROUPLOAD_SUCCESS )
 		{
 			Platform::DebugLog( "Couldn't load engine systems - quitting." );
 #ifdef GUI_ENABLED
@@ -97,7 +97,7 @@ int Tree::TreeMain( std::vector<std::string> arguments )
 
 		auto sysGroupGuard = sg::make_scope_guard( []
 			{
-				Sys::SysGroups()->UnloadGroups();
+				Sys::SysGroups()->Shutdown();
 			} );
 
 

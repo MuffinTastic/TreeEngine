@@ -13,6 +13,18 @@ namespace Tree
 {
 	class SysGroup;
 
+	struct SysState
+	{
+		ISysGroupManager* sysGroups = nullptr;
+		ICmdLineSystem* cmdLine = nullptr;
+		ILogSystem* log = nullptr;
+		IWindowSystem* window = nullptr;
+		IManagedHostSystem* managedHost = nullptr;
+		IEngineSystem* engine = nullptr;
+
+		void UpdateFromGroup( SysGroup* sysGroup );
+	};
+
 	namespace Sys
 	{
 		ISysGroupManager* SysGroups();
@@ -22,7 +34,7 @@ namespace Tree
 		IManagedHostSystem* ManagedHost();
 		SAP_GEN IEngineSystem* Engine();
 
-		void UpdateFromGroup( SysGroup* sysGroup );
-		void Reset();
+		void SetState( SysState state );
+		void ClearState();
 	}
 }

@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <tuple>
 
 #include "Tree.NativeCommon/system.h"
 
@@ -9,6 +10,8 @@
 
 namespace Tree
 {
+	enum ESysGroupTag;
+
 	enum ESysGroupLoadCode
 	{
 		ESYSGROUPLOAD_SUCCESS,
@@ -22,7 +25,7 @@ namespace Tree
 		virtual void Shutdown() = 0;
 
 
-		virtual ESysGroupLoadCode LoadGroupsFrom( std::vector<std::string> names ) = 0;
-		virtual void UnloadGroups() = 0;
+		virtual ESysGroupLoadCode LoadGroupsFrom( std::vector<std::tuple<std::string, ESysGroupTag>> modules ) = 0;
+		virtual void RemoveWithTag( ESysGroupTag tag ) = 0;
 	};
 }
