@@ -1,12 +1,18 @@
 #pragma once
 
 #include "Tree.Root/interfaces/imemorysystem.h"
-#include "sys.h"
 
 #include <limits>
 #include <new>
 
 #undef max
+
+namespace Tree::Sys
+{
+    // Do a forward declare instead of accessing sys.h directly,
+    // causing a circular dependency
+    IMemorySystem* Memory();
+}
 
 template <typename T, Tree::EMemoryCategory E = Tree::EMEMCATEGORY_GENERAL>
 class TreeHeapAlloc
