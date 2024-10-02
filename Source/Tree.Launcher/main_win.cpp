@@ -7,7 +7,6 @@
 // Common
 int wmain( int argc, wchar_t** argv )
 {
-
 	std::vector<std::string> arguments;
 	arguments.reserve( argc );
 
