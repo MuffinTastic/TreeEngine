@@ -16,11 +16,11 @@ namespace Tree
 	public:
 		static void Bootstrap();
 
-		virtual ESystemInitCode Startup();
-		virtual void Shutdown();
+		virtual ESystemInitCode Startup() override;
+		virtual void Shutdown() override;
 
-		virtual ESysGroupLoadCode LoadGroupsFrom( std::vector<std::tuple<std::string, ESysGroupTag>> modules );
-		virtual void RemoveWithTag( ESysGroupTag tag );
+		virtual ESysGroupLoadCode LoadGroupsFrom( std::vector<std::tuple<std::string, ESysGroupTag>> modules ) override;
+		virtual void RemoveWithTag( ESysGroupTag tag ) override;
 
 	private:
 		void SetSysStates();
