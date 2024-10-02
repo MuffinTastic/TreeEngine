@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Tree.Launcher/interfaces/isysgroupmanager.h"
+#include "Tree.Root/interfaces/imemorysystem.h"
 #include "Tree.Root/interfaces/icmdlinesystem.h"
 #include "Tree.Root/interfaces/ilogsystem.h"
 #include "Tree.Root/interfaces/imanagedhostsystem.h"
@@ -16,6 +17,7 @@ namespace Tree
 	struct SysState
 	{
 		ISysGroupManager* sysGroups = nullptr;
+		IMemorySystem* memory = nullptr;
 		ICmdLineSystem* cmdLine = nullptr;
 		ILogSystem* log = nullptr;
 		IWindowSystem* window = nullptr;
@@ -28,6 +30,7 @@ namespace Tree
 	namespace Sys
 	{
 		ISysGroupManager* SysGroups();
+		IMemorySystem* Memory();
 		SAP_GEN ICmdLineSystem* CmdLine();
 		SAP_GEN ILogSystem* Log();
 		SAP_GEN IWindowSystem* Window();

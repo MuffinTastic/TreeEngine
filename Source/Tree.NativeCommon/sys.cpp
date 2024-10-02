@@ -11,6 +11,12 @@ void Tree::SysState::UpdateFromGroup( SysGroup* sysGroup )
 	}
 
 	{
+		ISystem* system = sysGroup->GetSystem( MEMORYSYSTEM_NAME );
+		if ( system )
+			memory = dynamic_cast<IMemorySystem*>( system );
+	}
+
+	{
 		ISystem* system = sysGroup->GetSystem( CMDLINESYSTEM_NAME );
 		if ( system )
 			cmdLine = dynamic_cast<ICmdLineSystem*>( system );
@@ -46,6 +52,7 @@ namespace Tree::Sys
 	static SysState s_state{};
 
 	ISysGroupManager* SysGroups() { return s_state.sysGroups; }
+	IMemorySystem* Memory() { return s_state.memory; }
 	ICmdLineSystem* CmdLine() { return s_state.cmdLine; }
 	ILogSystem* Log() { return s_state.log; }
 	IWindowSystem* Window() { return s_state.window; }
