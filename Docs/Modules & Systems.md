@@ -51,4 +51,4 @@ Every relevant system is now available in every loaded module, including `Tree.L
 
 This approach is necessary due to the separation of object memory between modules. The `Sys` namespace's pointers must be assigned in every module or you risk accessing a null pointer.
 
-The separation of memory also has an unfortunate side effect: Memory allocated in one module cannot be deallocated in another module, which may happen when using standard library shared pointers. This necessitates the use of a central memory de/allocation facility in Tree Engine, which has not been written as of the writing of this document.
+The separation of memory also has an unfortunate side effect: Memory allocated in one module cannot be deallocated in another module, which may happen when using standard library shared pointers. This necessitates the use of a central memory de/allocation facility.
